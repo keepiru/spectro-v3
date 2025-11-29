@@ -1,5 +1,6 @@
 #include <cmath>
 #include <fft_processor.h>
+#include <fftw3.h>
 #include <stdexcept>
 
 namespace {
@@ -69,4 +70,28 @@ FFTProcessor::compute_magnitudes(const std::vector<float>& samples)
         magnitudes[i] = std::sqrt(real * real + imag * imag);
     }
     return magnitudes;
+}
+
+void
+FFTProcessor::FFTWDeleter::operator()(fftwf_plan plan) const
+{
+    if (plan) {
+        fftwf_destroy_plan(plan);
+    }
+}
+
+void
+FFTProcessor::FFTWDeleter::operator()(float* ptr) const
+{
+    if (ptr) {
+        fftwf_free(ptr);
+    }
+}
+
+void
+FFTProcessor::FFTWDeleter::operator()(fftwf_complex* ptr) const
+{
+    if (ptr) {
+        fftwf_free(ptr);
+    }
 }

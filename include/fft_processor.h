@@ -1,8 +1,11 @@
 #pragma once
 #include <cstdint>
-#include <fftw3.h> // TODO: forward implementation of fftwf_plan_s*
 #include <memory>
 #include <vector>
+
+struct fftwf_plan_s;
+using fftwf_plan = fftwf_plan_s*;
+using fftwf_complex = float[2];
 
 // @brief Processes audio samples using FFT to produce frequency spectrum
 class FFTProcessor
@@ -37,27 +40,14 @@ class FFTProcessor
     std::vector<float> compute_magnitudes(const std::vector<float>& samples);
 
   private:
+    // Custom deleter for FFTW resources (implementation in .cpp)
     struct FFTWDeleter
     {
-        void operator()(fftwf_plan plan) const
-        {
-            if (plan) {
-                fftwf_destroy_plan(plan);
-            }
-        }
-        void operator()(float* ptr) const
-        {
-            if (ptr) {
-                fftwf_free(ptr);
-            }
-        }
-        void operator()(fftwf_complex* ptr) const
-        {
-            if (ptr) {
-                fftwf_free(ptr);
-            }
-        }
+        void operator()(fftwf_plan plan) const;
+        void operator()(float* ptr) const;
+        void operator()(fftwf_complex* ptr) const;
     };
+
     uint32_t m_num_bins;
     using FFTWPlanPtr = std::unique_ptr<std::remove_pointer<fftwf_plan>::type, FFTWDeleter>;
     using FFTWRealPtr = std::unique_ptr<float, FFTWDeleter>;

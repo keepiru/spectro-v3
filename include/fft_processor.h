@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <fftw3.h> // TODO: forward implementation of fftwf_plan_s*
+#include <memory>
 #include <vector>
 
 // @brief Processes audio samples using FFT to produce frequency spectrum
@@ -13,7 +14,7 @@ class FFTProcessor
     explicit FFTProcessor(uint32_t num_bins);
 
     // @brief Destructor
-    ~FFTProcessor() noexcept;
+    ~FFTProcessor() = default;
 
     // Rule of five
     FFTProcessor(const FFTProcessor&) = delete;
@@ -36,12 +37,34 @@ class FFTProcessor
     std::vector<float> compute_magnitudes(const std::vector<float>& samples);
 
   private:
+    struct FFTWDeleter
+    {
+        void operator()(fftwf_plan plan) const
+        {
+            if (plan) {
+                fftwf_destroy_plan(plan);
+            }
+        }
+        void operator()(float* ptr) const
+        {
+            if (ptr) {
+                fftwf_free(ptr);
+            }
+        }
+        void operator()(fftwf_complex* ptr) const
+        {
+            if (ptr) {
+                fftwf_free(ptr);
+            }
+        }
+    };
     uint32_t m_num_bins;
-    fftwf_plan m_fft_plan = nullptr;
-
-    // FFTW3 has its own optimal allocator, so we can't just use std::vector
-    float* m_fft_input;
-    fftwf_complex* m_fft_output;
+    using FFTWPlanPtr = std::unique_ptr<std::remove_pointer<fftwf_plan>::type, FFTWDeleter>;
+    using FFTWRealPtr = std::unique_ptr<float, FFTWDeleter>;
+    using FFTWComplexPtr = std::unique_ptr<fftwf_complex, FFTWDeleter>;
+    FFTWPlanPtr m_fft_plan;
+    FFTWRealPtr m_fft_input;
+    FFTWComplexPtr m_fft_output;
 
     void compute(const std::vector<float>& samples);
     static bool isPowerOf2(uint32_t n);

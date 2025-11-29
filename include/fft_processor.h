@@ -24,7 +24,7 @@ class FFTProcessor
 
     // @brief Get the number of frequency bins
     // @return Number of frequency bins configured for this processor
-    uint32_t getNumBins() const { return m_num_bins; }
+    uint32_t getNumBins() const noexcept { return m_num_bins; }
 
     // @brief Compute the complex FFT from audio samples
     // @param samples Input audio samples (size must be equal to num_bins)

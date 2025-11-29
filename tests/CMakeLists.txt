@@ -11,6 +11,9 @@ target_link_libraries(spectro_tests
         Catch2::Catch2WithMain
 )
 
+# Ensure spectro_lib is built before running tests
+add_dependencies(spectro_tests spectro_lib)
+
 # Discover tests for CTest
 include(CTest)
 include(Catch)

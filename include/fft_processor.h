@@ -67,5 +67,4 @@ class FFTProcessor
     FFTWComplexPtr m_fft_output;
 
     void compute(const std::vector<float>& samples);
-    static bool isPowerOf2(uint32_t n);
 };

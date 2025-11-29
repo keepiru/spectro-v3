@@ -2,10 +2,12 @@
 #include <fft_processor.h>
 #include <stdexcept>
 
+namespace {
 bool
-FFTProcessor::isPowerOf2(uint32_t n)
+isPowerOf2(uint32_t n)
 {
     return (n > 0) && ((n & (n - 1)) == 0);
+}
 }
 
 FFTProcessor::FFTProcessor(uint32_t num_bins)

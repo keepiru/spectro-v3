@@ -2,6 +2,7 @@ find_package(Catch2 3 REQUIRED)
 
 add_executable(spectro_tests
     test_main.cpp
+    test_fft_processor.cpp
 )
 
 target_link_libraries(spectro_tests

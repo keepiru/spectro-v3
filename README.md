@@ -53,7 +53,7 @@ ctest --test-dir build
 ```
 spectro-v3/
 ├── src/              # Implementation files (.cpp)
-├── include/spectro/  # Public headers (.h)
+├── include/          # Public headers (.h)
 ├── tests/            # Catch2 test suites
 ├── docs/             # Architecture and design documentation
 └── build/            # Build artifacts (not tracked)

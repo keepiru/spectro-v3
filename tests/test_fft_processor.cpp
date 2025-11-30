@@ -25,6 +25,24 @@ TEST_CASE("Constructor succeeds", "[fft]")
     }
 }
 
+TEST_CASE("FFTProcessor move/copy semantics", "[fft]")
+{
+    const uint32_t bins = 512;
+    FFTProcessor processor1(bins);
+
+    FFTProcessor processor2(std::move(processor1));
+    REQUIRE(processor2.getNumBins() == bins);
+
+    FFTProcessor processor3(256);
+    processor3 = std::move(processor2);
+    REQUIRE(processor3.getNumBins() == bins);
+
+    static_assert(!std::is_copy_constructible_v<FFTProcessor>);
+    static_assert(!std::is_copy_assignable_v<FFTProcessor>);
+    static_assert(std::is_move_constructible_v<FFTProcessor>);
+    static_assert(std::is_move_assignable_v<FFTProcessor>);
+}
+
 TEST_CASE("FFTProcessor#compute_complex", "[fft]")
 {
     const uint32_t bins = 8; // Small for testing

@@ -19,6 +19,7 @@ set(CMAKE_AUTORCC ON)
 # Library target
 add_library(spectro_lib
     src/fft_processor.cpp
+    src/fft_window.cpp
     # src/audio_capture.cpp
     # (add sources as we create them)
 )

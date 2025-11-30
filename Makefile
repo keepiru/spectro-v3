@@ -1,0 +1,92 @@
+# Makefile for spectro-v3 routine tasks
+# 
+# This wraps CMake commands for convenience. The actual build logic
+# remains in CMakeLists.txt - this just provides shorter commands.
+
+# Suppress "Entering/Leaving directory" messages
+MAKEFLAGS += --no-print-directory
+
+# Configuration
+BUILD_DIR := build
+BUILD_TYPE := Debug
+JOBS := $(shell nproc 2>/dev/null || echo 4)
+
+.PHONY: all build configure clean rebuild test test-verbose coverage \
+        format lint docs help
+
+# Default target
+all: build
+
+# Configure CMake (run once or after CMakeLists.txt changes)
+configure:
+	@echo "Configuring CMake..."
+	cmake -B $(BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+
+# Build the project (configures if needed)
+build: | $(BUILD_DIR)/Makefile
+	@echo "Building..."
+	cmake --build $(BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
+
+# Ensure build directory exists and is configured
+$(BUILD_DIR)/Makefile:
+	@$(MAKE) configure
+
+# Clean build artifacts
+clean:
+	@echo "Cleaning build directory..."
+	rm -rf $(BUILD_DIR)
+
+# Full rebuild (clean + configure + build)
+rebuild: clean configure build
+
+# Run tests via CTest
+test: build
+	@echo "Running tests..."
+	ctest --test-dir $(BUILD_DIR) --output-on-failure
+
+# Run tests with verbose output (useful for TDD)
+test-verbose: build
+	@echo "Running tests (verbose)..."
+	ctest --test-dir $(BUILD_DIR) --output-on-failure --verbose
+
+# Run test executable directly (faster iteration during TDD)
+test-direct: build
+	@echo "Running tests directly..."
+	$(BUILD_DIR)/tests/spectro_tests
+
+# Run single test by name pattern (usage: make test-one NAME=FFTProcessor)
+test-one: build
+	@echo "Running tests matching '$(NAME)'..."
+	ctest --test-dir $(BUILD_DIR) --output-on-failure -R "$(NAME)"
+
+# Quick TDD cycle: build and test in one command
+tdd: test-direct
+
+# Release build
+release:
+	@echo "Building release..."
+	cmake -B $(BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=Release
+	cmake --build $(BUILD_DIR) --config Release -j $(JOBS)
+
+# Help target
+help:
+	@echo "Spectro-v3 Build System"
+	@echo ""
+	@echo "Build Targets:"
+	@echo "  make              - Build the project (default)"
+	@echo "  make configure    - Configure CMake (run after CMakeLists.txt changes)"
+	@echo "  make build        - Build the project"
+	@echo "  make clean        - Remove build directory"
+	@echo "  make rebuild      - Clean + configure + build"
+	@echo "  make release      - Build with Release configuration"
+	@echo ""
+	@echo "Test Targets (TDD Workflow):"
+	@echo "  make test         - Run all tests via CTest"
+	@echo "  make test-verbose - Run tests with verbose output"
+	@echo "  make test-direct  - Run test executable directly (faster)"
+	@echo "  make test-one NAME=<pattern> - Run tests matching pattern"
+	@echo "  make tdd          - Quick build + test cycle"
+	@echo ""
+	@echo "Configuration:"
+	@echo "  BUILD_TYPE=$(BUILD_TYPE) (Debug/Release/RelWithDebInfo)"
+	@echo "  JOBS=$(JOBS) (parallel jobs)"

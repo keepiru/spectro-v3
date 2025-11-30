@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <memory>
+#include <span>
 #include <vector>
 
 struct fftwf_plan_s;
@@ -43,7 +44,7 @@ class FFTProcessor
      * @return Vector of complex FFT output (size will be num_bins / 2 + 1)
      * @throws std::invalid_argument if samples.size() != num_bins
      */
-    std::vector<fftwf_complex> compute_complex(const std::vector<float>& samples);
+    std::vector<fftwf_complex> compute_complex(const std::span<float>& samples);
 
     /**
      * @brief Compute the frequency magnitudes from audio samples
@@ -51,7 +52,7 @@ class FFTProcessor
      * @return Vector of frequency magnitudes (size will be num_bins / 2 + 1)
      * @throws std::invalid_argument if samples.size() != num_bins
      */
-    std::vector<float> compute_magnitudes(const std::vector<float>& samples);
+    std::vector<float> compute_magnitudes(const std::span<float>& samples);
 
   private:
     // Custom deleter for FFTW resources (implementation in .cpp)
@@ -70,5 +71,5 @@ class FFTProcessor
     FFTWRealPtr m_fft_input;
     FFTWComplexPtr m_fft_output;
 
-    void compute(const std::vector<float>& samples);
+    void compute(const std::span<float>& samples);
 };

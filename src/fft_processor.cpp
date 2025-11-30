@@ -1,6 +1,7 @@
 #include <cmath>
 #include <fft_processor.h>
 #include <fftw3.h>
+#include <span>
 #include <stdexcept>
 
 namespace {
@@ -33,7 +34,7 @@ FFTProcessor::FFTProcessor(uint32_t num_bins)
 }
 
 void
-FFTProcessor::compute(const std::vector<float>& samples)
+FFTProcessor::compute(const std::span<float>& samples)
 {
     if (samples.size() != m_num_bins) {
         throw std::invalid_argument("Input samples size must be equal to num_bins");
@@ -45,7 +46,7 @@ FFTProcessor::compute(const std::vector<float>& samples)
 }
 
 std::vector<fftwf_complex>
-FFTProcessor::compute_complex(const std::vector<float>& samples)
+FFTProcessor::compute_complex(const std::span<float>& samples)
 {
     compute(samples);
 
@@ -59,7 +60,7 @@ FFTProcessor::compute_complex(const std::vector<float>& samples)
 }
 
 std::vector<float>
-FFTProcessor::compute_magnitudes(const std::vector<float>& samples)
+FFTProcessor::compute_magnitudes(const std::span<float>& samples)
 {
     compute(samples);
 

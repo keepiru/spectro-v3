@@ -42,6 +42,8 @@ class FFTProcessor
      * @brief Compute the complex FFT from audio samples
      * @param samples Input audio samples (size must be equal to num_bins)
      * @return Vector of complex FFT output (size will be num_bins / 2 + 1)
+     *         Output bins represent frequencies: [DC, 1*Fs/N, 2*Fs/N, ..., Nyquist]
+     *         Where Fs is the sampling frequency and N is num_bins
      * @throws std::invalid_argument if samples.size() != num_bins
      */
     std::vector<fftwf_complex> compute_complex(const std::span<float>& samples);
@@ -50,6 +52,8 @@ class FFTProcessor
      * @brief Compute the frequency magnitudes from audio samples
      * @param samples Input audio samples (size must be equal to num_bins)
      * @return Vector of frequency magnitudes (size will be num_bins / 2 + 1)
+     *         Output bins represent freqencies: [DC, 1*Fs/N, 2*Fs/N, ..., Nyquist]
+     *         Where Fs is the sampling frequency and N is num_bins
      * @throws std::invalid_argument if samples.size() != num_bins
      */
     std::vector<float> compute_magnitudes(const std::span<float>& samples);

@@ -24,7 +24,7 @@
 # 
 # target_link_libraries(qt6_gui_lib
 #     PUBLIC
-#         spectro_lib        # DSP library (no Qt dependencies)
+#         spectro_dsp        # DSP library (no Qt dependencies)
 #         Qt6::Widgets
 #         Qt6::Multimedia
 # )

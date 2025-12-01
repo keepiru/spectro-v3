@@ -17,7 +17,9 @@ Contains the core digital signal processing components with **zero Qt dependenci
 
 **Testing:** `dsp/tests/` contains Catch2 unit tests for all DSP components, focusing on correctness, thread safety, and edge cases.
 
-**Build Target:** `spectro_lib` (planned rename to `spectro_dsp` in future commit)
+**Build Targets:** 
+- `spectro_dsp` - DSP library
+- `spectro_dsp_tests` - Test executable
 
 ### `qt6_gui/` - Qt6 GUI Application
 Contains all Qt6-specific code including visualization widgets, audio capture, and the main application executable. This separation allows for potential alternative GUI implementations (web-based, terminal-based, etc.) in the future.

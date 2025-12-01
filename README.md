@@ -72,4 +72,8 @@ The Qt6 GUI (`qt6_gui/`) will contain all Qt-specific code including audio captu
 
 This project follows Test-Driven Development (TDD) practices. See `TODO.md` for current work items and `docs/architecture.md` for system design.
 
-**Note**: Target renaming (e.g., `spectro_lib` → `spectro_dsp`) is planned for a future commit after this reorganization is complete.
+### Build Targets
+
+- `spectro_dsp` - DSP library (pure C++, no Qt dependencies)
+- `spectro_dsp_tests` - DSP unit tests
+- `spectro` - Main Qt6 GUI application (future)

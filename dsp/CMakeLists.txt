@@ -3,13 +3,13 @@
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FFTW3 REQUIRED fftw3f)
 
-add_library(spectro_lib
+add_library(spectro_dsp
     src/fft_processor.cpp
     src/fft_window.cpp
     src/audio_buffer.cpp
 )
 
-target_include_directories(spectro_lib
+target_include_directories(spectro_dsp
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
@@ -17,12 +17,12 @@ target_include_directories(spectro_lib
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-target_link_libraries(spectro_lib
+target_link_libraries(spectro_dsp
     PUBLIC
         ${FFTW3_LIBRARIES}
 )
 
-target_include_directories(spectro_lib SYSTEM PUBLIC
+target_include_directories(spectro_dsp SYSTEM PUBLIC
     ${FFTW3_INCLUDE_DIRS}
 )
 

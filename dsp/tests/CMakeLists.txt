@@ -1,22 +1,22 @@
 find_package(Catch2 3 REQUIRED)
 
-add_executable(spectro_tests
+add_executable(spectro_dsp_tests
     test_main.cpp
     test_fft_processor.cpp
     test_fft_window.cpp
     test_audio_buffer.cpp
 )
 
-target_link_libraries(spectro_tests
+target_link_libraries(spectro_dsp_tests
     PRIVATE
-        spectro_lib
+        spectro_dsp
         Catch2::Catch2WithMain
 )
 
-# Ensure spectro_lib is built before running tests
-add_dependencies(spectro_tests spectro_lib)
+# Ensure spectro_dsp is built before running tests
+add_dependencies(spectro_dsp_tests spectro_dsp)
 
 # Discover tests for CTest
 include(CTest)
 include(Catch)
-catch_discover_tests(spectro_tests)
+catch_discover_tests(spectro_dsp_tests)

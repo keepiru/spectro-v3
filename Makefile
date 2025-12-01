@@ -52,7 +52,7 @@ test-verbose: build
 # Run test executable directly (faster iteration during TDD)
 test-direct: build
 	@echo "Running tests directly..."
-	$(BUILD_DIR)/tests/spectro_tests
+	$(BUILD_DIR)/dsp/tests/spectro_dsp_tests
 
 # Run single test by name pattern (usage: make test-one NAME=FFTProcessor)
 test-one: build

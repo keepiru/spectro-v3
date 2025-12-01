@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <ifft_processor.h>
 #include <memory>
 #include <span>
 #include <vector>
@@ -11,7 +12,7 @@ using fftwf_complex = float[2];
 /**
  * @brief Processes audio samples using FFT to produce frequency spectrum
  */
-class FFTProcessor
+class FFTProcessor : public IFFTProcessor
 {
   public:
     /**
@@ -24,7 +25,7 @@ class FFTProcessor
     /**
      * @brief Destructor
      */
-    ~FFTProcessor() = default;
+    ~FFTProcessor() override = default;
 
     // Rule of five
     FFTProcessor(const FFTProcessor&) = delete;
@@ -36,7 +37,7 @@ class FFTProcessor
      * @brief Get the number of frequency bins
      * @return Number of frequency bins configured for this processor
      */
-    uint32_t getNumBins() const noexcept { return m_num_bins; }
+    uint32_t getNumBins() const noexcept override { return m_num_bins; }
 
     /**
      * @brief Compute the complex FFT from audio samples
@@ -46,7 +47,7 @@ class FFTProcessor
      *         Where Fs is the sampling frequency and N is num_bins
      * @throws std::invalid_argument if samples.size() != num_bins
      */
-    std::vector<fftwf_complex> compute_complex(const std::span<float>& samples);
+    std::vector<fftwf_complex> compute_complex(const std::span<float>& samples) override;
 
     /**
      * @brief Compute the frequency magnitudes from audio samples
@@ -56,7 +57,7 @@ class FFTProcessor
      *         Where Fs is the sampling frequency and N is num_bins
      * @throws std::invalid_argument if samples.size() != num_bins
      */
-    std::vector<float> compute_magnitudes(const std::span<float>& samples);
+    std::vector<float> compute_magnitudes(const std::span<float>& samples) override;
 
   private:
     // Custom deleter for FFTW resources (implementation in .cpp)

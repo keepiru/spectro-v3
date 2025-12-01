@@ -5,6 +5,7 @@ add_executable(spectro_dsp_tests
     test_fft_processor.cpp
     test_fft_window.cpp
     test_audio_buffer.cpp
+    test_mock_fft_processor.cpp
 )
 
 target_link_libraries(spectro_dsp_tests

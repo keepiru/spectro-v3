@@ -16,27 +16,23 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# Library target
+# DSP Library target (pure C++, no Qt dependencies)
 add_library(spectro_lib
-    src/fft_processor.cpp
-    src/fft_window.cpp
-    src/audio_buffer.cpp
-    # src/audio_capture.cpp
-    # (add sources as we create them)
+    dsp/src/fft_processor.cpp
+    dsp/src/fft_window.cpp
+    dsp/src/audio_buffer.cpp
 )
 
 target_include_directories(spectro_lib
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/dsp/include>
+        $<INSTALL_INTERFACE:dsp/include>
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/dsp/src
 )
 
 target_link_libraries(spectro_lib
     PUBLIC
-        Qt6::Widgets
-        Qt6::Multimedia
         ${FFTW3_LIBRARIES}
 )
 
@@ -44,10 +40,9 @@ target_include_directories(spectro_lib SYSTEM PUBLIC
     ${FFTW3_INCLUDE_DIRS}
 )
 
-# Main executable (placeholder for future)
-# add_executable(spectro src/main.cpp)
-# target_link_libraries(spectro PRIVATE spectro_lib)
+# Qt6 GUI (future - will contain main executable and GUI components)
+# add_subdirectory(qt6_gui)
 
 # Enable testing
 enable_testing()
-add_subdirectory(tests)
+add_subdirectory(dsp/tests)

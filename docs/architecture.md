@@ -1,18 +1,33 @@
 # Architecture
 
-## Components
+## Project Organization
 
-- **FFTProcessor** - Computes FFT on audio samples, outputs frequency domain data
+The project is organized into two main directories to create a clean separation between the DSP library and GUI application:
+
+### `dsp/` - DSP Library (Pure C++)
+Contains the core digital signal processing components with **zero Qt dependencies**. This library depends only on FFTW3 and the C++ standard library, making it reusable in non-Qt contexts.
+
+**Components:**
+- **FFTProcessor** (`dsp/include/fft_processor.h`) - Computes FFT on audio samples, outputs frequency domain data
+- **FFTWindow** (`dsp/include/fft_window.h`) - Window functions (Hann, Hamming, etc.) for FFT preprocessing
+- **AudioBuffer** (`dsp/include/audio_buffer.h`) - Unbounded multi-channel audio storage with efficient append
+  - Thread-safe vector with reserve strategy
+  - Efficient random access for scrubbing
+  - Memory growth strategy for long recordings
+
+**Testing:** `dsp/tests/` contains Catch2 unit tests for all DSP components, focusing on correctness, thread safety, and edge cases.
+
+**Build Target:** `spectro_lib` (planned rename to `spectro_dsp` in future commit)
+
+### `qt6_gui/` - Qt6 GUI Application
+Contains all Qt6-specific code including visualization widgets, audio capture, and the main application executable. This separation allows for potential alternative GUI implementations (web-based, terminal-based, etc.) in the future.
+
+**Components (planned):**
 - **AudioCapture** - Captures real-time audio from system input device
   - QAudioSource for microphone input
   - Signal emission on new audio chunks
   - Handle buffer overruns gracefully
   - Tests: mock audio input, signal emission, error handling
-- **AudioBuffer** - Unbounded multi-channel audio storage with efficient append
-  - Thread-safe vector with reserve strategy
-  - Efficient random access for scrubbing
-  - Memory growth strategy for long recordings
-  - Tests: append performance, memory usage, thread safety
 - **SpectrogramView** - Waterfall display
   - Scrolling texture/pixmap for history
   - Color mapping (magnitude to RGB)
@@ -32,6 +47,13 @@
   - Layout: Spectrogram top, Spectrum bottom, Config right
   - Menu bar (File, View, Help)
   - Status bar (sample rate, buffer size, CPU usage)
+- **main.cpp** - Application entry point
+
+**Testing:** `qt6_gui/tests/` will contain tests for GUI components (future)
+
+**Build Targets (future):** 
+- `qt6_gui_lib` - GUI component library
+- `spectro` - Main executable
 
 ## Architecture Patterns 
 - Qt signal/slot for decoupled communication

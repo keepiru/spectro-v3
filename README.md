@@ -52,13 +52,24 @@ ctest --test-dir build
 
 ```
 spectro-v3/
-├── src/              # Implementation files (.cpp)
-├── include/          # Public headers (.h)
-├── tests/            # Catch2 test suites
+├── dsp/              # DSP library (pure C++, no Qt dependencies)
+│   ├── include/      # Public DSP headers (.h)
+│   ├── src/          # DSP implementation files (.cpp)
+│   └── tests/        # DSP unit tests (Catch2)
+├── qt6_gui/          # Qt6-based GUI application
+│   ├── include/      # GUI component headers (.h)
+│   ├── src/          # GUI implementation and main.cpp
+│   └── tests/        # GUI component tests (future)
 ├── docs/             # Architecture and design documentation
 └── build/            # Build artifacts (not tracked)
 ```
 
+The DSP library (`dsp/`) is a standalone component with zero Qt dependencies, depending only on FFTW3 and the C++ standard library. This makes it reusable in non-Qt contexts and allows for alternative GUI implementations in the future.
+
+The Qt6 GUI (`qt6_gui/`) will contain all Qt-specific code including audio capture (Qt Multimedia), visualization widgets, and the main application executable. Future alternative GUIs (e.g., web-based, terminal-based) would reside in separate directories at the same level.
+
 ## Development
 
 This project follows Test-Driven Development (TDD) practices. See `TODO.md` for current work items and `docs/architecture.md` for system design.
+
+**Note**: Target renaming (e.g., `spectro_lib` → `spectro_dsp`) is planned for a future commit after this reorganization is complete.

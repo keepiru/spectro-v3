@@ -4,6 +4,7 @@ add_executable(spectro_tests
     test_main.cpp
     test_fft_processor.cpp
     test_fft_window.cpp
+    test_audio_buffer.cpp
 )
 
 target_link_libraries(spectro_tests

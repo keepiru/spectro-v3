@@ -8,12 +8,12 @@ TEST_CASE("AudioBuffer basic functionality", "[AudioBuffer]")
     AudioBuffer buffer(sample_rate);
 
     std::vector<float> samples = { 0.1f, 0.2f, 0.3f, 0.4f };
-    buffer.add_frames(samples);
+    buffer.add_samples(samples);
 
     SECTION("Check properties")
     {
         REQUIRE(buffer.sample_rate() == sample_rate);
-        REQUIRE(buffer.numFrames() == samples.size());
+        REQUIRE(buffer.numSamples() == samples.size());
     }
 
     SECTION("Retrieve all samples")
@@ -50,7 +50,7 @@ TEST_CASE("AudioBuffer basic functionality", "[AudioBuffer]")
     SECTION("Append more samples")
     {
         std::vector<float> new_samples = { 0.5f, 0.6f };
-        buffer.add_frames(new_samples);
+        buffer.add_samples(new_samples);
 
         auto retrieved = buffer.get_samples(0, samples.size() + new_samples.size());
         REQUIRE(retrieved == std::vector<float>({ 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f }));
@@ -64,13 +64,13 @@ TEST_CASE("AudioBuffer concurrent access", "[AudioBuffer][concurrency]")
     auto writer = [&buffer]() {
         for (int i = 0; i < 1000; ++i) {
             std::vector<float> samples = { static_cast<float>(i) };
-            buffer.add_frames(samples);
+            buffer.add_samples(samples);
         }
     };
 
     auto reader = [&buffer]() {
         for (int i = 0; i < 1000; ++i) {
-            volatile auto samples = buffer.get_samples(0, buffer.numFrames());
+            volatile auto samples = buffer.get_samples(0, buffer.numSamples());
         }
     };
 
@@ -82,5 +82,5 @@ TEST_CASE("AudioBuffer concurrent access", "[AudioBuffer][concurrency]")
     t2.join();
     t3.join();
 
-    REQUIRE(buffer.numFrames() == 1000);
+    REQUIRE(buffer.numSamples() == 1000);
 }

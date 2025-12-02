@@ -29,24 +29,24 @@ class AudioBuffer
     size_t sample_rate() const { return m_sample_rate; }
 
     /**
-     * @brief Get the total number of frames stored.
-     * @return Number of frames.
+     * @brief Get the total number of samples stored.
+     * @return Number of samples.
      */
-    size_t numFrames() const;
+    size_t numSamples() const;
 
     /**
-     * @brief Add audio frames to buffer.
+     * @brief Add audio samples to buffer.
      * @param samples Vector of samples to append.
      */
-    void add_frames(const std::vector<float>& samples);
+    void add_samples(const std::vector<float>& samples);
 
     /**
      * @brief Get samples from the buffer.
-     * @param start_frame Starting frame index, possibly negative.
-     * @param frame_count Number of frames to retrieve.
-     * @return Vector of samples.  Invalid frames are filled with zeros.
+     * @param start_sample Starting sample index, possibly negative.
+     * @param sample_count Number of samples to retrieve.
+     * @return Vector of samples.  Invalid samples are filled with zeros.
      */
-    std::vector<float> get_samples(int64_t start_frame, size_t frame_count) const;
+    std::vector<float> get_samples(int64_t start_sample, size_t sample_count) const;
 
   private:
     mutable std::mutex m_mutex;

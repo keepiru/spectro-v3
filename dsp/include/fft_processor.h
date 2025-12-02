@@ -53,7 +53,7 @@ class FFTProcessor : public IFFTProcessor
      * @brief Compute the frequency magnitudes from audio samples
      * @param samples Input audio samples (size must be equal to transform_size)
      * @return Vector of frequency magnitudes (size will be transform_size / 2 + 1)
-     *         Output bins represent freqencies: [DC, 1*Fs/N, 2*Fs/N, ..., Nyquist]
+     *         Output bins represent frequencies: [DC, 1*Fs/N, 2*Fs/N, ..., Nyquist]
      *         Where Fs is the sampling frequency and N is transform_size
      * @throws std::invalid_argument if samples.size() != transform_size
      */

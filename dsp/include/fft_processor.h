@@ -47,7 +47,7 @@ class FFTProcessor : public IFFTProcessor
      *         Where Fs is the sampling frequency and N is transform_size
      * @throws std::invalid_argument if samples.size() != transform_size
      */
-    std::vector<fftwf_complex> compute_complex(const std::span<float>& samples) override;
+    std::vector<fftwf_complex> compute_complex(const std::span<float>& samples) const override;
 
     /**
      * @brief Compute the frequency magnitudes from audio samples
@@ -57,7 +57,7 @@ class FFTProcessor : public IFFTProcessor
      *         Where Fs is the sampling frequency and N is transform_size
      * @throws std::invalid_argument if samples.size() != transform_size
      */
-    std::vector<float> compute_magnitudes(const std::span<float>& samples) override;
+    std::vector<float> compute_magnitudes(const std::span<float>& samples) const override;
 
   private:
     // Custom deleter for FFTW resources (implementation in .cpp)
@@ -76,5 +76,5 @@ class FFTProcessor : public IFFTProcessor
     FFTWRealPtr m_fft_input;
     FFTWComplexPtr m_fft_output;
 
-    void compute(const std::span<float>& samples);
+    void compute(const std::span<float>& samples) const;
 };

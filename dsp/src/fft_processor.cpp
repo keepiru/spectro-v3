@@ -34,7 +34,7 @@ FFTProcessor::FFTProcessor(uint32_t transform_size)
 }
 
 void
-FFTProcessor::compute(const std::span<float>& samples)
+FFTProcessor::compute(const std::span<float>& samples) const
 {
     if (samples.size() != m_transform_size) {
         throw std::invalid_argument("Input samples size must be equal to transform_size");
@@ -46,7 +46,7 @@ FFTProcessor::compute(const std::span<float>& samples)
 }
 
 std::vector<fftwf_complex>
-FFTProcessor::compute_complex(const std::span<float>& samples)
+FFTProcessor::compute_complex(const std::span<float>& samples) const
 {
     compute(samples);
 
@@ -60,7 +60,7 @@ FFTProcessor::compute_complex(const std::span<float>& samples)
 }
 
 std::vector<float>
-FFTProcessor::compute_magnitudes(const std::span<float>& samples)
+FFTProcessor::compute_magnitudes(const std::span<float>& samples) const
 {
     compute(samples);
 

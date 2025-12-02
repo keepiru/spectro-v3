@@ -37,6 +37,35 @@ TEST_CASE("AudioBuffer basic functionality", "[AudioBuffer]")
         REQUIRE(retrieved_right == std::vector<float>({ 0.7f, 0.8f }));
     }
 
+    SECTION("Retrieve samples zero-padded before start")
+    {
+        auto retrieved_left = buffer.get_channel_samples(0, -2, 4);
+        auto retrieved_right = buffer.get_channel_samples(1, -2, 4);
+
+        REQUIRE(retrieved_left == std::vector<float>({ 0.0f, 0.0f, 0.1f, 0.2f }));
+        REQUIRE(retrieved_right == std::vector<float>({ 0.0f, 0.0f, 0.5f, 0.6f }));
+    }
+
+    SECTION("Retrieve samples zero-padded after end")
+    {
+        auto retrieved_left = buffer.get_channel_samples(0, 2, 4);
+        auto retrieved_right = buffer.get_channel_samples(1, 2, 4);
+
+        REQUIRE(retrieved_left == std::vector<float>({ 0.3f, 0.4f, 0.0f, 0.0f }));
+        REQUIRE(retrieved_right == std::vector<float>({ 0.7f, 0.8f, 0.0f, 0.0f }));
+    }
+
+    SECTION("Retrieve samples zero-padded on both sides")
+    {
+        auto retrieved_left = buffer.get_channel_samples(0, -2, 8);
+        auto retrieved_right = buffer.get_channel_samples(1, -2, 8);
+
+        REQUIRE(retrieved_left ==
+                std::vector<float>({ 0.0f, 0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.0f, 0.0f }));
+        REQUIRE(retrieved_right ==
+                std::vector<float>({ 0.0f, 0.0f, 0.5f, 0.6f, 0.7f, 0.8f, 0.0f, 0.0f }));
+    }
+
     SECTION("Append more samples")
     {
         std::vector<float> new_left = { 0.9f, 1.0f };
@@ -64,12 +93,6 @@ TEST_CASE("AudioBuffer basic functionality", "[AudioBuffer]")
         std::vector<float> short_right_channel = { 0.5f, 0.6f }; // only 2 samples
         std::vector<std::vector<float>> bad_samples = { left_channel, short_right_channel };
         REQUIRE_THROWS_AS(buffer.add_frames_planar(bad_samples), std::invalid_argument);
-    }
-
-    SECTION("Out of range access")
-    {
-        REQUIRE_THROWS_AS(buffer.get_channel_samples(2, 0, 1), std::out_of_range);
-        REQUIRE_THROWS_AS(buffer.get_channel_samples(0, 0, 10), std::out_of_range);
     }
 }
 

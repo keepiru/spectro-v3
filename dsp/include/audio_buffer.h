@@ -53,13 +53,14 @@ class AudioBuffer
     /**
      * @brief Get samples for a specific channel.
      * @param channel Channel index.
-     * @param start_frame Starting frame index.
+     * @param start_frame Starting frame index, possibly negative.
      * @param frame_count Number of frames to retrieve.
-     * @return Vector of samples for the specified channel.
-     * @throws std::out_of_range if channel index or frame range is invalid.
+     * @return Vector of samples for the specified channel.  Invalid frames are
+     * filled with zeros.
+     * @throws std::out_of_range if channel index is invalid.
      */
     std::vector<float> get_channel_samples(size_t channel,
-                                           size_t start_frame,
+                                           int64_t start_frame,
                                            size_t frame_count) const;
 
   private:

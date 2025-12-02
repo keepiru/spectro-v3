@@ -30,14 +30,22 @@ AudioBuffer::add_frames_planar(const std::vector<std::vector<float>>& samples)
 }
 
 std::vector<float>
-AudioBuffer::get_channel_samples(size_t channel, size_t start_frame, size_t frame_count) const
+AudioBuffer::get_channel_samples(size_t channel, int64_t start_frame, size_t frame_count) const
 {
     if (channel >= m_channels) {
         throw std::out_of_range("Channel index out of range");
     }
-    if (start_frame + frame_count > m_data[channel].size()) {
-        throw std::out_of_range("Requested frame range out of bounds");
+
+    std::vector<float> result(frame_count, 0.0f);
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    const auto& channel_data = m_data[channel];
+    for (size_t i = 0; i < frame_count; ++i) {
+        int64_t frame_index = start_frame + static_cast<int64_t>(i);
+        // Only copy from available data.  Everything else remains zeroed.
+        if (frame_index >= 0 && static_cast<size_t>(frame_index) < channel_data.size()) {
+            result[i] = channel_data[frame_index];
+        }
     }
-    return std::vector<float>(m_data[channel].begin() + start_frame,
-                              m_data[channel].begin() + start_frame + frame_count);
+    return result;
 }

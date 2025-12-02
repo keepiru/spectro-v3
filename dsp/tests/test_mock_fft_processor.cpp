@@ -3,8 +3,8 @@
 
 TEST_CASE("MockFFTProcessor returns fixed values", "[MockFFTProcessor]")
 {
-    const uint32_t num_bins = 8;
-    MockFFTProcessor mock_fft(num_bins);
+    const uint32_t transform_size = 8;
+    MockFFTProcessor mock_fft(transform_size);
 
     std::vector<float> samples = { 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f };
 

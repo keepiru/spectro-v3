@@ -91,21 +91,21 @@ TEST_CASE("FFTWindow#apply", "[fft_window]")
 
 TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
 {
-    const uint32_t bins = 1024;
+    const uint32_t transform_size = 1024;
     const float frequency = 12.5; // Frequency in bins, not an integer divisor of bins
-    FFTProcessor processor(bins);
+    FFTProcessor processor(transform_size);
 
     // Generate a sine wave that does not fit an integer number of cycles in the window
-    std::vector<float> samples(bins);
-    for (size_t i = 0; i < bins; ++i) {
-        samples[i] = std::sin(2.0f * std::numbers::pi * frequency * i / bins);
+    std::vector<float> samples(transform_size);
+    for (size_t i = 0; i < transform_size; ++i) {
+        samples[i] = std::sin(2.0f * std::numbers::pi * frequency * i / transform_size);
     }
 
     // Compute spectrum without windowing
     auto spectrum_no_window = processor.compute_magnitudes(samples);
 
     // Apply Hann window and compute spectrum
-    FFTWindow hann_window(bins, FFTWindow::Type::Hann);
+    FFTWindow hann_window(transform_size, FFTWindow::Type::Hann);
     auto windowed_samples = hann_window.apply(samples);
     auto spectrum_with_window = processor.compute_magnitudes(windowed_samples);
 

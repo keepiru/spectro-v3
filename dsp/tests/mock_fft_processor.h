@@ -7,7 +7,9 @@
 /**
  * @brief Mock implementation of IFFTProcessor for testing
  *
- * This mock processor returns predefined results for FFT computations.
+ * This mock processor just returns the sample data as both the real and
+ * imaginary parts of the complex FFT output, and as the magnitudes.  It allows
+ * predefined results to be set for testing purposes.
  */
 class MockFFTProcessor : public IFFTProcessor
 {
@@ -17,21 +19,14 @@ class MockFFTProcessor : public IFFTProcessor
      */
     MockFFTProcessor(uint32_t bins)
       : m_num_bins(bins)
-      , m_results()
     {
     }
-
-    /**
-     * @brief add a predefined result to return
-     * @param result The result vector to add
-     */
-    void addResult(const std::vector<float>& result) { m_results.push_back(result); }
 
     uint32_t getNumBins() const noexcept override { return m_num_bins; }
 
     /**
      * @brief Return predefined complex FFT results
-     * @param samples Input audio samples (size must be equal to num_bins).  Ignored in this mock.
+     * @param samples Input audio samples (size must be equal to num_bins).
      * @return Vector of complex FFT output
      * @throws std::invalid_argument if samples.size() != num_bins
      */
@@ -41,13 +36,10 @@ class MockFFTProcessor : public IFFTProcessor
             throw std::invalid_argument("Input sample size does not match number of bins");
         }
 
-        auto result = m_results.front();
-        m_results.erase(m_results.begin());
-
-        std::vector<fftwf_complex> ret(result.size());
-        for (size_t i = 0; i < result.size(); ++i) {
-            ret[i][0] = result[i]; // Real part
-            ret[i][1] = result[i]; // Imaginary part
+        std::vector<fftwf_complex> ret(m_num_bins / 2 + 1);
+        for (size_t i = 0; i < ret.size(); ++i) {
+            ret[i][0] = samples[i]; // Real part
+            ret[i][1] = samples[i]; // Imaginary part
         }
         return ret;
     }
@@ -64,12 +56,11 @@ class MockFFTProcessor : public IFFTProcessor
             throw std::invalid_argument("Input sample size does not match number of bins");
         }
 
-        auto ret = m_results.front();
-        m_results.erase(m_results.begin());
+        std::vector<float> ret(m_num_bins / 2 + 1);
+        std::copy(samples.begin(), samples.begin() + ret.size(), ret.begin());
         return ret;
     }
 
   private:
     uint32_t m_num_bins;
-    std::vector<std::vector<float>> m_results;
 };

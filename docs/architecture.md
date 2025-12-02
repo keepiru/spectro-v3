@@ -10,10 +10,11 @@ Contains the core digital signal processing components with **zero Qt dependenci
 **Components:**
 - **FFTProcessor** (`dsp/include/fft_processor.h`) - Computes FFT on audio samples, outputs frequency domain data
 - **FFTWindow** (`dsp/include/fft_window.h`) - Window functions (Hann, Hamming, etc.) for FFT preprocessing
-- **AudioBuffer** (`dsp/include/audio_buffer.h`) - Unbounded multi-channel audio storage with efficient append
-  - Thread-safe vector with reserve strategy
+- **AudioBuffer** (`dsp/include/audio_buffer.h`) - Unbounded single-channel audio storage with efficient append
+  - Thread-safe vector for mono audio
   - Efficient random access for scrubbing
   - Memory growth strategy for long recordings
+  - Channel mixing/selection handled at the capture layer
 
 **Testing:** `dsp/tests/` contains Catch2 unit tests for all DSP components, focusing on correctness, thread safety, and edge cases.
 

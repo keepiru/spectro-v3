@@ -2,21 +2,21 @@
 #include <exception>
 
 size_t
-AudioBuffer::numSamples() const
+SampleBuffer::numSamples() const
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_data.size();
 }
 
 void
-AudioBuffer::add_samples(const std::vector<float>& samples)
+SampleBuffer::add_samples(const std::vector<float>& samples)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_data.insert(m_data.end(), samples.begin(), samples.end());
 }
 
 std::vector<float>
-AudioBuffer::get_samples(int64_t start_sample, size_t sample_count) const
+SampleBuffer::get_samples(int64_t start_sample, size_t sample_count) const
 {
     std::vector<float> result(sample_count, 0.0f);
     std::lock_guard<std::mutex> lock(m_mutex);

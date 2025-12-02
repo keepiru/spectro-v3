@@ -9,14 +9,14 @@
  * Stores single-channel audio.  Supports random access for scrubbing.
  * Thread-safe for concurrent reads and writes.
  */
-class AudioBuffer
+class SampleBuffer
 {
   public:
     /**
-     * @brief Construct an AudioBuffer.
+     * @brief Construct a SampleBuffer.
      * @param sample_rate Sample rate in Hz.
      */
-    explicit AudioBuffer(size_t sample_rate)
+    explicit SampleBuffer(size_t sample_rate)
       : m_sample_rate(sample_rate)
       , m_data()
     {

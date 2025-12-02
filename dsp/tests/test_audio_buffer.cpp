@@ -2,10 +2,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <thread>
 
-TEST_CASE("AudioBuffer basic functionality", "[AudioBuffer]")
+TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
 {
     const size_t sample_rate = 44100;
-    AudioBuffer buffer(sample_rate);
+    SampleBuffer buffer(sample_rate);
 
     std::vector<float> samples = { 0.1f, 0.2f, 0.3f, 0.4f };
     buffer.add_samples(samples);
@@ -57,9 +57,9 @@ TEST_CASE("AudioBuffer basic functionality", "[AudioBuffer]")
     }
 }
 
-TEST_CASE("AudioBuffer concurrent access", "[AudioBuffer][concurrency]")
+TEST_CASE("SampleBuffer concurrent access", "[SampleBuffer][concurrency]")
 {
-    AudioBuffer buffer(44100);
+    SampleBuffer buffer(44100);
 
     auto writer = [&buffer]() {
         for (int i = 0; i < 1000; ++i) {

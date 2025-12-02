@@ -8,13 +8,22 @@ The project is organized into two main directories to create a clean separation 
 Contains the core digital signal processing components with **zero Qt dependencies**. This library depends only on FFTW3 and the C++ standard library, making it reusable in non-Qt contexts.
 
 **Components:**
-- **FFTProcessor** (`dsp/include/fft_processor.h`) - Computes FFT on audio samples, outputs frequency domain data
-- **FFTWindow** (`dsp/include/fft_window.h`) - Window functions (Hann, Hamming, etc.) for FFT preprocessing
-- **SampleBuffer** (`dsp/include/sample_buffer.h`) - Unbounded single-channel audio storage with efficient append
-  - Thread-safe vector for mono audio
+- **IFFTProcessor** (`dsp/include/ifft_processor.h`) - Interface for FFT operations enabling dependency injection
+- **FFTProcessor** (`dsp/include/fft_processor.h`) - FFTW-based FFT implementation
+  - Computes FFT on audio samples, outputs frequency domain data
+- **FFTWindow** (`dsp/include/fft_window.h`) - Window functions for spectral leakage reduction
+  - Precomputes window coefficients at construction
+  - Supported types: Rectangular, Hann
+  - Applies windowing to input samples before FFT
+- **SampleBuffer** (`dsp/include/sample_buffer.h`) - Thread-safe unbounded audio sample storage
+  - Thread-safe vector for mono audio with mutex protection
   - Efficient random access for scrubbing
+  - Zero-padding for out-of-bounds access (supports negative indices)
   - Memory growth strategy for long recordings
   - Channel mixing/selection handled at the capture layer
+- **STFTProcessor** (`dsp/include/stft_processor.h`) - Short-Time Fourier Transform orchestrator
+  - Computes time-frequency spectrograms by sliding FFT windows across audio
+  - Orchestrates interaction between SampleBuffer, FFTWindow, and IFFTProcessor
 
 **Testing:** `dsp/tests/` contains Catch2 unit tests for all DSP components, focusing on correctness, thread safety, and edge cases.
 

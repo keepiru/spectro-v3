@@ -1,4 +1,4 @@
-#include <audio_buffer.h>
+#include <sample_buffer.h>
 #include <exception>
 
 size_t

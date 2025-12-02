@@ -6,7 +6,7 @@ pkg_check_modules(FFTW3 REQUIRED fftw3f)
 add_library(spectro_dsp
     src/fft_processor.cpp
     src/fft_window.cpp
-    src/audio_buffer.cpp
+    src/sample_buffer.cpp
 )
 
 target_include_directories(spectro_dsp

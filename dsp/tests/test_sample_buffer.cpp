@@ -1,6 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
 #include <sample_buffer.h>
 #include <thread>
+#include <vector>
 
 TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
 {
@@ -49,7 +51,7 @@ TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
 
     SECTION("Append more samples")
     {
-        std::vector<float> new_samples = { 0.5f, 0.6f };
+        std::vector<float> const new_samples = { 0.5f, 0.6f };
         buffer.addSamples(new_samples);
 
         auto retrieved = buffer.getSamples(0, samples.size() + new_samples.size());
@@ -63,7 +65,7 @@ TEST_CASE("SampleBuffer concurrent access", "[SampleBuffer][concurrency]")
 
     auto writer = [&buffer]() {
         for (int i = 0; i < 1000; ++i) {
-            std::vector<float> samples = { static_cast<float>(i) };
+            std::vector<float> const samples = { static_cast<float>(i) };
             buffer.addSamples(samples);
         }
     };

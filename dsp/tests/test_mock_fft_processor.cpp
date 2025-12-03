@@ -1,10 +1,15 @@
 #include "mock_fft_processor.h"
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
+#include <cstdint>
+#include <stdexcept>
+#include <vector>
 
 TEST_CASE("MockFFTProcessor returns fixed values", "[MockFFTProcessor]")
 {
     const uint32_t transform_size = 8;
-    MockFFTProcessor mock_fft(transform_size);
+    MockFFTProcessor const mock_fft(transform_size);
 
     std::vector<float> samples = { 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f };
 
@@ -28,7 +33,7 @@ TEST_CASE("MockFFTProcessor returns fixed values", "[MockFFTProcessor]")
 
 TEST_CASE("MockFFTProcessor throws on size mismatch", "[MockFFTProcessor]")
 {
-    MockFFTProcessor mock_fft(8);
+    MockFFTProcessor const mock_fft(8);
     std::vector<float> invalid_samples(6, 1.0f); // Invalid size
 
     SECTION("computeMagnitudes throws std::invalid_argument")

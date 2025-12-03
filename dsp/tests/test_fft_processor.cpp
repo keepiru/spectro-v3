@@ -1,13 +1,20 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <fft_processor.h>
 #include <numbers>
+#include <stdexcept>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 TEST_CASE("Constructor succeeds", "[fft]")
 {
     const uint32_t transform_size = 1024;
-    FFTProcessor processor(transform_size);
+    FFTProcessor const processor(transform_size);
 
     REQUIRE(processor.getTransformSize() == transform_size);
 
@@ -47,7 +54,7 @@ TEST_CASE("FFTProcessor move/copy semantics", "[fft]")
 TEST_CASE("FFTProcessor#computeComplex", "[fft]")
 {
     const uint32_t transform_size = 8; // Small for testing
-    FFTProcessor processor(transform_size);
+    FFTProcessor const processor(transform_size);
 
     SECTION("Throws on input size mismatch", "[fft]")
     {
@@ -77,7 +84,7 @@ TEST_CASE("FFTProcessor#computeComplex", "[fft]")
 TEST_CASE("FFTProcessor#computeMagnitudes", "[fft]")
 {
     const uint32_t transform_size = 8; // Small for testing
-    FFTProcessor processor(transform_size);
+    FFTProcessor const processor(transform_size);
 
     SECTION("Throws on input size mismatch", "[fft]")
     {

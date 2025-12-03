@@ -1,10 +1,13 @@
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 #include <fft_processor.h>
 #include <fftw3.h>
 #include <span>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace {
 bool
@@ -64,8 +67,8 @@ FFTProcessor::computeMagnitudes(const std::span<float>& samples) const
 
     std::vector<float> magnitudes((m_transform_size / 2) + 1);
     for (uint32_t i = 0; i < magnitudes.size(); ++i) {
-        float real = m_fft_output.get()[i][0];
-        float imag = m_fft_output.get()[i][1];
+        float const real = m_fft_output.get()[i][0];
+        float const imag = m_fft_output.get()[i][1];
         magnitudes[i] = std::sqrt((real * real) + (imag * imag));
     }
     return magnitudes;

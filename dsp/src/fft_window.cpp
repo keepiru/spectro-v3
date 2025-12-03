@@ -1,8 +1,13 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <fft_window.h>
+#include <numbers>
+#include <span>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 FFTWindow::FFTWindow(size_t size, FFTWindow::Type type)
   : m_size(size)

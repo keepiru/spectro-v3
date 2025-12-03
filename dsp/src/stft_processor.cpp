@@ -1,8 +1,13 @@
+#include <cstddef>
+#include <cstdint>
 #include <fft_window.h>
 #include <ifft_processor.h>
 #include <sample_buffer.h>
 #include <stdexcept>
 #include <stft_processor.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 STFTProcessor::STFTProcessor(IFFTProcessor& fft_processor, FFTWindow& window, SampleBuffer& buffer)
   : m_fft_processor(fft_processor)
@@ -33,7 +38,7 @@ STFTProcessor::computeSpectrogram(int64_t first_sample,
 
     // Process each time window
     for (size_t i = 0; i < window_count; ++i) {
-        int64_t window_first_sample = first_sample + static_cast<int64_t>(i * window_stride);
+        int64_t const window_first_sample = first_sample + static_cast<int64_t>(i * window_stride);
 
         // Future performance optimization: grab the entire needed range once
         // before the loop to minimize locking and copy overhead.

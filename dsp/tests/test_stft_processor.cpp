@@ -1,10 +1,12 @@
 #include "mock_fft_processor.h"
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <cstddef>
+#include <cstdint>
 #include <fft_window.h>
 #include <sample_buffer.h>
+#include <stdexcept>
 #include <stft_processor.h>
+#include <vector>
 
 TEST_CASE("STFTProcessor constructor validation", "[stft]")
 {
@@ -39,7 +41,7 @@ TEST_CASE("STFTProcessor computeSpectrogram validation", "[stft]")
     MockFFTProcessor fft_processor(transform_size);
     FFTWindow window(transform_size, FFTWindow::Type::Rectangular);
     SampleBuffer buffer(44100);
-    STFTProcessor stft(fft_processor, window, buffer);
+    STFTProcessor const stft(fft_processor, window, buffer);
 
     SECTION("Throws on zero window_stride")
     {
@@ -58,7 +60,7 @@ TEST_CASE("STFTProcessor basic spectrogram computation", "[stft]")
     buffer.addSamples(
       { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
 
-    STFTProcessor stft(fft_processor, window, buffer);
+    STFTProcessor const stft(fft_processor, window, buffer);
 
     SECTION("Single window computation")
     {
@@ -123,7 +125,7 @@ TEST_CASE("STFTProcessor handles negative start_frame", "[stft]")
 
     buffer.addSamples({ 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f });
 
-    STFTProcessor stft(fft_processor, window, buffer);
+    STFTProcessor const stft(fft_processor, window, buffer);
 
     SECTION("Negative start_frame with zero-padding from SampleBuffer")
     {
@@ -148,7 +150,7 @@ TEST_CASE("STFTProcessor handles start_frame beyond buffer end", "[stft]")
 
     buffer.addSamples({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
 
-    STFTProcessor stft(fft_processor, window, buffer);
+    STFTProcessor const stft(fft_processor, window, buffer);
 
     SECTION("Windows extending past buffer end get zero-padded")
     {
@@ -172,7 +174,7 @@ TEST_CASE("STFTProcessor with Hann window integration", "[stft]")
 
     buffer.addSamples({ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
 
-    STFTProcessor stft(fft_processor, window, buffer);
+    STFTProcessor const stft(fft_processor, window, buffer);
 
     SECTION("Hann window is applied before FFT")
     {

@@ -1,7 +1,4 @@
 ---
-# clang-tidy configuration for spectro-v3
-# Modern C++23 best practices with focus on correctness, readability, and performance
-
 Checks: >
   bugprone-*,
   cppcoreguidelines-*,
@@ -13,8 +10,6 @@ Checks: >
   -modernize-use-trailing-return-type,
   -bugprone-easily-swappable-parameters,
   -cppcoreguidelines-avoid-const-or-ref-data-members,
-
-WarningsAsErrors: ''
 
 CheckOptions:
   - key: readability-identifier-naming.ClassCase
@@ -43,6 +38,12 @@ CheckOptions:
     value: lower_case
   - key: readability-identifier-naming.ParameterCase
     value: lower_case
+  - key: readability-identifier-naming.TypeAliasCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypedefCase
+    value: CamelCase
+  - key: readability-identifier-naming.TemplateParameterCase
+    value: CamelCase
   - key: cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
     value: true
   - key: readability-implicit-bool-conversion.AllowPointerConditions
@@ -50,5 +51,4 @@ CheckOptions:
   - key: readability-uppercase-literal-suffix.NewSuffixes
     value: 'L;uL;ULL'
 
-HeaderFilterRegex: '.*'
 FormatStyle: file

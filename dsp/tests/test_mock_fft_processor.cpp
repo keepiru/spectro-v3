@@ -8,15 +8,15 @@ TEST_CASE("MockFFTProcessor returns fixed values", "[MockFFTProcessor]")
 
     std::vector<float> samples = { 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f };
 
-    SECTION("compute_magnitudes returns fixed values")
+    SECTION("computeMagnitudes returns fixed values")
     {
-        REQUIRE(mock_fft.compute_magnitudes(samples) ==
+        REQUIRE(mock_fft.computeMagnitudes(samples) ==
                 std::vector<float>({ 0.0f, 1.0f, 2.0f, 3.0f, 4.0f }));
     }
 
-    SECTION("compute_complex returns fixed complex values")
+    SECTION("computeComplex returns fixed complex values")
     {
-        auto complex_output = mock_fft.compute_complex(samples);
+        auto complex_output = mock_fft.computeComplex(samples);
         CAPTURE(complex_output);
         REQUIRE(complex_output.size() == (samples.size() / 2) + 1);
         for (size_t i = 0; i < complex_output.size(); ++i) {
@@ -31,13 +31,13 @@ TEST_CASE("MockFFTProcessor throws on size mismatch", "[MockFFTProcessor]")
     MockFFTProcessor mock_fft(8);
     std::vector<float> invalid_samples(6, 1.0f); // Invalid size
 
-    SECTION("compute_magnitudes throws std::invalid_argument")
+    SECTION("computeMagnitudes throws std::invalid_argument")
     {
-        REQUIRE_THROWS_AS(mock_fft.compute_magnitudes(invalid_samples), std::invalid_argument);
+        REQUIRE_THROWS_AS(mock_fft.computeMagnitudes(invalid_samples), std::invalid_argument);
     }
 
-    SECTION("compute_complex throws std::invalid_argument")
+    SECTION("computeComplex throws std::invalid_argument")
     {
-        REQUIRE_THROWS_AS(mock_fft.compute_complex(invalid_samples), std::invalid_argument);
+        REQUIRE_THROWS_AS(mock_fft.computeComplex(invalid_samples), std::invalid_argument);
     }
 }

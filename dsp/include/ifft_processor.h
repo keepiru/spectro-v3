@@ -33,7 +33,7 @@ class IFFTProcessor
      *         Where Fs is the sampling frequency and N is transform_size
      * @throws std::invalid_argument if samples.size() != transform_size
      */
-    [[nodiscard]] virtual std::vector<fftwf_complex> compute_complex(
+    [[nodiscard]] virtual std::vector<fftwf_complex> computeComplex(
       const std::span<float>& samples) const = 0;
 
     /**
@@ -44,6 +44,6 @@ class IFFTProcessor
      *         Where Fs is the sampling frequency and N is transform_size
      * @throws std::invalid_argument if samples.size() != transform_size
      */
-    [[nodiscard]] virtual std::vector<float> compute_magnitudes(
+    [[nodiscard]] virtual std::vector<float> computeMagnitudes(
       const std::span<float>& samples) const = 0;
 };

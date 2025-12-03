@@ -18,7 +18,7 @@ class SampleBuffer
      */
     explicit SampleBuffer(size_t sample_rate)
       : m_sample_rate(sample_rate)
-       
+
     {
     }
 
@@ -26,7 +26,7 @@ class SampleBuffer
      * @brief Get the sample rate.
      * @return Sample rate in Hz.
      */
-    size_t sample_rate() const { return m_sample_rate; }
+    size_t getSampleRate() const { return m_sample_rate; }
 
     /**
      * @brief Get the total number of samples stored.
@@ -38,7 +38,7 @@ class SampleBuffer
      * @brief Add audio samples to buffer.
      * @param samples Vector of samples to append.
      */
-    void add_samples(const std::vector<float>& samples);
+    void addSamples(const std::vector<float>& samples);
 
     /**
      * @brief Get samples from the buffer.
@@ -46,7 +46,7 @@ class SampleBuffer
      * @param sample_count Number of samples to retrieve.
      * @return Vector of samples.  Invalid samples are filled with zeros.
      */
-    std::vector<float> get_samples(int64_t start_sample, size_t sample_count) const;
+    std::vector<float> getSamples(int64_t start_sample, size_t sample_count) const;
 
   private:
     mutable std::mutex m_mutex;

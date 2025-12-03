@@ -32,7 +32,7 @@ TEST_CASE("STFTProcessor constructor validation", "[stft]")
     }
 }
 
-TEST_CASE("STFTProcessor compute_spectrogram validation", "[stft]")
+TEST_CASE("STFTProcessor computeSpectrogram validation", "[stft]")
 {
     const uint32_t transform_size = 512;
 
@@ -43,7 +43,7 @@ TEST_CASE("STFTProcessor compute_spectrogram validation", "[stft]")
 
     SECTION("Throws on zero window_stride")
     {
-        REQUIRE_THROWS_AS(stft.compute_spectrogram(0, 0, 10), std::invalid_argument);
+        REQUIRE_THROWS_AS(stft.computeSpectrogram(0, 0, 10), std::invalid_argument);
     }
 }
 
@@ -55,7 +55,7 @@ TEST_CASE("STFTProcessor basic spectrogram computation", "[stft]")
     FFTWindow window(transform_size, FFTWindow::Type::Rectangular);
     SampleBuffer buffer(44100);
 
-    buffer.add_samples(
+    buffer.addSamples(
       { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
 
     STFTProcessor stft(fft_processor, window, buffer);
@@ -65,7 +65,7 @@ TEST_CASE("STFTProcessor basic spectrogram computation", "[stft]")
         std::vector<std::vector<float>> want = {
             { 0.0f, 1.0f, 2.0f, 3.0f, 4.0f },
         };
-        auto got = stft.compute_spectrogram(0, transform_size, 1);
+        auto got = stft.computeSpectrogram(0, transform_size, 1);
 
         REQUIRE(got == want);
     }
@@ -78,7 +78,7 @@ TEST_CASE("STFTProcessor basic spectrogram computation", "[stft]")
             { 8.0f, 9.0f, 10.0f, 11.0f, 12.0f },
             { 16.0f, 17.0f, 18.0f, 19.0f, 20.0f },
         };
-        auto got = stft.compute_spectrogram(0, transform_size, window_count);
+        auto got = stft.computeSpectrogram(0, transform_size, window_count);
 
         REQUIRE(got == want);
     }
@@ -92,7 +92,7 @@ TEST_CASE("STFTProcessor basic spectrogram computation", "[stft]")
             { 8.0f, 9.0f, 10.0f, 11.0f, 12.0f },   { 12.0f, 13.0f, 14.0f, 15.0f, 16.0f },
             { 16.0f, 17.0f, 18.0f, 19.0f, 20.0f },
         };
-        auto got = stft.compute_spectrogram(0, window_stride, window_count);
+        auto got = stft.computeSpectrogram(0, window_stride, window_count);
 
         REQUIRE(got == want);
     }
@@ -108,7 +108,7 @@ TEST_CASE("STFTProcessor basic spectrogram computation", "[stft]")
             { 12.0f, 13.0f, 14.0f, 15.0f, 16.0f }, { 14.0f, 15.0f, 16.0f, 17.0f, 18.0f },
             { 16.0f, 17.0f, 18.0f, 19.0f, 20.0f }, { 18.0f, 19.0f, 20.0f, 21.0f, 22.0f },
         };
-        auto got = stft.compute_spectrogram(0, window_stride, window_count);
+        auto got = stft.computeSpectrogram(0, window_stride, window_count);
         REQUIRE(got == want);
     }
 }
@@ -121,7 +121,7 @@ TEST_CASE("STFTProcessor handles negative start_frame", "[stft]")
     FFTWindow window(transform_size, FFTWindow::Type::Rectangular);
     SampleBuffer buffer(44100);
 
-    buffer.add_samples({ 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f });
+    buffer.addSamples({ 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f });
 
     STFTProcessor stft(fft_processor, window, buffer);
 
@@ -132,7 +132,7 @@ TEST_CASE("STFTProcessor handles negative start_frame", "[stft]")
             { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
             { 5.0f, 6.0f, 7.0f, 8.0f, 0.0f },
         };
-        auto got = stft.compute_spectrogram(-4, 4, 3);
+        auto got = stft.computeSpectrogram(-4, 4, 3);
 
         REQUIRE(got == want);
     }
@@ -146,7 +146,7 @@ TEST_CASE("STFTProcessor handles start_frame beyond buffer end", "[stft]")
     FFTWindow window(transform_size, FFTWindow::Type::Rectangular);
     SampleBuffer buffer(44100);
 
-    buffer.add_samples({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
+    buffer.addSamples({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
 
     STFTProcessor stft(fft_processor, window, buffer);
 
@@ -156,7 +156,7 @@ TEST_CASE("STFTProcessor handles start_frame beyond buffer end", "[stft]")
             { 12.0f, 13.0f, 14.0f, 15.0f, 0.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
         };
-        auto got = stft.compute_spectrogram(12, transform_size, 2);
+        auto got = stft.computeSpectrogram(12, transform_size, 2);
 
         REQUIRE(got == want);
     }
@@ -170,7 +170,7 @@ TEST_CASE("STFTProcessor with Hann window integration", "[stft]")
     FFTWindow window(transform_size, FFTWindow::Type::Hann);
     SampleBuffer buffer(44100);
 
-    buffer.add_samples({ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
+    buffer.addSamples({ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
 
     STFTProcessor stft(fft_processor, window, buffer);
 
@@ -184,7 +184,7 @@ TEST_CASE("STFTProcessor with Hann window integration", "[stft]")
             { 0.0f, 0.188255101f, 0.611260474f, 0.950484395f, 0.950484395f },
             { 0.0f, 0.188255101f, 0.611260474f, 0.950484395f, 0.950484395f }
         };
-        auto result = stft.compute_spectrogram(0, 4, 2);
+        auto result = stft.computeSpectrogram(0, 4, 2);
         REQUIRE(result == want);
     }
 }

@@ -103,12 +103,12 @@ TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
     }
 
     // Compute spectrum without windowing
-    auto spectrum_no_window = processor.compute_magnitudes(samples);
+    auto spectrum_no_window = processor.computeMagnitudes(samples);
 
     // Apply Hann window and compute spectrum
     FFTWindow hann_window(transform_size, FFTWindow::Type::Hann);
     auto windowed_samples = hann_window.apply(samples);
-    auto spectrum_with_window = processor.compute_magnitudes(windowed_samples);
+    auto spectrum_with_window = processor.computeMagnitudes(windowed_samples);
 
     // Check that the peak magnitude is lower with windowing (reduced leakage)
     auto measure_leakage = [frequency](const std::vector<float>& spectrum) {

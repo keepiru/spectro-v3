@@ -47,7 +47,7 @@ FFTProcessor::compute(const std::span<float>& samples) const
 }
 
 std::vector<fftwf_complex>
-FFTProcessor::compute_complex(const std::span<float>& samples) const
+FFTProcessor::computeComplex(const std::span<float>& samples) const
 {
     compute(samples);
 
@@ -61,7 +61,7 @@ FFTProcessor::compute_complex(const std::span<float>& samples) const
 }
 
 std::vector<float>
-FFTProcessor::compute_magnitudes(const std::span<float>& samples) const
+FFTProcessor::computeMagnitudes(const std::span<float>& samples) const
 {
     compute(samples);
 

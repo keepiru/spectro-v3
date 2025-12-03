@@ -44,7 +44,7 @@ TEST_CASE("FFTProcessor move/copy semantics", "[fft]")
     static_assert(std::is_move_assignable_v<FFTProcessor>);
 }
 
-TEST_CASE("FFTProcessor#compute_complex", "[fft]")
+TEST_CASE("FFTProcessor#computeComplex", "[fft]")
 {
     const uint32_t transform_size = 8; // Small for testing
     FFTProcessor processor(transform_size);
@@ -52,13 +52,13 @@ TEST_CASE("FFTProcessor#compute_complex", "[fft]")
     SECTION("Throws on input size mismatch", "[fft]")
     {
         std::vector<float> samples(transform_size - 1, 0.0f); // Incorrect size
-        REQUIRE_THROWS_AS(processor.compute_complex(samples), std::invalid_argument);
+        REQUIRE_THROWS_AS(processor.computeComplex(samples), std::invalid_argument);
     }
 
     SECTION("Compute complex FFT output", "[fft]")
     {
         std::vector<float> samples = { 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, -1.0f };
-        auto fft_output = processor.compute_complex(samples);
+        auto fft_output = processor.computeComplex(samples);
 
         REQUIRE(fft_output.size() == (transform_size / 2) + 1);
         REQUIRE_THAT(fft_output[0][0], Catch::Matchers::WithinRel(0.0));  // DC real part
@@ -74,7 +74,7 @@ TEST_CASE("FFTProcessor#compute_complex", "[fft]")
     }
 }
 
-TEST_CASE("FFTProcessor#compute_magnitudes", "[fft]")
+TEST_CASE("FFTProcessor#computeMagnitudes", "[fft]")
 {
     const uint32_t transform_size = 8; // Small for testing
     FFTProcessor processor(transform_size);
@@ -82,13 +82,13 @@ TEST_CASE("FFTProcessor#compute_magnitudes", "[fft]")
     SECTION("Throws on input size mismatch", "[fft]")
     {
         std::vector<float> samples(transform_size - 1, 0.0f); // Incorrect size
-        REQUIRE_THROWS_AS(processor.compute_magnitudes(samples), std::invalid_argument);
+        REQUIRE_THROWS_AS(processor.computeMagnitudes(samples), std::invalid_argument);
     }
 
     SECTION("Computes DC component for constant signal", "[fft]")
     {
         std::vector<float> samples(transform_size, 1.0f);
-        auto spectrum = processor.compute_magnitudes(samples);
+        auto spectrum = processor.computeMagnitudes(samples);
 
         REQUIRE(spectrum.size() == (transform_size / 2) + 1);
         REQUIRE_THAT(spectrum[0], Catch::Matchers::WithinRel(8.0));
@@ -104,7 +104,7 @@ TEST_CASE("FFTProcessor#compute_magnitudes", "[fft]")
                                    static_cast<float>(transform_size));
         }
 
-        auto spectrum = processor.compute_magnitudes(samples);
+        auto spectrum = processor.computeMagnitudes(samples);
 
         REQUIRE(spectrum.size() == (transform_size / 2) + 1);
         REQUIRE_THAT(spectrum[0], Catch::Matchers::WithinAbs(0.0, 0.00001)); // No DC component

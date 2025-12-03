@@ -25,10 +25,10 @@ class SampleBuffer;
  *   FFTProcessor fft(512);
  *   FFTWindow window(512, FFTWindow::Type::Hann);
  *   SampleBuffer buffer(44100);
- *   buffer.add_samples(audio_data);
+ *   buffer.addSamples(audio_data);
  *
  *   STFTProcessor stft(fft, window, buffer);
- *   auto spectrogram = stft.compute_spectrogram(0, 256, 100);  // 50% overlap, 100 windows
+ *   auto spectrogram = stft.computeSpectrogram(0, 256, 100);  // 50% overlap, 100 windows
  * @endcode
  */
 class STFTProcessor
@@ -65,9 +65,9 @@ class STFTProcessor
      * - 50% overlap: window_stride = window_size / 2
      * - 75% overlap: window_stride = window_size / 4
      */
-    [[nodiscard]] std::vector<std::vector<float>> compute_spectrogram(int64_t first_sample,
-                                                        size_t window_stride,
-                                                        size_t window_count) const;
+    [[nodiscard]] std::vector<std::vector<float>> computeSpectrogram(int64_t first_sample,
+                                                                      size_t window_stride,
+                                                                      size_t window_count) const;
 
   private:
     IFFTProcessor& m_fft_processor;

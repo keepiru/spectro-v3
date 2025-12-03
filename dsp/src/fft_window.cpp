@@ -12,7 +12,7 @@ FFTWindow::FFTWindow(size_t size, FFTWindow::Type type)
     if (size == 0) {
         throw std::invalid_argument("Window size must be greater than zero");
     }
-    compute_window_coefficients();
+    computeWindowCoefficients();
 }
 
 /**
@@ -39,7 +39,7 @@ FFTWindow::apply(std::span<const float> input) const
  * @brief Compute the window coefficients based on the selected type and size
  */
 void
-FFTWindow::compute_window_coefficients()
+FFTWindow::computeWindowCoefficients()
 {
     switch (m_type) {
         case Type::Rectangular:

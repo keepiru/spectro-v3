@@ -50,5 +50,5 @@ class FFTWindow
     /**
      * @brief Compute the window coefficients based on the selected type and size
      */
-    void compute_window_coefficients();
+    void computeWindowCoefficients();
 };

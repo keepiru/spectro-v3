@@ -18,7 +18,7 @@ STFTProcessor::STFTProcessor(IFFTProcessor& fft_processor, FFTWindow& window, Sa
 }
 
 std::vector<std::vector<float>>
-STFTProcessor::compute_spectrogram(int64_t first_sample,
+STFTProcessor::computeSpectrogram(int64_t first_sample,
                                    size_t window_stride,
                                    size_t window_count) const
 {
@@ -37,10 +37,10 @@ STFTProcessor::compute_spectrogram(int64_t first_sample,
 
         // Future performance optimization: grab the entire needed range once
         // before the loop to minimize locking and copy overhead.
-        std::vector<float> samples = m_buffer.get_samples(window_first_sample, window_size);
+        std::vector<float> samples = m_buffer.getSamples(window_first_sample, window_size);
 
         std::vector<float> windowed_samples = m_window.apply(samples);
-        std::vector<float> spectrum = m_fft_processor.compute_magnitudes(windowed_samples);
+        std::vector<float> spectrum = m_fft_processor.computeMagnitudes(windowed_samples);
         spectrogram.push_back(std::move(spectrum));
     }
 

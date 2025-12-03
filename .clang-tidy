@@ -19,7 +19,6 @@ Checks: >
   -readability-function-cognitive-complexity,
 
   -readability-identifier-naming,
-  -modernize-use-nodiscard,
   -readability-uppercase-literal-suffix,
 
 WarningsAsErrors: ''

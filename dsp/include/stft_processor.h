@@ -65,7 +65,7 @@ class STFTProcessor
      * - 50% overlap: window_stride = window_size / 2
      * - 75% overlap: window_stride = window_size / 4
      */
-    std::vector<std::vector<float>> compute_spectrogram(int64_t first_sample,
+    [[nodiscard]] std::vector<std::vector<float>> compute_spectrogram(int64_t first_sample,
                                                         size_t window_stride,
                                                         size_t window_count) const;
 

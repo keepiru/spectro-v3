@@ -28,19 +28,19 @@ class FFTWindow
      * @return Windowed samples
      * @throws std::invalid_argument if input.size() != window size
      */
-    std::vector<float> apply(std::span<const float> input) const;
+    [[nodiscard]] std::vector<float> apply(std::span<const float> input) const;
 
     /**
      * @brief Get the size of the window
      * @return Window size in samples
      */
-    size_t getSize() const noexcept { return m_size; }
+    [[nodiscard]] size_t getSize() const noexcept { return m_size; }
 
     /**
      * @brief Get the type of the window
      * @return Window type
      */
-    Type getType() const noexcept { return m_type; }
+    [[nodiscard]] Type getType() const noexcept { return m_type; }
 
   private:
     size_t m_size;                            // Window size in samples

@@ -2,10 +2,10 @@
 
 TEST_CASE("Build system verification", "[infrastructure]")
 {
-  REQUIRE(true);
+    REQUIRE(true);
 }
 
 TEST_CASE("Basic arithmetic works", "[sanity]")
 {
-  REQUIRE(2 + 2 == 4);
+    REQUIRE(2 + 2 == 4);
 }

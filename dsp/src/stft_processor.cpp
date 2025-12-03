@@ -19,8 +19,8 @@ STFTProcessor::STFTProcessor(IFFTProcessor& fft_processor, FFTWindow& window, Sa
 
 std::vector<std::vector<float>>
 STFTProcessor::computeSpectrogram(int64_t first_sample,
-                                   size_t window_stride,
-                                   size_t window_count) const
+                                  size_t window_stride,
+                                  size_t window_count) const
 {
     // Validate parameters
     if (window_stride == 0) {

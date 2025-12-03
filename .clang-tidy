@@ -62,6 +62,6 @@ CheckOptions:
   - key: readability-implicit-bool-conversion.AllowPointerConditions
     value: true
   - key: readability-uppercase-literal-suffix.NewSuffixes
-    value: 'L;uL;ULL'
+    value: 'L;uL;uLL'
 
 FormatStyle: file

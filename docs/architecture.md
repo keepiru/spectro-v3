@@ -76,4 +76,4 @@ Contains all Qt6-specific code including visualization widgets, audio capture, a
 
 ## Conventions
 - Doxygen comments for public API, Markdown docs (`docs/`) for architecture
-- use m_ prefix for member variables
+- Mozilla C++ style guide

@@ -9,15 +9,15 @@
 #include <string>
 #include <vector>
 
-FFTWindow::FFTWindow(size_t size, FFTWindow::Type type)
-  : m_size(size)
-  , m_type(type)
-  , m_window_coefficients(size)
+FFTWindow::FFTWindow(size_t aSize, FFTWindow::Type aType)
+  : mSize(aSize)
+  , mType(aType)
+  , mWindowCoefficients(aSize)
 {
-    if (size == 0) {
+    if (aSize == 0) {
         throw std::invalid_argument("Window size must be greater than zero");
     }
-    computeWindowCoefficients();
+    ComputeWindowCoefficients();
 }
 
 /**
@@ -26,16 +26,16 @@ FFTWindow::FFTWindow(size_t size, FFTWindow::Type type)
  * @return Windowed data
  */
 std::vector<float>
-FFTWindow::apply(std::span<const float> input) const
+FFTWindow::Apply(std::span<const float> aInputSamples) const
 {
-    if (input.size() != m_size) {
-        throw std::invalid_argument("Input size must match window size " + std::to_string(m_size) +
-                                    ", got: " + std::to_string(input.size()));
+    if (aInputSamples.size() != mSize) {
+        throw std::invalid_argument("Input size must match window size " + std::to_string(mSize) +
+                                    ", got: " + std::to_string(aInputSamples.size()));
     }
 
-    std::vector<float> output(m_size);
-    for (size_t i = 0; i < m_size; ++i) {
-        output[i] = input[i] * m_window_coefficients[i];
+    std::vector<float> output(mSize);
+    for (size_t i = 0; i < mSize; ++i) {
+        output[i] = aInputSamples[i] * mWindowCoefficients[i];
     }
     return output;
 }
@@ -44,20 +44,20 @@ FFTWindow::apply(std::span<const float> input) const
  * @brief Compute the window coefficients based on the selected type and size
  */
 void
-FFTWindow::computeWindowCoefficients()
+FFTWindow::ComputeWindowCoefficients()
 {
-    switch (m_type) {
-        case Type::Rectangular:
-            std::ranges::fill(m_window_coefficients, 1.0f);
+    switch (mType) {
+        case Type::kRectangular:
+            std::ranges::fill(mWindowCoefficients, 1.0f);
             break;
-        case Type::Hann:
-            for (size_t i = 0; i < m_size; ++i) {
-                auto pi_f = std::numbers::pi_v<float>;
-                m_window_coefficients[i] =
-                  // The constants here are part of the Hann window definition.
+        case Type::kHann:
+            for (size_t i = 0; i < mSize; ++i) {
+                auto const kPi = std::numbers::pi_v<float>;
+                mWindowCoefficients[i] =
+                  // The constants here are part of the kHann window definition.
                   // NOLINTNEXTLINE(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
-                  0.5f * (1.0f - std::cosf((2.0f * pi_f * static_cast<float>(i)) /
-                                           static_cast<float>(m_size - 1)));
+                  0.5f * (1.0f - std::cosf((2.0f * kPi * static_cast<float>(i)) /
+                                           static_cast<float>(mSize - 1)));
             }
             break;
         default:

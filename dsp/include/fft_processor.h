@@ -20,10 +20,10 @@ class FFTProcessor : public IFFTProcessor
   public:
     /**
      * @brief Constructor
-     * @param transform_size FFT transform size (number of input samples, must be power of 2)
-     * @throws std::invalid_argument if transform_size is not a power of 2
+     * @param aTransformSize FFT transform size (number of input samples, must be power of 2)
+     * @throws std::invalid_argument if aTransformSize is not a power of 2
      */
-    explicit FFTProcessor(int32_t transform_size);
+    explicit FFTProcessor(int32_t aTransformSize);
 
     /**
      * @brief Destructor
@@ -40,29 +40,29 @@ class FFTProcessor : public IFFTProcessor
      * @brief Get the FFT transform size
      * @return Transform size (number of input samples) configured for this processor
      */
-    [[nodiscard]] uint32_t getTransformSize() const noexcept override { return m_transform_size; }
+    [[nodiscard]] uint32_t GetTransformSize() const noexcept override { return mTransformSize; }
 
     /**
      * @brief Compute the complex FFT from audio samples
-     * @param samples Input audio samples (size must be equal to transform_size)
+     * @param aSamples Input audio samples (size must be equal to transform_size)
      * @return Vector of complex FFT output (size will be transform_size / 2 + 1)
      *         Output bins represent frequencies: [DC, 1*Fs/N, 2*Fs/N, ..., Nyquist]
      *         Where Fs is the sampling frequency and N is transform_size
-     * @throws std::invalid_argument if samples.size() != transform_size
+     * @throws std::invalid_argument if aSamples.size() != transform_size
      */
-    [[nodiscard]] std::vector<fftwf_complex> computeComplex(
-      const std::span<float>& samples) const override;
+    [[nodiscard]] std::vector<fftwf_complex> ComputeComplex(
+      const std::span<float>& aSamples) const override;
 
     /**
      * @brief Compute the frequency magnitudes from audio samples
-     * @param samples Input audio samples (size must be equal to transform_size)
+     * @param aSamples Input audio aSamples (size must be equal to transform_size)
      * @return Vector of frequency magnitudes (size will be transform_size / 2 + 1)
      *         Output bins represent frequencies: [DC, 1*Fs/N, 2*Fs/N, ..., Nyquist]
      *         Where Fs is the sampling frequency and N is transform_size
-     * @throws std::invalid_argument if samples.size() != transform_size
+     * @throws std::invalid_argument if aSamples.size() != transform_size
      */
-    [[nodiscard]] std::vector<float> computeMagnitudes(
-      const std::span<float>& samples) const override;
+    [[nodiscard]] std::vector<float> ComputeMagnitudes(
+      const std::span<float>& aSamples) const override;
 
   private:
     // Custom deleter for FFTW resources (implementation in .cpp)
@@ -73,13 +73,13 @@ class FFTProcessor : public IFFTProcessor
         void operator()(fftwf_complex* ptr) const;
     };
 
-    int32_t m_transform_size;
+    int32_t mTransformSize;
     using FFTWPlanPtr = std::unique_ptr<std::remove_pointer_t<fftwf_plan>, FFTWDeleter>;
     using FFTWRealPtr = std::unique_ptr<float, FFTWDeleter>;
     using FFTWComplexPtr = std::unique_ptr<fftwf_complex, FFTWDeleter>;
-    FFTWPlanPtr m_fft_plan;
-    FFTWRealPtr m_fft_input;
-    FFTWComplexPtr m_fft_output;
+    FFTWPlanPtr mFFTPlan;
+    FFTWRealPtr mFFTInput;
+    FFTWComplexPtr mFFTOutput;
 
-    void compute(const std::span<float>& samples) const;
+    void Compute(const std::span<float>& aSamples) const;
 };

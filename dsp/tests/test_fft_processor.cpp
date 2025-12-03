@@ -13,10 +13,10 @@
 
 TEST_CASE("Constructor succeeds", "[fft]")
 {
-    const uint32_t transform_size = 1024;
-    FFTProcessor const processor(transform_size);
+    const uint32_t kTransformSize = 1024;
+    FFTProcessor const kProcessor(kTransformSize);
 
-    REQUIRE(processor.getTransformSize() == transform_size);
+    REQUIRE(kProcessor.GetTransformSize() == kTransformSize);
 
     SECTION("Power of 2 transforms are accepted", "[fft]")
     {
@@ -35,15 +35,15 @@ TEST_CASE("Constructor succeeds", "[fft]")
 
 TEST_CASE("FFTProcessor move/copy semantics", "[fft]")
 {
-    const uint32_t transform_size = 512;
-    FFTProcessor processor1(transform_size);
+    const uint32_t kTransformSize = 512;
+    FFTProcessor processor1(kTransformSize);
 
     FFTProcessor processor2(std::move(processor1));
-    REQUIRE(processor2.getTransformSize() == transform_size);
+    REQUIRE(processor2.GetTransformSize() == kTransformSize);
 
     FFTProcessor processor3(256);
     processor3 = std::move(processor2);
-    REQUIRE(processor3.getTransformSize() == transform_size);
+    REQUIRE(processor3.GetTransformSize() == kTransformSize);
 
     static_assert(!std::is_copy_constructible_v<FFTProcessor>);
     static_assert(!std::is_copy_assignable_v<FFTProcessor>);
@@ -51,69 +51,69 @@ TEST_CASE("FFTProcessor move/copy semantics", "[fft]")
     static_assert(std::is_move_assignable_v<FFTProcessor>);
 }
 
-TEST_CASE("FFTProcessor#computeComplex", "[fft]")
+TEST_CASE("FFTProcessor#ComputeComplex", "[fft]")
 {
-    const uint32_t transform_size = 8; // Small for testing
-    FFTProcessor const processor(transform_size);
+    const uint32_t kTransformSize = 8; // Small for testing
+    FFTProcessor const kProcessor(kTransformSize);
 
     SECTION("Throws on input size mismatch", "[fft]")
     {
-        std::vector<float> samples(transform_size - 1, 0.0f); // Incorrect size
-        REQUIRE_THROWS_AS(processor.computeComplex(samples), std::invalid_argument);
+        std::vector<float> samples(kTransformSize - 1, 0.0f); // Incorrect size
+        REQUIRE_THROWS_AS(kProcessor.ComputeComplex(samples), std::invalid_argument);
     }
 
     SECTION("Compute complex FFT output", "[fft]")
     {
         std::vector<float> samples = { 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, -1.0f };
-        auto fft_output = processor.computeComplex(samples);
+        const auto kFFTOutput = kProcessor.ComputeComplex(samples);
 
-        REQUIRE(fft_output.size() == (transform_size / 2) + 1);
-        REQUIRE_THAT(fft_output[0][0], Catch::Matchers::WithinRel(0.0));  // DC real part
-        REQUIRE_THAT(fft_output[0][1], Catch::Matchers::WithinRel(0.0));  // DC imag part
-        REQUIRE_THAT(fft_output[1][0], Catch::Matchers::WithinRel(0.0));  // Bin 1 real part
-        REQUIRE_THAT(fft_output[1][1], Catch::Matchers::WithinRel(0.0));  // Bin 1 imag part
-        REQUIRE_THAT(fft_output[2][0], Catch::Matchers::WithinRel(0.0));  // Bin 2 real part
-        REQUIRE_THAT(fft_output[2][1], Catch::Matchers::WithinRel(-4.0)); // Bin 2 imag part
-        REQUIRE_THAT(fft_output[3][0], Catch::Matchers::WithinRel(0.0));  // Bin 3 real part
-        REQUIRE_THAT(fft_output[3][1], Catch::Matchers::WithinRel(0.0));  // Bin 3 imag part
-        REQUIRE_THAT(fft_output[4][0], Catch::Matchers::WithinRel(0.0));  // Nyquist real part
-        REQUIRE_THAT(fft_output[4][1], Catch::Matchers::WithinRel(0.0));  // Nyquist imag part
+        REQUIRE(kFFTOutput.size() == (kTransformSize / 2) + 1);
+        REQUIRE_THAT(kFFTOutput[0][0], Catch::Matchers::WithinRel(0.0));  // DC real part
+        REQUIRE_THAT(kFFTOutput[0][1], Catch::Matchers::WithinRel(0.0));  // DC imag part
+        REQUIRE_THAT(kFFTOutput[1][0], Catch::Matchers::WithinRel(0.0));  // Bin 1 real part
+        REQUIRE_THAT(kFFTOutput[1][1], Catch::Matchers::WithinRel(0.0));  // Bin 1 imag part
+        REQUIRE_THAT(kFFTOutput[2][0], Catch::Matchers::WithinRel(0.0));  // Bin 2 real part
+        REQUIRE_THAT(kFFTOutput[2][1], Catch::Matchers::WithinRel(-4.0)); // Bin 2 imag part
+        REQUIRE_THAT(kFFTOutput[3][0], Catch::Matchers::WithinRel(0.0));  // Bin 3 real part
+        REQUIRE_THAT(kFFTOutput[3][1], Catch::Matchers::WithinRel(0.0));  // Bin 3 imag part
+        REQUIRE_THAT(kFFTOutput[4][0], Catch::Matchers::WithinRel(0.0));  // Nyquist real part
+        REQUIRE_THAT(kFFTOutput[4][1], Catch::Matchers::WithinRel(0.0));  // Nyquist imag part
     }
 }
 
-TEST_CASE("FFTProcessor#computeMagnitudes", "[fft]")
+TEST_CASE("FFTProcessor#ComputeMagnitudes", "[fft]")
 {
-    const uint32_t transform_size = 8; // Small for testing
-    FFTProcessor const processor(transform_size);
+    const uint32_t kTransformSize = 8; // Small for testing
+    FFTProcessor const kProcessor(kTransformSize);
 
     SECTION("Throws on input size mismatch", "[fft]")
     {
-        std::vector<float> samples(transform_size - 1, 0.0f); // Incorrect size
-        REQUIRE_THROWS_AS(processor.computeMagnitudes(samples), std::invalid_argument);
+        std::vector<float> samples(kTransformSize - 1, 0.0f); // Incorrect size
+        REQUIRE_THROWS_AS(kProcessor.ComputeMagnitudes(samples), std::invalid_argument);
     }
 
     SECTION("Computes DC component for constant signal", "[fft]")
     {
-        std::vector<float> samples(transform_size, 1.0f);
-        auto spectrum = processor.computeMagnitudes(samples);
+        std::vector<float> samples(kTransformSize, 1.0f);
+        auto spectrum = kProcessor.ComputeMagnitudes(samples);
 
-        REQUIRE(spectrum.size() == (transform_size / 2) + 1);
+        REQUIRE(spectrum.size() == (kTransformSize / 2) + 1);
         REQUIRE_THAT(spectrum[0], Catch::Matchers::WithinRel(8.0));
     }
 
     SECTION("Computes peak frequency of sine wave", "[fft]")
     {
-        const float frequency = 1.0f; // 1 cycle over 8 samples
-        std::vector<float> samples(transform_size);
-        for (size_t i = 0; i < transform_size; ++i) {
-            auto pi_f = std::numbers::pi_v<float>;
-            samples[i] = std::sinf(2.0f * pi_f * frequency * static_cast<float>(i) /
-                                   static_cast<float>(transform_size));
+        const float kFrequency = 1.0f; // 1 cycle over 8 samples
+        std::vector<float> samples(kTransformSize);
+        for (size_t i = 0; i < kTransformSize; ++i) {
+            const auto kPI = std::numbers::pi_v<float>;
+            samples[i] = std::sinf(2.0f * kPI * kFrequency * static_cast<float>(i) /
+                                   static_cast<float>(kTransformSize));
         }
 
-        auto spectrum = processor.computeMagnitudes(samples);
+        auto spectrum = kProcessor.ComputeMagnitudes(samples);
 
-        REQUIRE(spectrum.size() == (transform_size / 2) + 1);
+        REQUIRE(spectrum.size() == (kTransformSize / 2) + 1);
         REQUIRE_THAT(spectrum[0], Catch::Matchers::WithinAbs(0.0, 0.00001)); // No DC component
         REQUIRE_THAT(spectrum[1], Catch::Matchers::WithinAbs(4.0, 0.00001)); // Peak at bin 1
         REQUIRE_THAT(spectrum[2], Catch::Matchers::WithinAbs(0.0, 0.00001)); // No bin 2 component

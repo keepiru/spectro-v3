@@ -14,48 +14,48 @@ TEST_CASE("FFTWindow Constructor", "[fft_window]")
 {
     SECTION("Valid sizes and types")
     {
-        REQUIRE_NOTHROW(FFTWindow(256, FFTWindow::Type::Rectangular));
-        REQUIRE_NOTHROW(FFTWindow(1024, FFTWindow::Type::Hann));
+        REQUIRE_NOTHROW(FFTWindow(256, FFTWindow::Type::kRectangular));
+        REQUIRE_NOTHROW(FFTWindow(1024, FFTWindow::Type::kHann));
     }
 
     SECTION("Invalid size (zero)")
     {
-        REQUIRE_THROWS_AS(FFTWindow(0, FFTWindow::Type::Hann), std::invalid_argument);
+        REQUIRE_THROWS_AS(FFTWindow(0, FFTWindow::Type::kHann), std::invalid_argument);
     }
 }
 
-TEST_CASE("FFTWindow#getSize and getType", "[fft_window]")
+TEST_CASE("FFTWindow#GetSize and GetType", "[fft_window]")
 {
-    FFTWindow const window(1024, FFTWindow::Type::Hann);
-    REQUIRE(window.getSize() == 1024);
-    REQUIRE(window.getType() == FFTWindow::Type::Hann);
+    FFTWindow const kWindow(1024, FFTWindow::Type::kHann);
+    REQUIRE(kWindow.GetSize() == 1024);
+    REQUIRE(kWindow.GetType() == FFTWindow::Type::kHann);
 }
 
-TEST_CASE("FFTWindow#apply", "[fft_window]")
+TEST_CASE("FFTWindow#Apply", "[fft_window]")
 {
     SECTION("Input size mismatch throws")
     {
-        FFTWindow const window(4, FFTWindow::Type::Hann);
+        FFTWindow const kWindow(4, FFTWindow::Type::kHann);
         std::vector<float> input = { 1.0f, 2.0f }; // Incorrect size
 
-        REQUIRE_THROWS_AS(window.apply(input), std::invalid_argument);
+        REQUIRE_THROWS_AS(kWindow.Apply(input), std::invalid_argument);
     }
 
-    SECTION("Rectangular window is identity")
+    SECTION("kRectangular window is identity")
     {
-        FFTWindow const window(4, FFTWindow::Type::Rectangular);
+        FFTWindow const kWindow(4, FFTWindow::Type::kRectangular);
 
         std::vector<float> input = { 1.0f, 2.0f, 3.0f, 4.0f };
-        auto output = window.apply(input);
+        auto output = kWindow.Apply(input);
 
         REQUIRE(output == std::vector<float>({ 1.0f, 2.0f, 3.0f, 4.0f }));
     }
 
-    SECTION("Hann window coefficients")
+    SECTION("kHann window coefficients")
     {
-        FFTWindow const window(8, FFTWindow::Type::Hann);
+        FFTWindow const kWindow(8, FFTWindow::Type::kHann);
         std::vector<float> input = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
-        auto output = window.apply(input);
+        auto output = kWindow.Apply(input);
         std::vector<float> expected = { 0.0f,       0.1882551f, 0.6112605f, 0.9504844f,
                                         0.9504844f, 0.6112605f, 0.1882551f, 0.0f };
 
@@ -65,28 +65,28 @@ TEST_CASE("FFTWindow#apply", "[fft_window]")
         }
     }
 
-    SECTION("Big Hann Window")
+    SECTION("Big kHann Window")
     {
-        const uint32_t size = 1024;
-        FFTWindow const window(size, FFTWindow::Type::Hann);
-        std::vector<float> input(size, 1.0f); // All ones
-        auto output = window.apply(input);
+        const uint32_t kSize = 1024;
+        FFTWindow const window(kSize, FFTWindow::Type::kHann);
+        std::vector<float> input(kSize, 1.0f); // All ones
+        auto output = window.Apply(input);
 
         SECTION("First and last samples are zero")
         {
             REQUIRE_THAT(output[0], Catch::Matchers::WithinAbs(0.0f, 1e-6f));
-            REQUIRE_THAT(output[size - 1], Catch::Matchers::WithinAbs(0.0f, 1e-6f));
+            REQUIRE_THAT(output[kSize - 1], Catch::Matchers::WithinAbs(0.0f, 1e-6f));
         }
 
         SECTION("Middle sample is one")
         {
-            REQUIRE_THAT(output[size / 2], Catch::Matchers::WithinAbs(1.0f, 1e-5f));
+            REQUIRE_THAT(output[kSize / 2], Catch::Matchers::WithinAbs(1.0f, 1e-5f));
         }
 
         SECTION("Values are symmetric")
         {
-            for (size_t i = 0; i < size / 2; ++i) {
-                REQUIRE_THAT(output[i], Catch::Matchers::WithinAbs(output[size - 1 - i], 1e-6f));
+            for (size_t i = 0; i < kSize / 2; ++i) {
+                REQUIRE_THAT(output[i], Catch::Matchers::WithinAbs(output[kSize - 1 - i], 1e-6f));
             }
         }
     }
@@ -94,40 +94,40 @@ TEST_CASE("FFTWindow#apply", "[fft_window]")
 
 TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
 {
-    const uint32_t transform_size = 1024;
-    const float frequency = 12.5; // Frequency in bins, not an integer divisor of bins
-    FFTProcessor const processor(transform_size);
+    const uint32_t kTransformSize = 1024;
+    const float kFrequency = 12.5; // Frequency in bins, not an integer divisor of bins
+    FFTProcessor const kProcessor(kTransformSize);
 
     // Generate a sine wave that does not fit an integer number of cycles in the window
-    std::vector<float> samples(transform_size);
-    for (size_t i = 0; i < transform_size; ++i) {
-        auto pi_f = std::numbers::pi_v<float>;
-        samples[i] = std::sinf(2.0f * pi_f * frequency * static_cast<float>(i) / transform_size);
+    std::vector<float> samples(kTransformSize);
+    for (size_t i = 0; i < kTransformSize; ++i) {
+        const auto kPI = std::numbers::pi_v<float>;
+        samples[i] = std::sinf(2.0f * kPI * kFrequency * static_cast<float>(i) / kTransformSize);
     }
 
     // Compute spectrum without windowing
-    auto spectrum_no_window = processor.computeMagnitudes(samples);
+    auto spectrumNoWindow = kProcessor.ComputeMagnitudes(samples);
 
-    // Apply Hann window and compute spectrum
-    FFTWindow const hann_window(transform_size, FFTWindow::Type::Hann);
-    auto windowed_samples = hann_window.apply(samples);
-    auto spectrum_with_window = processor.computeMagnitudes(windowed_samples);
+    // Apply kHann window and compute spectrum
+    FFTWindow const kHannWindow(kTransformSize, FFTWindow::Type::kHann);
+    auto windowedSamples = kHannWindow.Apply(samples);
+    auto const kSpectrumWithWindow = kProcessor.ComputeMagnitudes(windowedSamples);
 
     // Check that the peak magnitude is lower with windowing (reduced leakage)
-    auto measure_leakage = [frequency](const std::vector<float>& spectrum) {
-        float leakage_sum = 0.0f;
-        for (size_t i = 0; i < spectrum.size(); ++i) {
+    auto measureLeakage = [kFrequency](const std::vector<float>& aSpectrum) {
+        float leakageSum = 0.0f;
+        for (size_t i = 0; i < aSpectrum.size(); ++i) {
             // Exclude main lobe around the signal frequency
-            if (std::abs(static_cast<float>(i) - frequency) > 3.0f) {
-                leakage_sum += spectrum[i] * spectrum[i]; // Power, not magnitude
+            if (std::abs(static_cast<float>(i) - kFrequency) > 3.0f) {
+                leakageSum += aSpectrum[i] * aSpectrum[i]; // Power, not magnitude
             }
         }
-        return leakage_sum;
+        return leakageSum;
     };
 
-    float const leakage_no_window = measure_leakage(spectrum_no_window);
-    float const leakage_with_window = measure_leakage(spectrum_with_window);
+    float const kLeakageNoWindow = measureLeakage(spectrumNoWindow);
+    float const kLeakageWithWindow = measureLeakage(kSpectrumWithWindow);
 
     // Expect significant leakage reduction
-    REQUIRE(leakage_with_window < leakage_no_window * 0.01f);
+    REQUIRE(kLeakageWithWindow < kLeakageNoWindow * 0.01f);
 }

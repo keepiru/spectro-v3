@@ -8,44 +8,46 @@
 #include <string>
 #include <vector>
 
-STFTProcessor::STFTProcessor(IFFTProcessor& fft_processor, FFTWindow& window, SampleBuffer& buffer)
-  : m_fft_processor(fft_processor)
-  , m_window(window)
-  , m_buffer(buffer)
+STFTProcessor::STFTProcessor(IFFTProcessor& aFFTProcessor,
+                             FFTWindow& aWindow,
+                             SampleBuffer& aBuffer)
+  : mFFTProcessor(aFFTProcessor)
+  , mWindow(aWindow)
+  , mBuffer(aBuffer)
 {
     // Validate that window size matches FFT transform size
-    if (m_window.getSize() != m_fft_processor.getTransformSize()) {
-        throw std::invalid_argument("Window size (" + std::to_string(m_window.getSize()) +
+    if (mWindow.GetSize() != mFFTProcessor.GetTransformSize()) {
+        throw std::invalid_argument("Window size (" + std::to_string(mWindow.GetSize()) +
                                     ") must match FFT transform size (" +
-                                    std::to_string(m_fft_processor.getTransformSize()) + ")");
+                                    std::to_string(mFFTProcessor.GetTransformSize()) + ")");
     }
 }
 
 std::vector<std::vector<float>>
-STFTProcessor::computeSpectrogram(int64_t first_sample,
-                                  size_t window_stride,
-                                  size_t window_count) const
+STFTProcessor::ComputeSpectrogram(int64_t aFirstSample,
+                                  size_t aWindowStride,
+                                  size_t aWindowCount) const
 {
     // Validate parameters
-    if (window_stride == 0) {
-        throw std::invalid_argument("window_stride must be greater than zero");
+    if (aWindowStride == 0) {
+        throw std::invalid_argument("aWindowStride must be greater than zero");
     }
 
-    const size_t window_size = m_window.getSize();
+    const size_t kWindowSize = mWindow.GetSize();
     std::vector<std::vector<float>> spectrogram;
-    spectrogram.reserve(window_count);
+    spectrogram.reserve(aWindowCount);
 
     // Process each time window
-    for (size_t i = 0; i < window_count; ++i) {
-        int64_t const window_first_sample = first_sample + static_cast<int64_t>(i * window_stride);
+    for (size_t i = 0; i < aWindowCount; ++i) {
+        int64_t const kWindowFirstSample = aFirstSample + static_cast<int64_t>(i * aWindowStride);
 
         // Future performance optimization: grab the entire needed range once
         // before the loop to minimize locking and copy overhead.
-        std::vector<float> samples = m_buffer.getSamples(window_first_sample, window_size);
+        std::vector<float> const kSamples = mBuffer.GetSamples(kWindowFirstSample, kWindowSize);
 
-        std::vector<float> windowed_samples = m_window.apply(samples);
-        std::vector<float> spectrum = m_fft_processor.computeMagnitudes(windowed_samples);
-        spectrogram.push_back(std::move(spectrum));
+        std::vector<float> windowedSamples = mWindow.Apply(kSamples);
+        std::vector<float> const kSpectrum = mFFTProcessor.ComputeMagnitudes(windowedSamples);
+        spectrogram.push_back(kSpectrum);
     }
 
     return spectrogram;

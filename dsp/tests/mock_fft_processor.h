@@ -17,54 +17,55 @@ class MockFFTProcessor : public IFFTProcessor
     /**
      * @brief Constructor
      */
-    MockFFTProcessor(uint32_t transform_size)
-      : m_transform_size(transform_size)
+    MockFFTProcessor(uint32_t aTransformSize)
+      : mTransformSize(aTransformSize)
     {
     }
 
-    [[nodiscard]] uint32_t getTransformSize() const noexcept override { return m_transform_size; }
+    [[nodiscard]] uint32_t GetTransformSize() const noexcept override { return mTransformSize; }
 
     /**
      * @brief Return predefined complex FFT results
-     * @param samples Input audio samples (size must be equal to transform_size).
+     * @param aInputSamples Input audio aInputSamples (size must be equal to transform_size).
      * @return Vector of complex FFT output
-     * @throws std::invalid_argument if samples.size() != transform_size
+     * @throws std::invalid_argument if aInputSamples.size() != transform_size
      */
-    [[nodiscard]] std::vector<fftwf_complex> computeComplex(
-      const std::span<float>& samples) const override
+    [[nodiscard]] std::vector<fftwf_complex> ComputeComplex(
+      const std::span<float>& aInputSamples) const override
     {
-        if (samples.size() != m_transform_size) {
+        if (aInputSamples.size() != mTransformSize) {
             throw std::invalid_argument("Input sample size does not match transform size");
         }
 
-        std::vector<fftwf_complex> ret((m_transform_size / 2) + 1);
+        std::vector<fftwf_complex> ret((mTransformSize / 2) + 1);
         for (size_t i = 0; i < ret.size(); ++i) {
-            ret[i][0] = samples[i]; // Real part
-            ret[i][1] = samples[i]; // Imaginary part
+            ret[i][0] = aInputSamples[i]; // Real part
+            ret[i][1] = aInputSamples[i]; // Imaginary part
         }
         return ret;
     }
 
     /**
      * @brief Return predefined magnitude results
-     * @param samples Input audio samples (size must be equal to transform_size).  Ignored in this
-     * mock.
+     * @param aInputSamples Input audio aInputSamples (size must be equal to transform_size).
+     * Ignored in this mock.
      * @return Vector of frequency magnitudes
-     * @throws std::invalid_argument if samples.size() != transform_size
+     * @throws std::invalid_argument if aInputSamples.size() != transform_size
      */
-    [[nodiscard]] std::vector<float> computeMagnitudes(
-      const std::span<float>& samples) const override
+    [[nodiscard]] std::vector<float> ComputeMagnitudes(
+      const std::span<float>& aInputSamples) const override
     {
-        if (samples.size() != m_transform_size) {
+        if (aInputSamples.size() != mTransformSize) {
             throw std::invalid_argument("Input sample size does not match transform size");
         }
 
-        std::vector<float> ret((m_transform_size / 2) + 1);
-        std::copy(
-          samples.begin(), samples.begin() + static_cast<std::ptrdiff_t>(ret.size()), ret.begin());
+        std::vector<float> ret((mTransformSize / 2) + 1);
+        std::copy(aInputSamples.begin(),
+                  aInputSamples.begin() + static_cast<std::ptrdiff_t>(ret.size()),
+                  ret.begin());
         return ret;
     }
 
   private:
-    uint32_t m_transform_size;
+    uint32_t mTransformSize;
 };

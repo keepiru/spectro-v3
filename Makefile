@@ -71,12 +71,12 @@ release:
 # Lint with clang-tidy
 lint:
 	@echo "Running clang-tidy on source files..."
-	run-clang-tidy -p $(BUILD_DIR) -use-color
+	run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
 
 # Lint with automatic fixes (use with caution)
 lint-fix:
 	@echo "Running clang-tidy with automatic fixes..."
-	run-clang-tidy -p $(BUILD_DIR) -use-color -fix
+	run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet
 
 # Help target
 help:

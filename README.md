@@ -77,3 +77,24 @@ This project follows Test-Driven Development (TDD) practices. See `TODO.md` for 
 - `spectro_dsp` - DSP library (pure C++, no Qt dependencies)
 - `spectro_dsp_tests` - DSP unit tests
 - `spectro` - Main Qt6 GUI application (future)
+
+### Code Quality
+
+**Linting with clang-tidy:**
+
+```bash
+# Run linter on all source files
+make lint
+
+# Run linter with automatic fixes (use with caution)
+make lint-fix
+
+# Enable clang-tidy during build (slower)
+cmake -B build -S . -DENABLE_CLANG_TIDY=ON
+```
+
+The project uses clang-tidy with modern C++ best practices configured in `.clang-tidy`. The configuration enforces:
+- C++ Core Guidelines
+- Modern C++23 idioms
+- Performance optimizations
+- Readability and naming conventions (m_ prefix for members)

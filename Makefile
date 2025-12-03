@@ -12,7 +12,7 @@ BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
 
 .PHONY: all build configure clean rebuild test test-verbose coverage \
-        format lint docs help
+        format lint lint-fix docs help
 
 # Default target
 all: build
@@ -68,6 +68,18 @@ release:
 	cmake -B $(BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=Release
 	cmake --build $(BUILD_DIR) --config Release -j $(JOBS)
 
+# Lint with clang-tidy
+lint:
+	@echo "Running clang-tidy on source files..."
+	@find dsp/src -name '*.cpp' | \
+		xargs clang-tidy -p $(BUILD_DIR)
+
+# Lint with automatic fixes (use with caution)
+lint-fix:
+	@echo "Running clang-tidy with automatic fixes..."
+	@find dsp/src -name '*.cpp' | \
+		xargs clang-tidy -p $(BUILD_DIR) --fix
+
 # Help target
 help:
 	@echo "Spectro-v3 Build System"
@@ -86,6 +98,10 @@ help:
 	@echo "  make test-direct  - Run test executable directly (faster)"
 	@echo "  make test-one NAME=<pattern> - Run tests matching pattern"
 	@echo "  make tdd          - Quick build + test cycle"
+	@echo ""
+	@echo "Code Quality:"
+	@echo "  make lint         - Run clang-tidy on all source files"
+	@echo "  make lint-fix     - Run clang-tidy with automatic fixes"
 	@echo ""
 	@echo "Configuration:"
 	@echo "  BUILD_TYPE=$(BUILD_TYPE) (Debug/Release/RelWithDebInfo)"

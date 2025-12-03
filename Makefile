@@ -71,14 +71,12 @@ release:
 # Lint with clang-tidy
 lint:
 	@echo "Running clang-tidy on source files..."
-	@find dsp/src -name '*.cpp' | \
-		xargs clang-tidy -p $(BUILD_DIR)
+	run-clang-tidy -p $(BUILD_DIR) -use-color
 
 # Lint with automatic fixes (use with caution)
 lint-fix:
 	@echo "Running clang-tidy with automatic fixes..."
-	@find dsp/src -name '*.cpp' | \
-		xargs clang-tidy -p $(BUILD_DIR) --fix
+	run-clang-tidy -p $(BUILD_DIR) -use-color -fix
 
 # Help target
 help:

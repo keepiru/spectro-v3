@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <stft_processor.h>
 #include <string>
-#include <utility>
 #include <vector>
 
 STFTProcessor::STFTProcessor(IFFTProcessor& fft_processor, FFTWindow& window, SampleBuffer& buffer)

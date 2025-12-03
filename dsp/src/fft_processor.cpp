@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <fft_processor.h>
 #include <fftw3.h>
 #include <span>
@@ -51,13 +52,9 @@ FFTProcessor::computeComplex(const std::span<float>& samples) const
 {
     compute(samples);
 
-    std::vector<fftwf_complex> output((m_transform_size / 2) + 1);
-    auto* fft_output_ptr = m_fft_output.get();
-    for (uint32_t i = 0; i < output.size(); ++i) {
-        output[i][0] = fft_output_ptr[i][0];
-        output[i][1] = fft_output_ptr[i][1];
-    }
-    return output;
+    std::vector<fftwf_complex> output_ptr((m_transform_size / 2) + 1);
+    std::memcpy(output_ptr.data(), m_fft_output.get(), output_ptr.size() * sizeof(fftwf_complex));
+    return output_ptr;
 }
 
 std::vector<float>

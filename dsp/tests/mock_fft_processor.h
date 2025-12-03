@@ -36,7 +36,7 @@ class MockFFTProcessor : public IFFTProcessor
             throw std::invalid_argument("Input sample size does not match transform size");
         }
 
-        std::vector<fftwf_complex> ret(m_transform_size / 2 + 1);
+        std::vector<fftwf_complex> ret((m_transform_size / 2) + 1);
         for (size_t i = 0; i < ret.size(); ++i) {
             ret[i][0] = samples[i]; // Real part
             ret[i][1] = samples[i]; // Imaginary part
@@ -57,7 +57,7 @@ class MockFFTProcessor : public IFFTProcessor
             throw std::invalid_argument("Input sample size does not match transform size");
         }
 
-        std::vector<float> ret(m_transform_size / 2 + 1);
+        std::vector<float> ret((m_transform_size / 2) + 1);
         std::copy(samples.begin(), samples.begin() + ret.size(), ret.begin());
         return ret;
     }

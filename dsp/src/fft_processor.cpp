@@ -25,7 +25,7 @@ FFTProcessor::FFTProcessor(uint32_t transform_size)
     }
 
     m_fft_input = FFTWRealPtr(fftwf_alloc_real(m_transform_size));
-    m_fft_output = FFTWComplexPtr(fftwf_alloc_complex(m_transform_size / 2 + 1));
+    m_fft_output = FFTWComplexPtr(fftwf_alloc_complex((m_transform_size / 2) + 1));
     m_fft_plan = FFTWPlanPtr(fftwf_plan_dft_r2c_1d(
       m_transform_size, m_fft_input.get(), m_fft_output.get(), FFTW_ESTIMATE));
 
@@ -51,7 +51,7 @@ FFTProcessor::compute_complex(const std::span<float>& samples) const
 {
     compute(samples);
 
-    std::vector<fftwf_complex> output(m_transform_size / 2 + 1);
+    std::vector<fftwf_complex> output((m_transform_size / 2) + 1);
     auto *fft_output_ptr = m_fft_output.get();
     for (uint32_t i = 0; i < output.size(); ++i) {
         output[i][0] = fft_output_ptr[i][0];
@@ -65,11 +65,11 @@ FFTProcessor::compute_magnitudes(const std::span<float>& samples) const
 {
     compute(samples);
 
-    std::vector<float> magnitudes(m_transform_size / 2 + 1);
+    std::vector<float> magnitudes((m_transform_size / 2) + 1);
     for (uint32_t i = 0; i < magnitudes.size(); ++i) {
         float real = m_fft_output.get()[i][0];
         float imag = m_fft_output.get()[i][1];
-        magnitudes[i] = std::sqrt(real * real + imag * imag);
+        magnitudes[i] = std::sqrt((real * real) + (imag * imag));
     }
     return magnitudes;
 }

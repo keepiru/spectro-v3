@@ -21,7 +21,6 @@ Checks: >
   -readability-identifier-naming,
   -modernize-use-nodiscard,
   -readability-uppercase-literal-suffix,
-  -readability-math-missing-parentheses,
 
 WarningsAsErrors: ''
 

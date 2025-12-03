@@ -10,22 +10,29 @@ MAKEFLAGS += --no-print-directory
 BUILD_DIR := build
 BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
+DOCKER_IMAGE := spectro-v3-builder
+DOCKER_RUN := docker run --rm -it --user $(shell id -u):$(shell id -g) -v $(PWD):/build -w /build $(DOCKER_IMAGE)
 
-.PHONY: all build configure clean rebuild test test-verbose coverage \
-        format lint lint-fix docs help
+.PHONY: all build configure clean rebuild test test-verbose test-direct test-one \
+        tdd release lint lint-fix help shell build-image
 
 # Default target
 all: build
 
+# Build the Docker image
+build-image:
+	@echo "Building Docker image..."
+	docker build -q -t $(DOCKER_IMAGE) .
+
 # Configure CMake (run once or after CMakeLists.txt changes)
-configure:
+configure: build-image
 	@echo "Configuring CMake..."
-	cmake -B $(BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+	$(DOCKER_RUN) cmake -B $(BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 
 # Build the project (configures if needed)
-build: | $(BUILD_DIR)/Makefile
+build: build-image | $(BUILD_DIR)/Makefile
 	@echo "Building..."
-	cmake --build $(BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
+	$(DOCKER_RUN) cmake --build $(BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
 
 # Ensure build directory exists and is configured
 $(BUILD_DIR)/Makefile:
@@ -42,49 +49,55 @@ rebuild: clean configure build
 # Run tests via CTest
 test: build
 	@echo "Running tests..."
-	ctest --test-dir $(BUILD_DIR) --output-on-failure
+	$(DOCKER_RUN) ctest --test-dir $(BUILD_DIR) --output-on-failure
 
 # Run tests with verbose output (useful for TDD)
 test-verbose: build
 	@echo "Running tests (verbose)..."
-	ctest --test-dir $(BUILD_DIR) --output-on-failure --verbose
+	$(DOCKER_RUN) ctest --test-dir $(BUILD_DIR) --output-on-failure --verbose
 
 # Run test executable directly (faster iteration during TDD)
 test-direct: build
 	@echo "Running tests directly..."
-	$(BUILD_DIR)/dsp/tests/spectro_dsp_tests
+	$(DOCKER_RUN) $(BUILD_DIR)/dsp/tests/spectro_dsp_tests
 
 # Run single test by name pattern (usage: make test-one NAME=FFTProcessor)
 test-one: build
 	@echo "Running tests matching '$(NAME)'..."
-	ctest --test-dir $(BUILD_DIR) --output-on-failure -R "$(NAME)"
+	$(DOCKER_RUN) ctest --test-dir $(BUILD_DIR) --output-on-failure -R "$(NAME)"
 
 # Quick TDD cycle: build and test in one command
 tdd: test-direct
 
 # Release build
-release:
+release: build-image
 	@echo "Building release..."
-	cmake -B $(BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=Release
-	cmake --build $(BUILD_DIR) --config Release -j $(JOBS)
+	$(DOCKER_RUN) cmake -B $(BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=Release
+	$(DOCKER_RUN) cmake --build $(BUILD_DIR) --config Release -j $(JOBS)
 
 # Lint with clang-tidy
-lint:
+lint: build-image
 	@echo "Running clang-tidy on source files..."
-	run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
+	$(DOCKER_RUN) run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
 
 # Lint with automatic fixes (use with caution)
-lint-fix:
+lint-fix: build-image
 	@echo "Running clang-tidy with automatic fixes..."
-	run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet
+	$(DOCKER_RUN) run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet
+
+# Open interactive shell in Docker container
+shell: build-image
+	@echo "Starting Docker shell..."
+	$(DOCKER_RUN) /bin/bash
 
 # Help target
 help:
-	@echo "Spectro-v3 Build System"
+	@echo "Spectro-v3 Build System (Docker-based)"
 	@echo ""
 	@echo "Build Targets:"
 	@echo "  make              - Build the project (default)"
-	@echo "  make configure    - Configure CMake (run after CMakeLists.txt changes)"
+	@echo "  make build-image  - Build the Docker image"
+	@echo "  make configure    - Configure CMake"
 	@echo "  make build        - Build the project"
 	@echo "  make clean        - Remove build directory"
 	@echo "  make rebuild      - Clean + configure + build"
@@ -101,6 +114,10 @@ help:
 	@echo "  make lint         - Run clang-tidy on all source files"
 	@echo "  make lint-fix     - Run clang-tidy with automatic fixes"
 	@echo ""
+	@echo "Development:"
+	@echo "  make shell        - Open interactive shell in Docker"
+	@echo ""
 	@echo "Configuration:"
 	@echo "  BUILD_TYPE=$(BUILD_TYPE) (Debug/Release/RelWithDebInfo)"
 	@echo "  JOBS=$(JOBS) (parallel jobs)"
+	@echo "  DOCKER_IMAGE=$(DOCKER_IMAGE)"

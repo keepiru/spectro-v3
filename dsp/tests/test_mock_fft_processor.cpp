@@ -18,7 +18,7 @@ TEST_CASE("MockFFTProcessor returns fixed values", "[MockFFTProcessor]")
     {
         auto complex_output = mock_fft.compute_complex(samples);
         CAPTURE(complex_output);
-        REQUIRE(complex_output.size() == samples.size() / 2 + 1);
+        REQUIRE(complex_output.size() == (samples.size() / 2) + 1);
         for (size_t i = 0; i < complex_output.size(); ++i) {
             REQUIRE(complex_output[i][0] == samples[i]); // Real part
             REQUIRE(complex_output[i][1] == samples[i]); // Imaginary part

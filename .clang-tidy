@@ -25,10 +25,7 @@ Checks: >
   -bugprone-narrowing-conversions, -cppcoreguidelines-narrowing-conversions,
   -modernize-avoid-c-arrays, -cppcoreguidelines-avoid-c-arrays,
   -cppcoreguidelines-avoid-const-or-ref-data-members,
-  -performance-enum-size,
-  -readability-math-missing-parentheses
-
-
+  -performance-enum-size
 
 WarningsAsErrors: ''
 

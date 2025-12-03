@@ -30,7 +30,8 @@ class MockFFTProcessor : public IFFTProcessor
      * @return Vector of complex FFT output
      * @throws std::invalid_argument if samples.size() != transform_size
      */
-    [[nodiscard]] std::vector<fftwf_complex> compute_complex(const std::span<float>& samples) const override
+    [[nodiscard]] std::vector<fftwf_complex> compute_complex(
+      const std::span<float>& samples) const override
     {
         if (samples.size() != m_transform_size) {
             throw std::invalid_argument("Input sample size does not match transform size");
@@ -51,14 +52,16 @@ class MockFFTProcessor : public IFFTProcessor
      * @return Vector of frequency magnitudes
      * @throws std::invalid_argument if samples.size() != transform_size
      */
-    [[nodiscard]] std::vector<float> compute_magnitudes(const std::span<float>& samples) const override
+    [[nodiscard]] std::vector<float> compute_magnitudes(
+      const std::span<float>& samples) const override
     {
         if (samples.size() != m_transform_size) {
             throw std::invalid_argument("Input sample size does not match transform size");
         }
 
         std::vector<float> ret((m_transform_size / 2) + 1);
-        std::copy(samples.begin(), samples.begin() + ret.size(), ret.begin());
+        std::copy(
+          samples.begin(), samples.begin() + static_cast<std::ptrdiff_t>(ret.size()), ret.begin());
         return ret;
     }
 

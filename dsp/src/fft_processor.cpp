@@ -13,7 +13,7 @@ isPowerOf2(uint32_t n)
 }
 }
 
-FFTProcessor::FFTProcessor(uint32_t transform_size)
+FFTProcessor::FFTProcessor(int32_t transform_size)
   : m_transform_size(transform_size)
   , m_fft_plan(nullptr)
   , m_fft_input(nullptr)
@@ -52,7 +52,7 @@ FFTProcessor::compute_complex(const std::span<float>& samples) const
     compute(samples);
 
     std::vector<fftwf_complex> output((m_transform_size / 2) + 1);
-    auto *fft_output_ptr = m_fft_output.get();
+    auto* fft_output_ptr = m_fft_output.get();
     for (uint32_t i = 0; i < output.size(); ++i) {
         output[i][0] = fft_output_ptr[i][0];
         output[i][1] = fft_output_ptr[i][1];

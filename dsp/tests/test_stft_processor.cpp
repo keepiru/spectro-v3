@@ -181,8 +181,8 @@ TEST_CASE("STFTProcessor with Hann window integration", "[stft]")
         // samples as magnitudes so the only transformation is from the
         // windowing.
         std::vector<std::vector<float>> want = {
-            { 0.0f, 0.188255101f, 0.611260474f, 0.950484455f, 0.950484455f },
-            { 0.0f, 0.188255101f, 0.611260474f, 0.950484455f, 0.950484455f },
+            { 0.0f, 0.188255101f, 0.611260474f, 0.950484395f, 0.950484395f },
+            { 0.0f, 0.188255101f, 0.611260474f, 0.950484395f, 0.950484395f }
         };
         auto result = stft.compute_spectrogram(0, 4, 2);
         REQUIRE(result == want);

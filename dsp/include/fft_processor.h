@@ -23,7 +23,7 @@ class FFTProcessor : public IFFTProcessor
      * @param transform_size FFT transform size (number of input samples, must be power of 2)
      * @throws std::invalid_argument if transform_size is not a power of 2
      */
-    explicit FFTProcessor(uint32_t transform_size);
+    explicit FFTProcessor(int32_t transform_size);
 
     /**
      * @brief Destructor
@@ -73,7 +73,7 @@ class FFTProcessor : public IFFTProcessor
         void operator()(fftwf_complex* ptr) const;
     };
 
-    uint32_t m_transform_size;
+    int32_t m_transform_size;
     using FFTWPlanPtr = std::unique_ptr<std::remove_pointer_t<fftwf_plan>, FFTWDeleter>;
     using FFTWRealPtr = std::unique_ptr<float, FFTWDeleter>;
     using FFTWComplexPtr = std::unique_ptr<fftwf_complex, FFTWDeleter>;

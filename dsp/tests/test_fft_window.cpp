@@ -1,10 +1,10 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <cmath>
 #include <fft_processor.h>
 #include <fft_window.h>
 #include <iostream>
-#include <cmath>
 #include <vector>
 
 TEST_CASE("FFTWindow Constructor", "[fft_window]")
@@ -98,7 +98,8 @@ TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
     // Generate a sine wave that does not fit an integer number of cycles in the window
     std::vector<float> samples(transform_size);
     for (size_t i = 0; i < transform_size; ++i) {
-        samples[i] = std::sin(2.0f * std::numbers::pi * frequency * i / transform_size);
+        auto pi = std::numbers::pi_v<float>;
+        samples[i] = std::sinf(2.0f * pi * frequency * static_cast<float>(i) / transform_size);
     }
 
     // Compute spectrum without windowing

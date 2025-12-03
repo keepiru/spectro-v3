@@ -47,8 +47,10 @@ FFTWindow::compute_window_coefficients()
             break;
         case Type::Hann:
             for (size_t i = 0; i < m_size; ++i) {
+                auto pi = std::numbers::pi_v<float>;
                 m_window_coefficients[i] =
-                  0.5f * (1.0f - std::cos((2.0f * std::numbers::pi * i) / (m_size - 1)));
+                  0.5f * (1.0f - std::cosf((2.0f * pi * static_cast<float>(i)) /
+                                           static_cast<float>(m_size - 1)));
             }
             break;
         default:

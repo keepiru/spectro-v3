@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 #include <fft_processor.h>
 #include <fftw3.h>
@@ -40,7 +41,7 @@ FFTProcessor::compute(const std::span<float>& samples) const
         throw std::invalid_argument("Input samples size must be equal to transform_size");
     }
     // Copy input samples to FFTW input buffer
-    std::copy(samples.begin(), samples.end(), m_fft_input.get());
+    std::ranges::copy(samples, m_fft_input.get());
     // Execute the FFT
     fftwf_execute(m_fft_plan.get());
 }
@@ -51,7 +52,7 @@ FFTProcessor::compute_complex(const std::span<float>& samples) const
     compute(samples);
 
     std::vector<fftwf_complex> output(m_transform_size / 2 + 1);
-    auto fft_output_ptr = m_fft_output.get();
+    auto *fft_output_ptr = m_fft_output.get();
     for (uint32_t i = 0; i < output.size(); ++i) {
         output[i][0] = fft_output_ptr[i][0];
         output[i][1] = fft_output_ptr[i][1];

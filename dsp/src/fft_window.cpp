@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <fft_window.h>
@@ -42,7 +43,7 @@ FFTWindow::compute_window_coefficients()
 {
     switch (m_type) {
         case Type::Rectangular:
-            std::fill(m_window_coefficients.begin(), m_window_coefficients.end(), 1.0f);
+            std::ranges::fill(m_window_coefficients, 1.0f);
             break;
         case Type::Hann:
             for (size_t i = 0; i < m_size; ++i) {

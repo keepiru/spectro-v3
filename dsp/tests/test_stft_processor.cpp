@@ -1,6 +1,7 @@
 #include "mock_fft_processor.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <cstddef>
 #include <fft_window.h>
 #include <sample_buffer.h>
 #include <stft_processor.h>
@@ -26,7 +27,7 @@ TEST_CASE("STFTProcessor constructor validation", "[stft]")
 
     SECTION("Constructor throws when window size is larger than transform size")
     {
-        FFTWindow window(transform_size * 2, FFTWindow::Type::Hann);
+        FFTWindow window(static_cast<size_t>(transform_size * 2), FFTWindow::Type::Hann);
         REQUIRE_THROWS_AS(STFTProcessor(fft_processor, window, buffer), std::invalid_argument);
     }
 }

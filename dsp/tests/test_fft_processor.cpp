@@ -1,7 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <numbers>
 #include <fft_processor.h>
-#include <math.h>
+#include <cmath>
 
 TEST_CASE("Constructor succeeds", "[fft]")
 {
@@ -99,7 +100,7 @@ TEST_CASE("FFTProcessor#compute_magnitudes", "[fft]")
         std::vector<float> samples(transform_size);
         for (size_t i = 0; i < transform_size; ++i) {
             samples[i] =
-              sinf(2.0f * 3.14159265f * frequency * (i / static_cast<float>(transform_size)));
+              sinf(2.0f * std::numbers::pi_v<float> * frequency * (i / static_cast<float>(transform_size)));
         }
 
         auto spectrum = processor.compute_magnitudes(samples);

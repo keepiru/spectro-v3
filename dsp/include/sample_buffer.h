@@ -18,7 +18,7 @@ class SampleBuffer
      */
     explicit SampleBuffer(size_t sample_rate)
       : m_sample_rate(sample_rate)
-      , m_data()
+       
     {
     }
 

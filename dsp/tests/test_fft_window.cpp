@@ -4,7 +4,7 @@
 #include <fft_processor.h>
 #include <fft_window.h>
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 TEST_CASE("FFTWindow Constructor", "[fft_window]")
@@ -114,7 +114,7 @@ TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
         float leakage_sum = 0.0f;
         for (size_t i = 0; i < spectrum.size(); ++i) {
             // Exclude main lobe around the signal frequency
-            if (abs(static_cast<float>(i) - frequency) > 3.0f) {
+            if (std::abs(static_cast<float>(i) - frequency) > 3.0f) {
                 leakage_sum += spectrum[i] * spectrum[i]; // Power, not magnitude
             }
         }

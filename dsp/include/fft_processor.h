@@ -69,7 +69,7 @@ class FFTProcessor : public IFFTProcessor
     };
 
     uint32_t m_transform_size;
-    using FFTWPlanPtr = std::unique_ptr<std::remove_pointer<fftwf_plan>::type, FFTWDeleter>;
+    using FFTWPlanPtr = std::unique_ptr<std::remove_pointer_t<fftwf_plan>, FFTWDeleter>;
     using FFTWRealPtr = std::unique_ptr<float, FFTWDeleter>;
     using FFTWComplexPtr = std::unique_ptr<fftwf_complex, FFTWDeleter>;
     FFTWPlanPtr m_fft_plan;

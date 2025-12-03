@@ -21,6 +21,15 @@ Checks: >
   -readability-identifier-naming,
   -readability-uppercase-literal-suffix,
 
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions, -cppcoreguidelines-narrowing-conversions,
+  -modernize-avoid-c-arrays, -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-avoid-const-or-ref-data-members,
+  -performance-enum-size,
+  -readability-math-missing-parentheses
+
+
+
 WarningsAsErrors: ''
 
 CheckOptions:

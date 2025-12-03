@@ -23,7 +23,6 @@ Checks: >
 
   -bugprone-easily-swappable-parameters,
   -bugprone-narrowing-conversions, -cppcoreguidelines-narrowing-conversions,
-  -modernize-avoid-c-arrays, -cppcoreguidelines-avoid-c-arrays,
   -cppcoreguidelines-avoid-const-or-ref-data-members,
   -performance-enum-size
 

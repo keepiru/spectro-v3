@@ -4,7 +4,9 @@
 #include <vector>
 
 // Forward declaration for FFTW complex type
-using fftwf_complex = float[2];
+// We have to match the FFTW complex type definition
+using fftwf_complex =
+  float[2]; // NOLINT (cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 
 /**
  * @brief Interface for FFT processors
@@ -31,7 +33,8 @@ class IFFTProcessor
      *         Where Fs is the sampling frequency and N is transform_size
      * @throws std::invalid_argument if samples.size() != transform_size
      */
-    [[nodiscard]] virtual std::vector<fftwf_complex> compute_complex(const std::span<float>& samples) const = 0;
+    [[nodiscard]] virtual std::vector<fftwf_complex> compute_complex(
+      const std::span<float>& samples) const = 0;
 
     /**
      * @brief Compute the frequency magnitudes from audio samples
@@ -41,5 +44,6 @@ class IFFTProcessor
      *         Where Fs is the sampling frequency and N is transform_size
      * @throws std::invalid_argument if samples.size() != transform_size
      */
-    [[nodiscard]] virtual std::vector<float> compute_magnitudes(const std::span<float>& samples) const = 0;
+    [[nodiscard]] virtual std::vector<float> compute_magnitudes(
+      const std::span<float>& samples) const = 0;
 };

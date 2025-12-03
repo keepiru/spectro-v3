@@ -1,8 +1,7 @@
 ---
-# clang-tidy configuration for test files
-# Inherits from parent config but disables checks that produce false positives with Catch2 macros
-
 InheritParentConfig: true
 
 Checks: >
   -readability-function-cognitive-complexity,
+  -readability-magic-numbers,
+  -cppcoreguidelines-avoid-magic-numbers,

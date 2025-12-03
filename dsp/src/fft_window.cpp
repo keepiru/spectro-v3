@@ -49,6 +49,8 @@ FFTWindow::computeWindowCoefficients()
             for (size_t i = 0; i < m_size; ++i) {
                 auto pi_f = std::numbers::pi_v<float>;
                 m_window_coefficients[i] =
+                  // The constants here are part of the Hann window definition.
+                  // NOLINTNEXTLINE(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
                   0.5f * (1.0f - std::cosf((2.0f * pi_f * static_cast<float>(i)) /
                                            static_cast<float>(m_size - 1)));
             }

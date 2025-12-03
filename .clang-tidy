@@ -11,8 +11,6 @@ Checks: >
   portability-*,
   clang-analyzer-*,
   -modernize-use-trailing-return-type,
-  -readability-magic-numbers,
-  -cppcoreguidelines-avoid-magic-numbers,
   -bugprone-easily-swappable-parameters,
   -cppcoreguidelines-avoid-const-or-ref-data-members,
 

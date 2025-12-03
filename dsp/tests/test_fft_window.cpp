@@ -98,8 +98,8 @@ TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
     // Generate a sine wave that does not fit an integer number of cycles in the window
     std::vector<float> samples(transform_size);
     for (size_t i = 0; i < transform_size; ++i) {
-        auto pi = std::numbers::pi_v<float>;
-        samples[i] = std::sinf(2.0f * pi * frequency * static_cast<float>(i) / transform_size);
+        auto pi_f = std::numbers::pi_v<float>;
+        samples[i] = std::sinf(2.0f * pi_f * frequency * static_cast<float>(i) / transform_size);
     }
 
     // Compute spectrum without windowing

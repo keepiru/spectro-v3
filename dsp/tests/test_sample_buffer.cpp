@@ -1,5 +1,5 @@
-#include <sample_buffer.h>
 #include <catch2/catch_test_macros.hpp>
+#include <sample_buffer.h>
 #include <thread>
 
 TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
@@ -74,13 +74,13 @@ TEST_CASE("SampleBuffer concurrent access", "[SampleBuffer][concurrency]")
         }
     };
 
-    std::thread t1(writer);
-    std::thread t2(reader);
-    std::thread t3(reader);
+    std::thread thread_1(writer);
+    std::thread thread_2(reader);
+    std::thread thread_3(reader);
 
-    t1.join();
-    t2.join();
-    t3.join();
+    thread_1.join();
+    thread_2.join();
+    thread_3.join();
 
     REQUIRE(buffer.numSamples() == 1000);
 }

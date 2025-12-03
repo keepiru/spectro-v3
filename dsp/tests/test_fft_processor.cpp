@@ -99,8 +99,8 @@ TEST_CASE("FFTProcessor#computeMagnitudes", "[fft]")
         const float frequency = 1.0f; // 1 cycle over 8 samples
         std::vector<float> samples(transform_size);
         for (size_t i = 0; i < transform_size; ++i) {
-            auto pi = std::numbers::pi_v<float>;
-            samples[i] = std::sinf(2.0f * pi * frequency * static_cast<float>(i) /
+            auto pi_f = std::numbers::pi_v<float>;
+            samples[i] = std::sinf(2.0f * pi_f * frequency * static_cast<float>(i) /
                                    static_cast<float>(transform_size));
         }
 

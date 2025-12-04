@@ -7,6 +7,7 @@
 MAKEFLAGS += --no-print-directory
 
 # Configuration
+LOCAL_BUILD_DIR := build
 BUILD_DIR := build-docker
 BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
@@ -33,6 +34,11 @@ configure: build-image
 build: build-image | $(BUILD_DIR)/Makefile
 	@echo "Building..."
 	$(DOCKER_RUN) cmake --build $(BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
+
+# Build the project without Docker (configures if needed)
+build-local: $(LOCAL_BUILD_DIR)/Makefile
+	@echo "Building..."
+	cmake --build $(LOCAL_BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
 
 # Ensure build directory exists and is configured
 $(BUILD_DIR)/Makefile:

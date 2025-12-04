@@ -6,7 +6,7 @@ main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
 
-    spectro::MainWindow mainWindow;
+    spectro_qt6::MainWindow mainWindow;
     mainWindow.show();
 
     return app.exec();

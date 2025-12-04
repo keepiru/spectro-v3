@@ -2,7 +2,7 @@
 #include <QSignalSpy>
 #include <QTest>
 
-namespace spectro {
+namespace spectro_qt6 {
 
 class TestMainWindow : public QObject
 {
@@ -37,8 +37,8 @@ TestMainWindow::testWindowSize()
     QCOMPARE(window.height(), 600);
 }
 
-} // namespace spectro
+} // namespace spectro_qt6
 
 // QTEST_MAIN creates a QApplication for widget tests
-QTEST_MAIN(spectro::TestMainWindow)
+QTEST_MAIN(spectro_qt6::TestMainWindow)
 #include "test_main_window.moc"

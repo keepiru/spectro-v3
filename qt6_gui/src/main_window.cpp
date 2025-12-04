@@ -1,6 +1,6 @@
 #include "main_window.h"
 
-namespace spectro {
+namespace spectro_qt6 {
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
 {
@@ -14,4 +14,4 @@ void MainWindow::setupUi() {
     resize(800, 600);
 }
 
-} // namespace spectro
+} // namespace spectro_qt6

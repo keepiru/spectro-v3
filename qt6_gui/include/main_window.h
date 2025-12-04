@@ -2,7 +2,7 @@
 
 #include <QMainWindow>
 
-namespace spectro {
+namespace spectro_qt6 {
 
 class MainWindow : public QMainWindow
 {
@@ -16,4 +16,4 @@ class MainWindow : public QMainWindow
     void setupUi();
 };
 
-} // namespace spectro
+} // namespace spectro_qt6

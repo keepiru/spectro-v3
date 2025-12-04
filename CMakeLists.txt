@@ -27,5 +27,5 @@ enable_testing()
 # Add DSP library subdirectory
 add_subdirectory(dsp)
 
-# Qt6 GUI (future - will contain main executable and GUI components)
-# add_subdirectory(qt6_gui)
+# Qt6 GUI
+add_subdirectory(qt6_gui)

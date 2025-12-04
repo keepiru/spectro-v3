@@ -19,7 +19,10 @@ RUN apt-get update && apt-get install -yq \
     libqt6multimedia6 \
     libfftw3-single3
 
-RUN apt-get -yq install clang-format
+# Add new requirements here so we don't have to rebuild the whole image
+RUN apt-get -yq install \
+    clang-format \
+    libqt6test6
 
 # Set working directory
 WORKDIR /build

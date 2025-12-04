@@ -15,7 +15,8 @@ DOCKER_IMAGE := spectro-v3-builder
 DOCKER_RUN := docker run --rm -it --user $(shell id -u):$(shell id -g) -v $(PWD):/build -w /build $(DOCKER_IMAGE)
 
 .PHONY: all build configure clean rebuild test test-verbose test-direct test-one \
-        tdd release lint lint-fix help shell build-image
+        tdd release lint lint-fix help shell build-image \
+        local-configure local-build local-test local-clean local-rebuild local-tdd local-run
 
 # Default target
 all: build
@@ -34,11 +35,6 @@ configure: build-image
 build: build-image | $(BUILD_DIR)/Makefile
 	@echo "Building..."
 	$(DOCKER_RUN) cmake --build $(BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
-
-# Build the project without Docker (configures if needed)
-build-local: $(LOCAL_BUILD_DIR)/Makefile
-	@echo "Building..."
-	cmake --build $(LOCAL_BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
 
 # Ensure build directory exists and is configured
 $(BUILD_DIR)/Makefile:
@@ -100,6 +96,47 @@ run: build
 	@echo "Running spectro-v3..."
 	$(BUILD_DIR)/qt6_gui/spectro
 
+# ==============================================================================
+# Local (non-Docker) targets
+# ==============================================================================
+
+# Configure CMake locally
+local-configure:
+	@echo "Configuring CMake locally..."
+	cmake -B $(LOCAL_BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+
+# Build locally
+local-build: | $(LOCAL_BUILD_DIR)/Makefile
+	@echo "Building locally..."
+	cmake --build $(LOCAL_BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
+
+# Ensure local build directory exists and is configured
+$(LOCAL_BUILD_DIR)/Makefile:
+	@$(MAKE) local-configure
+
+# Run tests locally
+local-test: local-build
+	@echo "Running tests locally..."
+	ctest --test-dir $(LOCAL_BUILD_DIR) --output-on-failure
+
+# Clean local build
+local-clean:
+	@echo "Cleaning local build directory..."
+	rm -rf $(LOCAL_BUILD_DIR)
+
+# Full local rebuild
+local-rebuild: local-clean local-configure local-build
+
+# Quick local TDD cycle
+local-tdd: local-build
+	@echo "Running tests directly (local)..."
+	$(LOCAL_BUILD_DIR)/dsp/tests/spectro_dsp_tests
+
+# Run application locally
+local-run: local-build
+	@echo "Running spectro-v3 locally..."
+	$(LOCAL_BUILD_DIR)/qt6_gui/spectro
+
 # Help target
 help:
 	@echo "Spectro-v3 Build System (Docker-based)"
@@ -126,6 +163,16 @@ help:
 	@echo ""
 	@echo "Development:"
 	@echo "  make shell        - Open interactive shell in Docker"
+	@echo "  make run          - Run application (Docker)"
+	@echo ""
+	@echo "Local (non-Docker) Targets:"
+	@echo "  make local-configure - Configure CMake locally"
+	@echo "  make local-build  - Build locally"
+	@echo "  make local-test   - Run tests locally"
+	@echo "  make local-clean  - Clean local build"
+	@echo "  make local-rebuild - Clean + configure + build locally"
+	@echo "  make local-tdd    - Quick local TDD cycle"
+	@echo "  make local-run    - Run application locally"
 	@echo ""
 	@echo "Configuration:"
 	@echo "  BUILD_TYPE=$(BUILD_TYPE) (Debug/Release/RelWithDebInfo)"

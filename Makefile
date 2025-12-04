@@ -90,6 +90,10 @@ shell: build-image
 	@echo "Starting Docker shell..."
 	$(DOCKER_RUN) /bin/bash
 
+run: build
+	@echo "Running spectro-v3..."
+	$(BUILD_DIR)/qt6_gui/spectro
+
 # Help target
 help:
 	@echo "Spectro-v3 Build System (Docker-based)"

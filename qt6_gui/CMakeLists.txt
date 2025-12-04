@@ -10,6 +10,8 @@ set(CMAKE_AUTOUIC ON)
 
 # GUI library sources
 add_library(qt6_gui_lib
+    src/main_window.cpp
+    include/main_window.h
 )
 
 target_include_directories(qt6_gui_lib

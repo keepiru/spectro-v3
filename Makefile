@@ -7,7 +7,7 @@
 MAKEFLAGS += --no-print-directory
 
 # Configuration
-BUILD_DIR := build
+BUILD_DIR := build-docker
 BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
 DOCKER_IMAGE := spectro-v3-builder

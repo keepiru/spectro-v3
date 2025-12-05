@@ -47,3 +47,6 @@ set_target_properties(spectro PROPERTIES
     CXX_STANDARD 23
     CXX_STANDARD_REQUIRED ON
 )
+
+# Add tests subdirectory
+add_subdirectory(tests)

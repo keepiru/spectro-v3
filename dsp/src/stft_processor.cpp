@@ -10,7 +10,7 @@
 
 STFTProcessor::STFTProcessor(IFFTProcessor& aFFTProcessor,
                              FFTWindow& aWindow,
-                             SampleBuffer& aBuffer)
+                             const SampleBuffer& aBuffer)
   : mFFTProcessor(aFFTProcessor)
   , mWindow(aWindow)
   , mBuffer(aBuffer)

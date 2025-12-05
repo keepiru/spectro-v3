@@ -44,7 +44,7 @@ class STFTProcessor
      * The window size must match the FFT transform size to ensure correct
      * frequency resolution. This constraint is validated at construction time.
      */
-    STFTProcessor(IFFTProcessor& aFFTProcessor, FFTWindow& aWindow, SampleBuffer& aBuffer);
+    STFTProcessor(IFFTProcessor& aFFTProcessor, FFTWindow& aWindow, const SampleBuffer& aBuffer);
 
     /**
      * @brief Compute spectrogram from audio samples
@@ -72,5 +72,5 @@ class STFTProcessor
   private:
     IFFTProcessor& mFFTProcessor;
     FFTWindow& mWindow;
-    SampleBuffer& mBuffer;
+    const SampleBuffer& mBuffer;
 };

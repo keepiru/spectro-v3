@@ -142,7 +142,6 @@ Contains all Qt6-specific code including visualization widgets, audio capture, a
 ### Configuration Updates
 - **Live updates:** All ConfigPanel parameter changes apply immediately on next render cycle
 - **No throttling:** Signals emit on every value change (e.g., spinbox drag); widgets handle frequency
-- **QSettings persistence:** All user preferences saved automatically
 
 ### Layout and Sizing
 - **MainWindow layout:** QHBoxLayout with left VBox (visualization) + right ConfigPanel
@@ -158,7 +157,6 @@ Contains all Qt6-specific code including visualization widgets, audio capture, a
 
 ### Audio Device Handling
 - **Manual refresh:** Explicit button to re-scan devices (no hot-plug detection)
-- **Device persistence:** Last used device name saved in QSettings
 - **Graceful degradation:** Disabled start button when no device available
 
 ### Testing Strategy

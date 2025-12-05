@@ -11,9 +11,11 @@ set(CMAKE_AUTOUIC ON)
 # Collect source files
 set(GUI_SOURCES
     src/main.cpp
+    models/audio_buffer.cpp
 )
 
 set(GUI_HEADERS
+    models/audio_buffer.h
 )
 
 # Create executable

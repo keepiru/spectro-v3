@@ -47,18 +47,28 @@ Contains all Qt6-specific code including visualization widgets, audio capture, a
   - Spectrogram:Spectrum stretch ratio 7:3
   - Menu bar: File (save/export/quit), View (zoom/fullscreen), Help (about/shortcuts)
   - Status bar: sample rate, buffer size, CPU usage, playback position
-  - Integration point: connects all component signals/slots
+  - Controller role: owns ConfigurationModel, wires ConfigPanel request signals to model setters, connects model changed signals to workers/views
+
+- **ConfigurationModel** (`qt6_gui/include/configuration_model.h`)
+  - Single source of truth for all runtime configuration
+  - Thread-safe access via QMutex for worker thread reads
+  - Parameters: FFT size (int, 512-8192, default 1024), window type (FFTWindow::Type, default Hann), overlap % (int, 0-95%, default 75%), colormap (Colormap enum, default Viridis), floor dB (double, -120 to 0, default -80), ceiling dB (double, -60 to 20, default 0), audio device (QAudioDevice), sample rate (size_t)
+  - Validation: setters reject invalid values (non-power-of-2 FFT, out-of-range dB) with qWarning()
+  - Signals: fftSizeChanged(int), windowTypeChanged(FFTWindow::Type), overlapPercentChanged(int), colormapChanged(Colormap), floorChanged(double), ceilingChanged(double), audioDeviceChanged(QAudioDevice), sampleRateChanged(size_t)
+  - No persistence: configuration resets to defaults on application restart
 
 - **ConfigPanel** (`qt6_gui/include/config_panel.h`)
+  - Pure view: receives ConfigurationModel reference via constructor
   - QFormLayout with labeled controls
-  - FFT size: QComboBox (512/1024/2048/4096/8192, default 1024)
-  - Window function: QComboBox (Rectangular/Hann, default Hann)
-  - Zoom: changes overlap to zoom vertically
-  - Colormap: QComboBox (Grayscale/Jet/Viridis/Hot, default Viridis)
-  - Floor/Ceiling: QDoubleSpinBox (-120 to 0 dB / -60 to 20 dB, defaults -80/0)
+  - FFT size: QComboBox (512/1024/2048/4096/8192)
+  - Window function: QComboBox (Rectangular/Hann)
+  - Overlap: QSpinBox (0-95%, step 5)
+  - Colormap: QComboBox (Grayscale/Jet/Viridis/Hot)
+  - Floor/Ceiling: QDoubleSpinBox (-120 to 0 dB / -60 to 20 dB)
   - Audio device: QComboBox + refresh button (QMediaDevices::audioInputs())
   - Start/Stop capture: QPushButton (disabled when no device)
-  - Signals: fftSizeChanged, windowTypeChanged, overlapPercentChanged, colormapChanged, floorChanged, ceilingChanged, captureStartRequested, captureStopRequested
+  - Slots: update UI controls from model changed signals (uses blockSignals() to prevent loops)
+  - Signals: fftSizeRequested(int), windowTypeRequested(FFTWindow::Type), overlapPercentRequested(int), colormapRequested(Colormap), floorRequested(double), ceilingRequested(double), audioDeviceRequested(QAudioDevice), captureStartRequested(), captureStopRequested()
 
 - **SpectrogramView** (`qt6_gui/include/spectrogram_view.h`)
   - QWidget with QImage-based rendering
@@ -126,18 +136,31 @@ Contains all Qt6-specific code including visualization widgets, audio capture, a
 - `qt6_gui_tests` - Qt Test executable
 
 ## Architecture Patterns 
+- **Model-View-Controller (MVC):** Configuration management uses proper MVC separation
+  - **Model:** ConfigurationModel holds all runtime config as single source of truth
+  - **View:** ConfigPanel displays config state, emits user action requests
+  - **Controller:** MainWindow wires request signals to model setters, model changes to consumers
 - **Qt signal/slot:** Decoupled communication between components
 - **Immediate signal emission:** Signals emit on value change without throttling
 - **Asynchronous rendering:** Widgets render at their own pace (~60 FPS), reading current state
 - **QThread workers:** Long-running operations (audio capture, STFT) on separate threads
-- **Dependency injection:** Components receive dependencies via constructor (e.g., SampleBuffer)
+- **Dependency injection:** Components receive dependencies via constructor (e.g., SampleBuffer, ConfigurationModel reference)
 - **QSignalSpy testing:** Test signal emissions without mocks
 - **QImage testing:** Programmatic pixel verification for rendering correctness
 - **Performance benchmarks:** QBENCHMARK for critical paths, separate from functional tests
 - **Mock objects:** For external dependencies
-- **Dependency injection:** For testability
+- **Thread-safe model access:** QMutex protection for ConfigurationModel reads from worker threads
 
 ## Design Decisions
+
+### Configuration Management (MVC Pattern)
+- **Single source of truth:** ConfigurationModel owns all runtime configuration state
+- **No persistence:** Configuration resets to hardcoded defaults on application restart (future enhancement)
+- **Thread-safe access:** QMutex protects model getters for worker thread reads
+- **Validation in model:** Setters validate and reject invalid values (non-power-of-2 FFT, out-of-range dB) with qWarning()
+- **Signal loop prevention:** ConfigPanel uses blockSignals(true) when updating controls from model to avoid feedback loops
+- **Request/changed signal pairs:** ConfigPanel emits "requested" signals, model emits "changed" signals for clarity
+- **Dependency injection:** ConfigPanel receives ConfigurationModel reference via constructor (not owned)
 
 ### Configuration Updates
 - **Live updates:** All ConfigPanel parameter changes apply immediately on next render cycle

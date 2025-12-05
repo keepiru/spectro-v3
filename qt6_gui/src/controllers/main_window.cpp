@@ -1,4 +1,4 @@
-#include "main_window.h"
+#include "controllers/main_window.h"
 
 namespace spectro_qt6 {
 MainWindow::MainWindow(QWidget* parent)
@@ -9,7 +9,9 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow() = default;
 
-void MainWindow::setupUi() {
+void
+MainWindow::setupUi()
+{
     setWindowTitle("Spectro");
     resize(800, 600);
 }

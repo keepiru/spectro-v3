@@ -34,6 +34,18 @@ Contains the core digital signal processing components with **zero Qt dependenci
 ### `qt6_gui/` - Qt6 GUI Application
 Contains all Qt6-specific code including visualization widgets, audio capture, and the main application executable. This separation allows for potential alternative GUI implementations (web-based, terminal-based, etc.) in the future.
 
+**Directory Structure:**
+- `include/` - Public headers organized by MVC category
+  - `models/` - Application state and configuration (ConfigurationModel)
+  - `views/` - Display widgets (SpectrogramView, SpectrumPlot, ConfigPanel)
+  - `controllers/` - Coordination and signal wiring (MainWindow)
+  - `workers/` - Background thread classes (AudioCapture, SpectrogramWorker)
+  - `utils/` - Pure utility functions and enums (Colormap, ColormapConverter)
+- `src/` - Implementation files mirroring include/ structure
+- `tests/` - Qt Test files mirroring source structure
+  - Uses `test_` prefix (e.g., `test_main_window.cpp`)
+  - Organized in subdirectories matching component categories
+
 **Architecture:**
 - **Signal-based communication:** All components communicate via Qt signals/slots for loose coupling
 - **Asynchronous updates:** ConfigPanel emits signals immediately; widgets read values on next render (~60 FPS)
@@ -42,14 +54,14 @@ Contains all Qt6-specific code including visualization widgets, audio capture, a
 - **QFormLayout controls:** Professional label-beside-control appearance in ConfigPanel
 
 **Components:**
-- **MainWindow** (`qt6_gui/include/main_window.h`)
+- **MainWindow** (`qt6_gui/include/controllers/main_window.h`)
   - QHBoxLayout: left VBox (spectrogram + spectrum) + right ConfigPanel (~300px fixed width)
   - Spectrogram:Spectrum stretch ratio 7:3
   - Menu bar: File (save/export/quit), View (zoom/fullscreen), Help (about/shortcuts)
   - Status bar: sample rate, buffer size, CPU usage, playback position
   - Controller role: owns ConfigurationModel, wires ConfigPanel request signals to model setters, connects model changed signals to workers/views
 
-- **ConfigurationModel** (`qt6_gui/include/configuration_model.h`)
+- **ConfigurationModel** (`qt6_gui/include/models/configuration_model.h`)
   - Single source of truth for all runtime configuration
   - Thread-safe access via QMutex for worker thread reads
   - Parameters: FFT size (int, 512-8192, default 1024), window type (FFTWindow::Type, default Hann), overlap % (int, 0-95%, default 75%), colormap (Colormap enum, default Viridis), floor dB (double, -120 to 0, default -80), ceiling dB (double, -60 to 20, default 0), audio device (QAudioDevice), sample rate (size_t)
@@ -57,7 +69,7 @@ Contains all Qt6-specific code including visualization widgets, audio capture, a
   - Signals: fftSizeChanged(int), windowTypeChanged(FFTWindow::Type), overlapPercentChanged(int), colormapChanged(Colormap), floorChanged(double), ceilingChanged(double), audioDeviceChanged(QAudioDevice), sampleRateChanged(size_t)
   - No persistence: configuration resets to defaults on application restart
 
-- **ConfigPanel** (`qt6_gui/include/config_panel.h`)
+- **ConfigPanel** (`qt6_gui/include/views/config_panel.h`)
   - Pure view: receives ConfigurationModel reference via constructor
   - QFormLayout with labeled controls
   - FFT size: QComboBox (512/1024/2048/4096/8192)
@@ -70,7 +82,7 @@ Contains all Qt6-specific code including visualization widgets, audio capture, a
   - Slots: update UI controls from model changed signals (uses blockSignals() to prevent loops)
   - Signals: fftSizeRequested(int), windowTypeRequested(FFTWindow::Type), overlapPercentRequested(int), colormapRequested(Colormap), floorRequested(double), ceilingRequested(double), audioDeviceRequested(QAudioDevice), captureStartRequested(), captureStopRequested()
 
-- **SpectrogramView** (`qt6_gui/include/spectrogram_view.h`)
+- **SpectrogramView** (`qt6_gui/include/views/spectrogram_view.h`)
   - QWidget with QImage-based rendering
   - Scrolling waterfall display (time on Y-axis, frequency on X-axis)
   - ColormapConverter integration for magnitude-to-RGB mapping per channel
@@ -80,7 +92,7 @@ Contains all Qt6-specific code including visualization widgets, audio capture, a
   - ~60 FPS update via QTimer
   - Slot: updateSpectrogram(std::vector<std::vector<float>>)
 
-- **SpectrumPlot** (`qt6_gui/include/spectrum_plot.h`)
+- **SpectrumPlot** (`qt6_gui/include/views/spectrum_plot.h`)
   - QWidget with QPainter-based rendering
   - Real-time frequency magnitude display
   - Horizontal scale matches SpectrogramView
@@ -89,7 +101,7 @@ Contains all Qt6-specific code including visualization widgets, audio capture, a
   - ~60 FPS update via QTimer
   - Slot: updateSpectrum(std::vector<float>)
 
-- **AudioCapture** (`qt6_gui/include/audio_capture.h`)
+- **AudioCapture** (`qt6_gui/include/workers/audio_capture.h`)
   - QThread-based audio input using QAudioSource (Qt Multimedia)
   - Feeds float samples to multiple SampleBuffers (two of them for stereo)
   - Signal: audioDataReady(QByteArray) for downstream processing
@@ -97,21 +109,21 @@ Contains all Qt6-specific code including visualization widgets, audio capture, a
   - Buffer overrun detection and status reporting
   - Graceful error handling (device disconnection)
 
-- **SpectrogramWorker** (`qt6_gui/include/spectrogram_worker.h`)
+- **SpectrogramWorker** (`qt6_gui/include/workers/spectrogram_worker.h`)
   - QThread worker for STFTProcessor computation
   - Receives requests to compute spectrogram slices for a window into a SampleBuffer
   - Signal: spectrogramReady(std::vector<std::vector<float>>)
   - Cancellable long-running operations
   - Manages FFTProcessor, FFTWindow instances
 
-- **ColormapConverter** (`qt6_gui/include/colormap_converter.h`)
+- **ColormapConverter** (`qt6_gui/include/utils/colormap_converter.h`)
   - Pure utility class (no Qt base class)
   - enum class Colormap { kGrayscale, kJet, kViridis, kHot }
   - Static method: QRgb MagnitudeToRGB(float magnitude, Colormap scheme, float floor, float ceiling)
   - Perceptually uniform Viridis default
   - Clamps input magnitudes to floor/ceiling range
 
-- **Colormap** (`qt6_gui/include/colormap.h`)
+- **Colormap** (`qt6_gui/include/utils/colormap.h`)
   - Enum definition: enum class Colormap { kGrayscale, kJet, kViridis, kHot }
   - Shared between ConfigPanel and ColormapConverter
 
@@ -121,13 +133,14 @@ Contains all Qt6-specific code including visualization widgets, audio capture, a
   - Event loop execution
 
 **Testing:** `qt6_gui/tests/` uses Qt Test framework (not Catch2) for Qt-specific testing features:
-- **test_main_window.cpp:** Widget hierarchy (findChild), menu/status bar presence, layout structure
-- **test_config_panel.cpp:** QSignalSpy for all signals, default values, widget ranges, button states
-- **test_spectrogram_view.cpp:** QImage rendering tests, mouse event handling, color mapping accuracy
-- **test_spectrum_plot.cpp:** Pixel coordinate mapping, dB conversion, axis labels
-- **test_audio_capture.cpp:** Signal emission with mock data, SampleBuffer integration
-- **test_spectrogram_worker.cpp:** Thread safety, STFTProcessor integration, signal emission
-- **test_colormap_converter.cpp:** All colormap schemes, boundary conditions, color accuracy
+- **controllers/test_main_window.cpp:** Widget hierarchy (findChild), menu/status bar presence, layout structure
+- **models/test_configuration_model.cpp:** Default values, signal emissions, validation, thread safety
+- **views/test_config_panel.cpp:** QSignalSpy for all signals, default values, widget ranges, button states
+- **views/test_spectrogram_view.cpp:** QImage rendering tests, mouse event handling, color mapping accuracy
+- **views/test_spectrum_plot.cpp:** Pixel coordinate mapping, dB conversion, axis labels
+- **workers/test_audio_capture.cpp:** Signal emission with mock data, SampleBuffer integration
+- **workers/test_spectrogram_worker.cpp:** Thread safety, STFTProcessor integration, signal emission
+- **utils/test_colormap_converter.cpp:** All colormap schemes, boundary conditions, color accuracy
 - **Performance tests:** QBENCHMARK for critical paths, separate from functional tests
 
 **Build Targets:** 

@@ -2,7 +2,7 @@
 
 # Test executable
 add_executable(qt6_gui_tests
-    test_main_window.cpp
+    controllers/test_main_window.cpp
 )
 
 target_link_libraries(qt6_gui_tests

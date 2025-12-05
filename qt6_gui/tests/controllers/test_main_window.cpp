@@ -1,4 +1,4 @@
-#include "main_window.h"
+#include "controllers/main_window.h"
 #include <QSignalSpy>
 #include <QTest>
 

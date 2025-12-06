@@ -12,20 +12,14 @@ AudioBuffer::AudioBuffer(size_t aChannelCount, size_t aSampleRate, QObject* aPar
     if (aChannelCount == 0) {
         throw std::invalid_argument("AudioBuffer: Channel count must be > 0");
     }
+
+    if (aSampleRate == 0) {
+        throw std::invalid_argument("AudioBuffer: Sample rate must be > 0");
+    }
+
     for (size_t i = 0; i < aChannelCount; ++i) {
         mChannelBuffers[i] = std::make_unique<SampleBuffer>(aSampleRate);
     }
-}
-
-size_t
-AudioBuffer::GetNumSamples(size_t aChannelIndex) const
-{
-    if (aChannelIndex >= mChannelCount) {
-        throw std::out_of_range("AudioBuffer::GetNumSamples: Channel index " +
-                                std::to_string(aChannelIndex) + " out of range (0-" +
-                                std::to_string(mChannelCount - 1) + ")");
-    }
-    return mChannelBuffers[aChannelIndex]->NumSamples();
 }
 
 void
@@ -37,42 +31,19 @@ AudioBuffer::AddSamples(const std::vector<float>& aSamples)
     }
 
     const size_t kSamplesPerChannel = aSamples.size() / mChannelCount;
+    std::vector<float> channelSamples(kSamplesPerChannel); // Deinterleave buffer
 
-    // De-interleave samples into channel buffers
-    for (size_t ch = 0; ch < mChannelCount; ++ch) {
-        std::vector<float> channelSamples;
-        channelSamples.reserve(kSamplesPerChannel);
-
-        for (size_t i = 0; i < kSamplesPerChannel; ++i) {
-            channelSamples.push_back(aSamples[i * mChannelCount + ch]);
+    for (size_t channelID = 0; channelID < mChannelCount; channelID++) {
+        // De-interleave one channel
+        for (size_t i = 0; i < kSamplesPerChannel; i++) {
+            channelSamples[i] = aSamples[i * mChannelCount + channelID];
         }
 
-        mChannelBuffers[ch]->AddSamples(channelSamples);
+        // Then feed it to the SampleBuffer
+        mChannelBuffers[channelID]->AddSamples(channelSamples);
     }
 
     emit dataAvailable(kSamplesPerChannel);
-}
-
-std::vector<float>
-AudioBuffer::GetSamples(size_t aChannelIndex, int64_t aStartSample, size_t aSampleCount) const
-{
-    if (aChannelIndex >= mChannelCount) {
-        throw std::out_of_range("AudioBuffer::GetSamples: Channel index " +
-                                std::to_string(aChannelIndex) + " out of range (0-" +
-                                std::to_string(mChannelCount - 1) + ")");
-    }
-    return mChannelBuffers[aChannelIndex]->GetSamples(aStartSample, aSampleCount);
-}
-
-SampleBuffer&
-AudioBuffer::GetChannelBuffer(size_t aChannelIndex)
-{
-    if (aChannelIndex >= mChannelCount) {
-        throw std::out_of_range("AudioBuffer::GetChannelBuffer: Channel index " +
-                                std::to_string(aChannelIndex) + " out of range (0-" +
-                                std::to_string(mChannelCount - 1) + ")");
-    }
-    return *mChannelBuffers[aChannelIndex];
 }
 
 const SampleBuffer&
@@ -83,5 +54,6 @@ AudioBuffer::GetChannelBuffer(size_t aChannelIndex) const
                                 std::to_string(aChannelIndex) + " out of range (0-" +
                                 std::to_string(mChannelCount - 1) + ")");
     }
+
     return *mChannelBuffers[aChannelIndex];
 }

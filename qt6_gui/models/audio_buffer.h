@@ -6,13 +6,10 @@
 #include <vector>
 
 /**
- * @brief Multi-channel audio buffer for real-time spectrum analyzer
+ * @brief Multi-channel audio buffer
  *
  * Wraps multiple SampleBuffer instances (one per channel) and provides
- * Qt signal/slot integration for the MVC architecture. Thread-safe for
- * concurrent writes from audio capture thread and reads from processing thread.
- *
- * Inherits QObject to emit signals when new audio data arrives.
+ * Qt signal/slot integration for the MVC architecture.
  */
 class AudioBuffer : public QObject
 {
@@ -40,14 +37,6 @@ class AudioBuffer : public QObject
     [[nodiscard]] size_t GetSampleRate() const { return mSampleRate; }
 
     /**
-     * @brief Get total number of samples in a specific channel
-     * @param aChannelIndex Channel index (0-based)
-     * @return Number of samples stored
-     * @throws std::out_of_range if aChannelIndex >= channel count
-     */
-    [[nodiscard]] size_t GetNumSamples(size_t aChannelIndex) const;
-
-    /**
      * @brief Add interleaved audio samples to all channels
      * @param aSamples Interleaved audio data (channel 0, channel 1, ..., repeat)
      * @throws std::invalid_argument if sample count not divisible by channel count
@@ -60,18 +49,6 @@ class AudioBuffer : public QObject
     void AddSamples(const std::vector<float>& aSamples);
 
     /**
-     * @brief Get samples from a specific channel
-     * @param aChannelIndex Channel index (0-based)
-     * @param aStartSample Starting sample index (can be negative for zero-padding)
-     * @param aSampleCount Number of samples to retrieve
-     * @return Vector of samples (zero-padded if out of bounds)
-     * @throws std::out_of_range if aChannelIndex >= channel count
-     */
-    [[nodiscard]] std::vector<float> GetSamples(size_t aChannelIndex,
-                                                int64_t aStartSample,
-                                                size_t aSampleCount) const;
-
-    /**
      * @brief Get reference to underlying SampleBuffer for a channel
      * @param aChannelIndex Channel index (0-based)
      * @return Reference to SampleBuffer
@@ -79,7 +56,6 @@ class AudioBuffer : public QObject
      *
      * Useful for passing to STFTProcessor which expects SampleBuffer&.
      */
-    [[nodiscard]] SampleBuffer& GetChannelBuffer(size_t aChannelIndex);
     [[nodiscard]] const SampleBuffer& GetChannelBuffer(size_t aChannelIndex) const;
 
   signals:

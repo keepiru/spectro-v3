@@ -80,12 +80,12 @@ release: build-image
 # Lint with clang-tidy
 lint: build-image
 	@echo "Running clang-tidy on source files..."
-	$(DOCKER_RUN) run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
+	$(DOCKER_RUN) run-clang-tidy -p $(BUILD_DIR) -use-color -quiet dsp/ qt6_gui/
 
 # Lint with automatic fixes (use with caution)
 lint-fix: build-image
 	@echo "Running clang-tidy with automatic fixes..."
-	$(DOCKER_RUN) run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet
+	$(DOCKER_RUN) run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet dsp/ qt6_gui/
 
 # Open interactive shell in Docker container
 shell: build-image

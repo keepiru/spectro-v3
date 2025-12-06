@@ -1,8 +1,8 @@
 #include "../models/audio_buffer.h"
+#include <QObject>
 #include <QSignalSpy>
 #include <QTest>
 #include <cstddef>
-#include <memory>
 #include <stdexcept>
 #include <vector>
 
@@ -11,60 +11,60 @@ class TestAudioBuffer : public QObject
     Q_OBJECT
 
   private slots:
-    void TestConstructor()
+    static void TestConstructor()
     {
-        AudioBuffer buffer(2, 44100);
+        AudioBuffer const buffer(2, 44100);
         QCOMPARE(buffer.GetChannelCount(), 2);
         QCOMPARE(buffer.GetSampleRate(), 44100);
     }
 
-    void TestConstructorThrowsOnZeroChannels()
+    static void TestConstructorThrowsOnZeroChannels()
     {
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, AudioBuffer(0, 44100));
     }
 
-    void TestConstructorThrowsOnZeroSampleRate()
+    static void TestConstructorThrowsOnZeroSampleRate()
     {
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, AudioBuffer(2, 0));
     }
 
-    void TestAddSamplesSucceedsWithValidSize()
+    static void TestAddSamplesSucceedsWithValidSize()
     {
         AudioBuffer buffer(2, 44100);
         buffer.AddSamples({ 1, 2, 3, 4 });
     }
 
-    void TestAddSamplesThrowsOnInvalidSize()
+    static void TestAddSamplesThrowsOnInvalidSize()
     {
         AudioBuffer buffer(2, 44100);
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, buffer.AddSamples({ 1, 2, 3, 4, 5 }));
     }
 
-    void TestGetChannelBufferSucceeds()
+    static void TestGetChannelBufferSucceeds()
     {
-        AudioBuffer buffer(2, 44100);
-        auto& chan0 = buffer.GetChannelBuffer(0);
+        AudioBuffer const buffer(2, 44100);
+        const auto& chan0 = buffer.GetChannelBuffer(0);
     }
 
-    void TestGetChannelBufferThrowsOnInvalidChannelIndex()
+    static void TestGetChannelBufferThrowsOnInvalidChannelIndex()
     {
-        AudioBuffer buffer(2, 44100);
+        AudioBuffer const buffer(2, 44100);
         QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)buffer.GetChannelBuffer(size_t(2)));
     }
 
-    void TestAddSamplesDeinterleavesToChannelBuffers()
+    static void TestAddSamplesDeinterleavesToChannelBuffers()
     {
         AudioBuffer buffer(2, 44100);
         buffer.AddSamples({ 1, 2, 3, 4 });
 
-        auto& chan0 = buffer.GetChannelBuffer(0);
-        auto& chan1 = buffer.GetChannelBuffer(1);
+        const auto& chan0 = buffer.GetChannelBuffer(0);
+        const auto& chan1 = buffer.GetChannelBuffer(1);
 
         QCOMPARE(chan0.GetSamples(0, 2), std::vector<float>({ 1, 3 }));
         QCOMPARE(chan1.GetSamples(0, 2), std::vector<float>({ 2, 4 }));
     }
 
-    void TestAddSamplesEmitsSignal()
+    static void TestAddSamplesEmitsSignal()
     {
         AudioBuffer buffer(2, 44100);
         QSignalSpy spy(&buffer, &AudioBuffer::dataAvailable);

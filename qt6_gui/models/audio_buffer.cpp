@@ -1,7 +1,11 @@
 #include "audio_buffer.h"
-#include <cstdint>
+#include <QObject>
+#include <cstddef>
+#include <memory>
+#include <sample_buffer.h>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 AudioBuffer::AudioBuffer(size_t aChannelCount, size_t aSampleRate, QObject* aParent)
   : QObject(aParent)
@@ -36,7 +40,7 @@ AudioBuffer::AddSamples(const std::vector<float>& aSamples)
     for (size_t channelID = 0; channelID < mChannelCount; channelID++) {
         // De-interleave one channel
         for (size_t i = 0; i < kSamplesPerChannel; i++) {
-            channelSamples[i] = aSamples[i * mChannelCount + channelID];
+            channelSamples[i] = aSamples[(i * mChannelCount) + channelID];
         }
 
         // Then feed it to the SampleBuffer

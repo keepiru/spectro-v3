@@ -13,7 +13,7 @@ TEST_CASE("STFTProcessor constructor validation", "[stft]")
     const uint32_t kTransformSize = 512;
 
     MockFFTProcessor fftProcessor(kTransformSize);
-    SampleBuffer buffer(44100);
+    const SampleBuffer buffer(44100);
 
     SECTION("Constructor succeeds when window size matches transform size")
     {
@@ -40,7 +40,7 @@ TEST_CASE("STFTProcessor ComputeSpectrogram validation", "[stft]")
 
     MockFFTProcessor fftProcessor(kTransformSize);
     FFTWindow window(kTransformSize, FFTWindow::Type::kRectangular);
-    SampleBuffer buffer(44100);
+    const SampleBuffer buffer(44100);
     STFTProcessor const kSTFT(fftProcessor, window, buffer);
 
     SECTION("Throws on zero window_stride")

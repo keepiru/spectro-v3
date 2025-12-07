@@ -15,21 +15,26 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - Source of truth for all audio data
 
 - **`FFTCache`**: Computed FFT row cache with on-demand computation
-  - Stores computed FFT rows keyed by sample position
-  - `GetRows(start_sample, stride, count)` → computes missing rows, returns cached
-  - Owns `FFTProcessor` and `FFTWindow` (recreates on settings change)
-  - `SetSettings(settings)` → clears cache, emits `settingsChanged()`
+  - Stores computed FFT rows keyed by `(channel, sample_position)`
+  - `GetRows(channel, start_sample, stride, count)` → computes missing rows, returns cached
+  - Owns single `FFTProcessor` and `FFTWindow` (shared across channels, recreated on settings change)
+  - `SetFFTSettings(transform_size, window_function)` → clears cache for all channels, emits `settingsChanged()`
+  - Stride is a parameter to `GetRows()`, not a setting (changing stride reuses existing cached rows)
   - Thread-safe for future background computation
 
 ### Controllers (Coordination & Logic)
 
 - **`SpectrogramController`**: Coordinates data flow and view state
   - Observes `AudioBuffer.samplesAdded()` → triggers FFT computation for new rows
-  - Observes `FFTCache.settingsChanged()` → resets tracking, snaps position to new stride
-  - Tracks: `live_mode`, `live_edge_sample`, `view_bottom_sample`
+  - Observes `FFTCache.settingsChanged()` → resets live_edge tracking, updates view
+  - Owns `window_stride` setting (passed to `FFTCache.GetRows()`)
+  - Tracks (in sample positions):
+    - `live_mode`: whether view follows live edge
+    - `live_edge_sample`: latest computed sample position
+    - `view_bottom_sample`: current view position (always aligned to stride)
   - Tells `SpectrogramView` what sample position to display (view is passive)
   - Receives scroll events from view, manages live/historical mode switching
-  - On stride change: snaps `view_bottom_sample` to nearest aligned position
+  - `SetStride(stride)` → snaps `view_bottom_sample` to new alignment, updates view
 
 - **`AudioRecorder`**: Audio capture
   - Uses Qt Multimedia's `QAudioSource`
@@ -46,7 +51,7 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - `SetBottomSample(sample_position)` → stores position, triggers repaint
   - On paint:
     - Derives row count from widget height
-    - Calls `FFTCache.GetRows(bottom_sample, stride, row_count)`
+    - Calls `FFTCache.GetRows(channel, bottom_sample, stride, row_count)`
     - Renders spectrogram
   - Forwards scroll events (as sample delta) to controller
   - Owns display settings: colormap, aperture (floor/ceiling dB)
@@ -86,13 +91,13 @@ AudioBuffer emits samplesAdded(count)
 SpectrogramController receives signal
     ↓
 Controller: enough samples for new row?
-    Yes → FFTCache.GetRow(sample_position)  // cache it
+    Yes → for each channel: FFTCache.GetRow(channel, sample_position)  // cache it
         → live_edge_sample = sample_position
         → if live_mode: view_bottom_sample = live_edge_sample
         → SpectrogramView.SetBottomSample(view_bottom_sample)
     ↓
 SpectrogramView.paint()
-    → FFTCache.GetRows(bottom_sample, stride, row_count)
+    → FFTCache.GetRows(channel, bottom_sample, stride, row_count)
     → render spectrogram
 ```
 
@@ -152,9 +157,9 @@ SpectrogramView.paint()
 
 | Component                  | Responsibilities                                                             |
 |----------------------------|------------------------------------------------------------------------------|
-| **AudioBuffer**            | Store samples (append-only), emit `samplesAdded()` signal                    |
-| **FFTCache**               | Compute & cache FFT rows on-demand, own DSP objects, manage FFT settings     |
-| **SpectrogramController**  | Coordinate live/historical mode, trigger computation, notify view            |
+| **AudioBuffer**            | Store multi-channel samples (append-only), emit `samplesAdded()` signal      |
+| **FFTCache**               | Compute & cache FFT rows by (channel, sample), own DSP objects        |
+| **SpectrogramController**  | Coordinate live/historical mode, own stride, trigger computation, notify view|
 | **SpectrogramView**        | Paint rows at given position, own display settings (colormap, aperture)      |
 | **SpectrumPlot**           | Paint frequency spectrum, own display settings (aperture)                    |
 | **ConfigPanel**            | UI for all settings, route to appropriate owners                             |
@@ -167,15 +172,16 @@ Settings live where they're consumed. `ConfigPanel` routes user input to appropr
 | Setting                    | Owner                             | Invalidates Cache? |
 |----------------------------|-----------------------------------|--------------------|
 | Transform size             | FFTCache                          | Yes                |
-| Window stride              | FFTCache                          | Yes                |
 | Window function            | FFTCache                          | Yes                |
+| Window stride              | SpectrogramController             | No                 |
 | Colormap                   | SpectrogramView                   | No                 |
 | Aperture (floor/ceiling dB)| SpectrogramView, SpectrumPlot     | No                 |
 | Audio input device         | AudioRecorder                     | No                 |
 
 ```
 ConfigPanel
-    ├→ FFTCache.SetSettings(transform, stride, window)
+    ├→ FFTCache.SetFFTSettings(transform_size, window_function)
+    ├→ SpectrogramController.SetStride(stride)
     ├→ SpectrogramView.SetColormap(colormap)
     ├→ SpectrogramView.SetAperture(floor, ceiling)
     ├→ SpectrumPlot.SetAperture(floor, ceiling)

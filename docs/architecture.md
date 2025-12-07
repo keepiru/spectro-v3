@@ -150,28 +150,28 @@ SpectrogramView.paint()
 
 ## Component Responsibilities
 
-| Component | Responsibilities |
-|-----------|-----------------|
-| **AudioBuffer** | Store samples (append-only), emit `samplesAdded()` signal |
-| **FFTCache** | Compute & cache FFT rows on-demand, own DSP objects, manage FFT settings |
-| **SpectrogramController** | Coordinate live/historical mode, trigger computation, notify view |
-| **SpectrogramView** | Paint rows at given position, own display settings (colormap, aperture) |
-| **SpectrumPlot** | Paint frequency spectrum, own display settings (aperture) |
-| **ConfigPanel** | UI for all settings, route to appropriate owners |
-| **AudioRecorder** | Capture audio → `AudioBuffer`, own audio settings (device) |
+| Component                  | Responsibilities                                                             |
+|----------------------------|------------------------------------------------------------------------------|
+| **AudioBuffer**            | Store samples (append-only), emit `samplesAdded()` signal                    |
+| **FFTCache**               | Compute & cache FFT rows on-demand, own DSP objects, manage FFT settings     |
+| **SpectrogramController**  | Coordinate live/historical mode, trigger computation, notify view            |
+| **SpectrogramView**        | Paint rows at given position, own display settings (colormap, aperture)      |
+| **SpectrumPlot**           | Paint frequency spectrum, own display settings (aperture)                    |
+| **ConfigPanel**            | UI for all settings, route to appropriate owners                             |
+| **AudioRecorder**          | Capture audio → `AudioBuffer`, own audio settings (device)                   |
 
 ## Settings Distribution
 
 Settings live where they're consumed. `ConfigPanel` routes user input to appropriate owners.
 
-| Setting | Owner | Invalidates Cache? |
-|---------|-------|-------------------|
-| Transform size | FFTCache | Yes |
-| Window stride | FFTCache | Yes |
-| Window function | FFTCache | Yes |
-| Colormap | SpectrogramView | No |
-| Aperture (floor/ceiling dB) | SpectrogramView, SpectrumPlot | No |
-| Audio input device | AudioRecorder | No |
+| Setting                    | Owner                             | Invalidates Cache? |
+|----------------------------|-----------------------------------|--------------------|
+| Transform size             | FFTCache                          | Yes                |
+| Window stride              | FFTCache                          | Yes                |
+| Window function            | FFTCache                          | Yes                |
+| Colormap                   | SpectrogramView                   | No                 |
+| Aperture (floor/ceiling dB)| SpectrogramView, SpectrumPlot     | No                 |
+| Audio input device         | AudioRecorder                     | No                 |
 
 ```
 ConfigPanel

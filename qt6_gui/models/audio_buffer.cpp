@@ -50,14 +50,14 @@ AudioBuffer::AddSamples(const std::vector<float>& aSamples)
     emit dataAvailable(kSamplesPerChannel);
 }
 
-const SampleBuffer&
-AudioBuffer::GetChannelBuffer(size_t aChannelIndex) const
+const std::vector<float>
+AudioBuffer::GetSamples(const size_t aChannelIndex,
+                        const int64_t aStartSample,
+                        const size_t aSampleCount) const
 {
     if (aChannelIndex >= mChannelCount) {
-        throw std::out_of_range("AudioBuffer::GetChannelBuffer: Channel index " +
-                                std::to_string(aChannelIndex) + " out of range (0-" +
-                                std::to_string(mChannelCount - 1) + ")");
+        throw std::out_of_range("AudioBuffer::GetSamples: Channel index out of range");
     }
 
-    return *mChannelBuffers[aChannelIndex];
+    return mChannelBuffers[aChannelIndex]->GetSamples(aStartSample, aSampleCount);
 }

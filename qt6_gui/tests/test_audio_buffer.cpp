@@ -40,16 +40,19 @@ class TestAudioBuffer : public QObject
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, buffer.AddSamples({ 1, 2, 3, 4, 5 }));
     }
 
-    static void TestGetChannelBufferSucceeds()
+    static void TestGetSamplesFillsZeros()
     {
-        AudioBuffer const buffer(2, 44100);
-        const auto& chan0 = buffer.GetChannelBuffer(0);
+        AudioBuffer buffer(2, 44100);
+        buffer.AddSamples({ 1, 2, 3, 4 });
+        QCOMPARE(buffer.GetSamples(0, -2, 4), std::vector<float>({ 0, 0, 1, 3 }));
+        QCOMPARE(buffer.GetSamples(1, 1, 4), std::vector<float>({ 4, 0, 0, 0 }));
     }
 
-    static void TestGetChannelBufferThrowsOnInvalidChannelIndex()
+    static void TestGetSamplesThrowsOnInvalidChannelIndex()
     {
         AudioBuffer const buffer(2, 44100);
-        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)buffer.GetChannelBuffer(size_t(2)));
+        (void)buffer.GetSamples(1, 0, 0); // No exception
+        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)buffer.GetSamples(2, 0, 0));
     }
 
     static void TestAddSamplesDeinterleavesToChannelBuffers()
@@ -57,11 +60,8 @@ class TestAudioBuffer : public QObject
         AudioBuffer buffer(2, 44100);
         buffer.AddSamples({ 1, 2, 3, 4 });
 
-        const auto& chan0 = buffer.GetChannelBuffer(0);
-        const auto& chan1 = buffer.GetChannelBuffer(1);
-
-        QCOMPARE(chan0.GetSamples(0, 2), std::vector<float>({ 1, 3 }));
-        QCOMPARE(chan1.GetSamples(0, 2), std::vector<float>({ 2, 4 }));
+        QCOMPARE(buffer.GetSamples(0, 0, 2), std::vector<float>({ 1, 3 }));
+        QCOMPARE(buffer.GetSamples(1, 0, 2), std::vector<float>({ 2, 4 }));
     }
 
     static void TestAddSamplesEmitsSignal()

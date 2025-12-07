@@ -49,14 +49,16 @@ class AudioBuffer : public QObject
     void AddSamples(const std::vector<float>& aSamples);
 
     /**
-     * @brief Get reference to underlying SampleBuffer for a channel
+     * @brief Get samples from a specific channel
      * @param aChannelIndex Channel index (0-based)
-     * @return Reference to SampleBuffer
+     * @param aStartSample Starting sample index, possibly negative
+     * @param aSampleCount Number of samples to retrieve
+     * @return Vector of samples.  Invalid samples are filled with zeros.
      * @throws std::out_of_range if aChannelIndex >= channel count
-     *
-     * Useful for passing to STFTProcessor which expects SampleBuffer&.
      */
-    [[nodiscard]] const SampleBuffer& GetChannelBuffer(size_t aChannelIndex) const;
+    [[nodiscard]] const std::vector<float> GetSamples(const size_t aChannelIndex,
+                                                      const int64_t aStartSample,
+                                                      const size_t aSampleCount) const;
 
   signals:
     /**

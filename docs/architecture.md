@@ -35,6 +35,8 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - Captures audio samples from microphone/line-in
   - Writes samples to `AudioBuffer`
   - Runs in separate thread managed by Qt
+  - Owns audio settings: input device, sample rate
+  - `SetDevice()` → restarts capture with new device
 
 ### Views (UI Widgets)
 
@@ -44,17 +46,25 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - On paint: pulls rows from `FFTCache`, renders spectrogram
   - Forwards scroll events to controller
   - Derives row count from widget height
+  - Owns display settings: colormap, aperture (floor/ceiling dB)
+  - `SetColormap()`, `SetAperture()` → triggers repaint
 
 - **`SpectrumPlot`**: Real-time frequency spectrum line plot
   - Displays most recent (or selected) frequency slice
-  - Auto-scaling Y-axis (amplitude in dB)
-  - X-axis shows frequency (Hz)
+  - Y-axis: amplitude in dB (configurable range)
+  - X-axis: frequency (Hz)
+  - Owns display settings: aperture (floor/ceiling dB)
+  - `SetAperture()` → triggers repaint
 
 - **`ConfigPanel`**: Settings controls
-  - Transform size: QSpinBox (power of 2: 256, 512, 1024, 2048, 4096)
-  - Window stride: QSpinBox (hop size in samples)
-  - Window function: QComboBox (Rectangular, Hann)
-  - Calls `FFTCache.SetSettings()` on user input
+  - FFT settings: transform size, window stride, window function
+  - Display settings: colormap, aperture (floor/ceiling dB)
+  - Audio settings: input device selection
+  - Routes settings to appropriate owners:
+    - `FFTCache.SetSettings()` for FFT parameters
+    - `SpectrogramView.SetColormap()`, `SetAperture()` for display
+    - `SpectrumPlot.SetAperture()` for spectrum display
+    - `AudioRecorder.SetDevice()` for audio input
 
 - **`MainWindow`**: Top-level application window
   - QSplitter layout: left (views), right (config panel)
@@ -138,11 +148,34 @@ SpectrogramView.paint()
 | Component | Responsibilities |
 |-----------|-----------------|
 | **AudioBuffer** | Store samples (append-only), emit `samplesAdded()` signal |
-| **FFTCache** | Compute & cache FFT rows on-demand, own DSP objects, manage settings |
+| **FFTCache** | Compute & cache FFT rows on-demand, own DSP objects, manage FFT settings |
 | **SpectrogramController** | Coordinate live/historical mode, trigger computation, notify view |
-| **SpectrogramView** | Paint rows at given position, forward scroll events to controller |
-| **ConfigPanel** | UI for settings → `FFTCache.SetSettings()` |
-| **AudioRecorder** | Capture audio → `AudioBuffer` |
+| **SpectrogramView** | Paint rows at given position, own display settings (colormap, aperture) |
+| **SpectrumPlot** | Paint frequency spectrum, own display settings (aperture) |
+| **ConfigPanel** | UI for all settings, route to appropriate owners |
+| **AudioRecorder** | Capture audio → `AudioBuffer`, own audio settings (device) |
+
+## Settings Distribution
+
+Settings live where they're consumed. `ConfigPanel` routes user input to appropriate owners.
+
+| Setting | Owner | Invalidates Cache? |
+|---------|-------|-------------------|
+| Transform size | FFTCache | Yes |
+| Window stride | FFTCache | Yes |
+| Window function | FFTCache | Yes |
+| Colormap | SpectrogramView | No |
+| Aperture (floor/ceiling dB) | SpectrogramView, SpectrumPlot | No |
+| Audio input device | AudioRecorder | No |
+
+```
+ConfigPanel
+    ├→ FFTCache.SetSettings(transform, stride, window)
+    ├→ SpectrogramView.SetColormap(colormap)
+    ├→ SpectrogramView.SetAperture(floor, ceiling)
+    ├→ SpectrumPlot.SetAperture(floor, ceiling)
+    └→ AudioRecorder.SetDevice(device)
+```
 
 ## Key Design Decisions
 

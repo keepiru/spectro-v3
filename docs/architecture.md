@@ -25,10 +25,11 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
 
 - **`SpectrogramController`**: Coordinates data flow and view state
   - Observes `AudioBuffer.samplesAdded()` → triggers FFT computation for new rows
-  - Observes `FFTCache.settingsChanged()` → resets tracking, updates view
-  - Tracks: `live_mode`, `live_edge_row`, `view_bottom_row`
-  - Tells `SpectrogramView` what row to display (view is passive)
+  - Observes `FFTCache.settingsChanged()` → resets tracking, snaps position to new stride
+  - Tracks: `live_mode`, `live_edge_sample`, `view_bottom_sample`
+  - Tells `SpectrogramView` what sample position to display (view is passive)
   - Receives scroll events from view, manages live/historical mode switching
+  - On stride change: snaps `view_bottom_sample` to nearest aligned position
 
 - **`AudioRecorder`**: Audio capture
   - Uses Qt Multimedia's `QAudioSource`
@@ -42,10 +43,12 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
 
 - **`SpectrogramView`**: Waterfall spectrogram display
   - Passive: only paints when told, doesn't observe data signals
-  - `SetBottomRow(row_index)` → stores position, triggers repaint
-  - On paint: pulls rows from `FFTCache`, renders spectrogram
-  - Forwards scroll events to controller
-  - Derives row count from widget height
+  - `SetBottomSample(sample_position)` → stores position, triggers repaint
+  - On paint:
+    - Derives row count from widget height
+    - Calls `FFTCache.GetRows(bottom_sample, stride, row_count)`
+    - Renders spectrogram
+  - Forwards scroll events (as sample delta) to controller
   - Owns display settings: colormap, aperture (floor/ceiling dB)
   - `SetColormap()`, `SetAperture()` → triggers repaint
 
@@ -83,12 +86,13 @@ AudioBuffer emits samplesAdded(count)
 SpectrogramController receives signal
     ↓
 Controller: enough samples for new row?
-    Yes → FFTCache.GetRow(position)  // cache it
-        → view_bottom_row = live_edge_row
-        → SpectrogramView.SetBottomRow(view_bottom_row)
+    Yes → FFTCache.GetRow(sample_position)  // cache it
+        → live_edge_sample = sample_position
+        → if live_mode: view_bottom_sample = live_edge_sample
+        → SpectrogramView.SetBottomSample(view_bottom_sample)
     ↓
 SpectrogramView.paint()
-    → FFTCache.GetRows(bottom_row, stride, row_count)
+    → FFTCache.GetRows(bottom_sample, stride, row_count)
     → render spectrogram
 ```
 
@@ -97,8 +101,8 @@ SpectrogramView.paint()
 User scrolls → SpectrogramView forwards to Controller
     ↓
 Controller: live_mode = false
-    → view_bottom_row = scroll_position
-    → SpectrogramView.SetBottomRow(view_bottom_row)
+    → view_bottom_sample = scroll_position (snapped to stride)
+    → SpectrogramView.SetBottomSample(view_bottom_sample)
     ↓
 SpectrogramView.paint()
     → FFTCache.GetRows()  // computes missing rows on-demand
@@ -113,8 +117,9 @@ FFTCache: clears cache, recreates FFTProcessor/FFTWindow
     → emits settingsChanged()
     ↓
 SpectrogramController receives signal
-    → resets live_edge tracking
-    → SpectrogramView.SetBottomRow(current_position)
+    → resets live_edge_sample tracking
+    → snaps view_bottom_sample to new stride alignment
+    → SpectrogramView.SetBottomSample(view_bottom_sample)
     ↓
 SpectrogramView.paint()
     → FFTCache.GetRows()  // recomputes visible rows
@@ -126,8 +131,8 @@ SpectrogramView.paint()
 User clicks "Live" button → Controller
     ↓
 Controller: live_mode = true
-    → view_bottom_row = live_edge_row
-    → SpectrogramView.SetBottomRow(view_bottom_row)
+    → view_bottom_sample = live_edge_sample
+    → SpectrogramView.SetBottomSample(view_bottom_sample)
     ↓
 SpectrogramView.paint()
     → render latest data
@@ -210,6 +215,12 @@ ConfigPanel
 - **Centralized state**: Live mode and scroll position in one place
 - **Mode switching**: Controller decides when to exit live mode
 - **Future features**: Scrubbing, bookmarks, etc. all go through controller
+
+### Why sample-based positioning (not row indices)?
+- **Stable across settings**: Sample position represents "where in the audio" — invariant when stride changes
+- **Intuitive UX**: Changing window stride keeps view at same audio position, just different granularity
+- **Row index is derived**: `row = sample_position / stride`, computed when needed
+- **Alignment**: Controller ensures `view_bottom_sample` is always aligned to current stride (snaps on change)
 
 ## Future Architecture Considerations
 

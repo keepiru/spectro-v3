@@ -14,27 +14,21 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - Emits `samplesAdded(count)` signal when new audio arrives
   - Source of truth for all audio data
 
-- **`FFTCache`**: Single-channel FFT row cache with on-demand computation
-  - One instance per audio channel, owned by `SpectrogramController`
-  - Stores computed FFT rows keyed by sample position
-  - `GetRows(start_sample, stride, count)` → computes missing rows, returns cached
-  - Owns `FFTProcessor` and `FFTWindow`
-  - Thread-safe for future background computation
-
 ### Controllers (Coordination & Logic)
 
 - **`SpectrogramController`**: Coordinates data flow and view state
-  - Owns `FFTCache[]` (one per channel), creates/destroys as settings change
-  - Observes `AudioBuffer.samplesAdded()` → triggers FFT computation for new rows
+  - Owns `STFTProcessor`, `FFTProcessor`, `FFTWindow` per channel; recreates on settings change
+  - Observes `AudioBuffer.samplesAdded()` → triggers view update for new rows
   - Owns `window_stride` setting
   - Tracks (in sample positions):
     - `live_mode`: whether view follows live edge
     - `live_edge_sample`: latest computed sample position
     - `view_bottom_sample`: current view position (always aligned to stride)
-  - Mediates data access: `GetRows(channel, start, stride, count)` → delegates to appropriate cache
+  - Mediates data access: `GetRows(channel, start, stride, count)` → calls `STFTProcessor.ComputeSpectrogram()`
   - Tells `SpectrogramView` what sample position to display (view is passive)
   - Receives scroll events from view, manages live/historical mode switching
   - `SetStride(stride)` → snaps `view_bottom_sample` to new alignment, updates view
+  - `SetFFTSettings()` → recreates `FFTProcessor`, `FFTWindow`, `STFTProcessor`
 
 - **`AudioRecorder`**: Audio capture
   - Uses Qt Multimedia's `QAudioSource`
@@ -69,7 +63,7 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - Display settings: colormap, aperture (floor/ceiling dB)
   - Audio settings: input device selection
   - Routes settings to appropriate owners:
-    - `FFTCache.SetSettings()` for FFT parameters
+    - `SpectrogramController.SetFFTSettings()` for FFT parameters
     - `SpectrogramView.SetColormap()`, `SetAperture()` for display
     - `SpectrumPlot.SetAperture()` for spectrum display
     - `AudioRecorder.SetDevice()` for audio input
@@ -91,8 +85,7 @@ AudioBuffer emits samplesAdded(count)
 SpectrogramController receives signal
     ↓
 Controller: enough samples for new row?
-    Yes → for each channel: cache[channel].GetRow(sample_position)  // cache it
-        → live_edge_sample = sample_position
+    Yes → live_edge_sample = sample_position
         → if live_mode: view_bottom_sample = live_edge_sample
         → SpectrogramView.SetBottomSample(view_bottom_sample)
     ↓
@@ -110,24 +103,21 @@ Controller: live_mode = false
     → SpectrogramView.SetBottomSample(view_bottom_sample)
     ↓
 SpectrogramView.paint()
-    → Controller.GetRows()  // delegates to cache, computes missing on-demand
+    → Controller.GetRows()  // calls STFTProcessor.ComputeSpectrogram()
     → render spectrogram
 ```
 
 ### Settings Change
 ```
-ConfigPanel → FFTCache.SetSettings(new_settings)
+ConfigPanel → SpectrogramController.SetFFTSettings(new_settings)
     ↓
-FFTCache: clears cache, recreates FFTProcessor/FFTWindow
-    → emits settingsChanged()
-    ↓
-SpectrogramController receives signal
+Controller: recreates FFTProcessor, FFTWindow, STFTProcessor
     → resets live_edge_sample tracking
     → snaps view_bottom_sample to new stride alignment
     → SpectrogramView.SetBottomSample(view_bottom_sample)
     ↓
 SpectrogramView.paint()
-    → FFTCache.GetRows()  // recomputes visible rows
+    → Controller.GetRows()  // calls STFTProcessor.ComputeSpectrogram()
     → render spectrogram
 ```
 
@@ -150,7 +140,7 @@ SpectrogramView.paint()
 
 **Thread Safety**:
 - `AudioBuffer` uses mutex for thread-safe read/write
-- `FFTCache` uses mutex (prepared for future background computation)
+- `STFTProcessor` accesses `AudioBuffer` via `SampleBuffer` (mutex-protected reads)
 - Controllers and views run on main thread only
 
 ## Component Responsibilities
@@ -158,8 +148,7 @@ SpectrogramView.paint()
 | Component                  | Responsibilities                                                             |
 |----------------------------|------------------------------------------------------------------------------|
 | **AudioBuffer**            | Store multi-channel samples (append-only), emit `samplesAdded()` signal      |
-| **FFTCache**               | Compute & cache FFT rows for single channel, own DSP objects                 |
-| **SpectrogramController**  | Own FFTCache[] per channel, mediate data access, coordinate modes, own stride|
+| **SpectrogramController**  | Own DSP objects, mediate data access, coordinate modes, own stride           |
 | **SpectrogramView**        | Paint rows at given position, own display settings (colormap, aperture)      |
 | **SpectrumPlot**           | Paint frequency spectrum, own display settings (aperture)                    |
 | **ConfigPanel**            | UI for all settings, route to appropriate owners                             |
@@ -169,18 +158,18 @@ SpectrogramView.paint()
 
 Settings live where they're consumed. `ConfigPanel` routes user input to appropriate owners.
 
-| Setting                    | Owner                             | Invalidates Cache? |
-|----------------------------|-----------------------------------|--------------------|
-| Transform size             | SpectrogramController             | Yes                |
-| Window function            | SpectrogramController             | Yes                |
-| Window stride              | SpectrogramController             | No                 |
-| Colormap                   | SpectrogramView                   | No                 |
-| Aperture (floor/ceiling dB)| SpectrogramView, SpectrumPlot     | No                 |
-| Audio input device         | AudioRecorder                     | No                 |
+| Setting                    | Owner                             | Recreates DSP? |
+|----------------------------|-----------------------------------|----------------|
+| Transform size             | SpectrogramController             | Yes            |
+| Window function            | SpectrogramController             | Yes            |
+| Window stride              | SpectrogramController             | No             |
+| Colormap                   | SpectrogramView                   | No             |
+| Aperture (floor/ceiling dB)| SpectrogramView, SpectrumPlot     | No             |
+| Audio input device         | AudioRecorder                     | No             |
 
 ```
 ConfigPanel
-    ├→ SpectrogramController.SetFFTSettings(transform_size, window_function)  // Recreates caches
+    ├→ SpectrogramController.SetFFTSettings(transform_size, window_function)  // Recreates DSP objects
     ├→ SpectrogramController.SetStride(stride)
     ├→ SpectrogramView.SetColormap(colormap)
     ├→ SpectrogramView.SetAperture(floor, ceiling)
@@ -193,7 +182,7 @@ ConfigPanel
 ### Why MVC?
 - **Separation of concerns**: Business logic (models) separate from UI (views)
 - **Testability**: Models and controllers can be unit tested without UI
-- **Flexibility**: Multiple views can observe same model (e.g., Spectrogram and Spectrum using FFTCache)
+- **Flexibility**: Multiple views can share same data (e.g., Spectrogram and Spectrum use same FFT results)
 
 ### Why on-demand FFT computation (not pre-computed)?
 - **Unlimited scrollback**: Audio buffer grows indefinitely; can't pre-compute everything
@@ -201,10 +190,11 @@ ConfigPanel
 - **Lazy evaluation**: Only compute what's visible, defer the rest
 - **Future-proof**: Architecture supports background pre-computation later
 
-### Why FFTCache instead of STFTProcessor?
-- `STFTProcessor` computes batches; we need incremental/on-demand rows
-- Cache manages its own `FFTProcessor` and `FFTWindow` instances
-- Row = single FFT at a sample position; spectrogram = collection of rows
+### Why STFTProcessor directly (no caching layer)?
+- **YAGNI**: Start simple, add caching only if profiling shows need
+- **FFT is fast**: ~1ms for 4096 samples; recomputing visible rows is acceptable
+- **Simpler architecture**: Fewer abstractions, easier to understand and debug
+- **Future-proof**: Caching can be added to `STFTProcessor` or as a wrapper layer later
 
 ### Why passive SpectrogramView?
 - **Single responsibility**: View only renders, doesn't manage state
@@ -231,8 +221,6 @@ ConfigPanel
 ## Future Architecture Considerations
 
 ### Backlog
-- Background thread for pre-computation (ahead of scroll, historical regions)
-- Cache eviction policy (LRU or distance-from-view) for memory management
 - Save/load spectrogram images
 - Export audio segments
 - Multiple channel visualization
@@ -241,7 +229,8 @@ ConfigPanel
 
 ### Performance
 - Profile and potentially migrate `SpectrogramView` to `QOpenGLWidget` with texture uploads
-- Consider lock-free data structures for `FFTCache` if contention becomes an issue
+- Add FFT row caching (in `STFTProcessor` or wrapper) if repaint latency becomes an issue
+- Consider background thread for pre-computation if scrolling feels sluggish
 
 ### Extensibility
 - Plugin architecture for custom window functions or color maps

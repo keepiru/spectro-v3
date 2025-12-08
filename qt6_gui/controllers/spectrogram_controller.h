@@ -76,12 +76,18 @@ class SpectrogramController : public QObject
     //  */
     // void SetFFTSettings(const size_t aTransformSize, const FFTWindow::Type aWindowType);
 
-    // /**
-    //  * @brief Set window stride
-    //  * @param aStride New window stride in samples (must be > 0)
-    //  * @throws std::invalid_argument if aStride is zero
-    //  */
-    // void SetWindowStride(size_t aStride);
+    /**
+     * @brief Set window stride
+     * @param aStride New window stride in samples (must be > 0)
+     * @throws std::invalid_argument if aStride is zero
+     */
+    void SetWindowStride(const size_t aStride);
+
+    /**
+     * @brief Get current window stride
+     * @return Current window stride in samples
+     */
+    [[nodiscard]] size_t GetWindowStride() const { return mWindowStride; }
 
   private:
     AudioBuffer& mAudioBuffer; // Reference to audio buffer model

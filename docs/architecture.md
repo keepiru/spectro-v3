@@ -231,8 +231,13 @@ ConfigPanel
 ## Future Architecture Considerations
 
 ### Backlog
-- [ ] Background thread for pre-computation (ahead of scroll, historical regions)
-- [ ] Cache eviction policy (LRU or distance-from-view) for memory management
+- Background thread for pre-computation (ahead of scroll, historical regions)
+- Cache eviction policy (LRU or distance-from-view) for memory management
+- Save/load spectrogram images
+- Export audio segments
+- Multiple channel visualization
+- Peak detection and annotation
+- Spectrogram measurements (bandwidth, duration)
 
 ### Performance
 - Profile and potentially migrate `SpectrogramView` to `QOpenGLWidget` with texture uploads

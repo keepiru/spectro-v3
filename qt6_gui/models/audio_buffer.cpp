@@ -61,3 +61,13 @@ AudioBuffer::GetSamples(const size_t aChannelIndex,
 
     return mChannelBuffers[aChannelIndex]->GetSamples(aStartSample, aSampleCount);
 }
+
+const SampleBuffer&
+AudioBuffer::GetChannelBuffer(size_t aChannelIndex) const
+{
+    if (aChannelIndex >= mChannelCount) {
+        throw std::out_of_range("AudioBuffer::GetChannelBuffer: Channel index out of range");
+    }
+
+    return *mChannelBuffers[aChannelIndex];
+}

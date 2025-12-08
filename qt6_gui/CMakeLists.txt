@@ -12,9 +12,11 @@ set(CMAKE_AUTOUIC ON)
 set(GUI_SOURCES
     src/main.cpp
     models/audio_buffer.cpp
+    controllers/spectrogram_controller.cpp
 )
 
 set(GUI_HEADERS
+    controllers/spectrogram_controller.h
     models/audio_buffer.h
 )
 

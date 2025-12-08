@@ -67,14 +67,15 @@ class SpectrogramController : public QObject
     //                                                       size_t aRowCount) const;
 
   public slots:
-    // /**
-    //  * @brief Set FFT settings (transform size, window function)
-    //  * @param aTransformSize New FFT transform size (must be power of 2)
-    //  * @param aWindowType New window function type
-    //  *
-    //  * Recreates FFTProcessor, FFTWindow, and STFTProcessor for each channel.
-    //  */
-    // void SetFFTSettings(const size_t aTransformSize, const FFTWindow::Type aWindowType);
+    /**
+     * @brief Set FFT settings (transform size, window function)
+     * @param aTransformSize New FFT transform size (must be power of 2)
+     * @param aWindowType New window function type
+     * @throws std::invalid_argument if aTransformSize is zero
+     *
+     * Recreates FFTProcessor, FFTWindow, and STFTProcessor for each channel.
+     */
+    void SetFFTSettings(const size_t aTransformSize, const FFTWindow::Type aWindowType);
 
     /**
      * @brief Set window stride

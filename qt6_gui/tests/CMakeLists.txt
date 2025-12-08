@@ -20,6 +20,11 @@ add_executable(test_spectrogram_controller
     test_spectrogram_controller.cpp
 )
 
+target_include_directories(test_spectrogram_controller
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/dsp/tests
+)
+
 target_link_libraries(test_spectrogram_controller
     PRIVATE
         spectro_qt6_gui

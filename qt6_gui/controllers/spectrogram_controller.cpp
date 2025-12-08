@@ -1,8 +1,8 @@
-#include "spectrogram_controller.h"
-#include "../models/audio_buffer.h"
+#include <audio_buffer.h>
 #include <fft_window.h>
 #include <ifft_processor.h>
 #include <sample_buffer.h>
+#include <spectrogram_controller.h>
 #include <stdexcept>
 #include <stft_processor.h>
 

@@ -8,40 +8,43 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# Collect source files
-set(GUI_SOURCES
-    src/main.cpp
+# Create GUI library (models and controllers)
+add_library(spectro_qt6_gui
     models/audio_buffer.cpp
+    models/audio_buffer.h
     controllers/spectrogram_controller.cpp
+    controllers/spectrogram_controller.h
 )
 
-set(GUI_HEADERS
-    controllers/spectrogram_controller.h
-    models/audio_buffer.h
+target_link_libraries(spectro_qt6_gui
+    PUBLIC
+        spectro_dsp
+        Qt6::Core
+        Qt6::Multimedia
+)
+
+target_include_directories(spectro_qt6_gui
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/models
+        ${CMAKE_CURRENT_SOURCE_DIR}/controllers
+)
+
+set_target_properties(spectro_qt6_gui PROPERTIES
+    CXX_STANDARD 23
+    CXX_STANDARD_REQUIRED ON
 )
 
 # Create executable
 add_executable(spectro
-    ${GUI_SOURCES}
-    ${GUI_HEADERS}
+    src/main.cpp
 )
 
 # Link libraries
 target_link_libraries(spectro
     PRIVATE
-        spectro_dsp
-        Qt6::Core
+        spectro_qt6_gui
         Qt6::Widgets
-        Qt6::Multimedia
-)
-
-# Include directories
-target_include_directories(spectro
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/models
-        ${CMAKE_CURRENT_SOURCE_DIR}/controllers
-        ${CMAKE_CURRENT_SOURCE_DIR}/views
 )
 
 # Set C++ standard (inherited from root but explicit for clarity)

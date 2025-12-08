@@ -77,5 +77,5 @@ class TestAudioBuffer : public QObject
     }
 };
 
-QTEST_MAIN(TestAudioBuffer)
+QTEST_GUILESS_MAIN(TestAudioBuffer)
 #include "test_audio_buffer.moc"

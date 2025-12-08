@@ -51,20 +51,20 @@ class SpectrogramController : public QObject
     SpectrogramController(SpectrogramController&&) = delete;
     SpectrogramController& operator=(SpectrogramController&&) = delete;
 
-    // /**
-    //  * @brief Get spectrogram rows for a channel
-    //  * @param aChannel Channel index (0-based)
-    //  * @param aBottomSample Bottom sample position (aligned to stride)
-    //  * @param aRowCount Number of rows to compute
-    //  * @return 2D vector [aRowCount][frequency_bins] containing frequency magnitudes
-    //  * @throws std::out_of_range if aChannel is invalid
-    //  *
-    //  * Calls STFTProcessor.ComputeSpectrogram() to compute frequency data on-demand.
-    //  * Each row represents one time window in the spectrogram.
-    //  */
-    // [[nodiscard]] std::vector<std::vector<float>> GetRows(size_t aChannel,
-    //                                                       int64_t aBottomSample,
-    //                                                       size_t aRowCount) const;
+    /**
+     * @brief Get spectrogram rows for a channel
+     * @param aChannel Channel index (0-based)
+     * @param aFirstSample First sample position (aligned to stride)
+     * @param aRowCount Number of rows to compute
+     * @return 2D vector [aRowCount][frequency_bins] containing frequency magnitudes
+     * @throws std::out_of_range if aChannel is invalid
+     *
+     * Calls STFTProcessor.ComputeSpectrogram() to compute frequency data on-demand.
+     * Each row represents one time window in the spectrogram.
+     */
+    [[nodiscard]] std::vector<std::vector<float>> GetRows(size_t aChannel,
+                                                          int64_t aFirstSample,
+                                                          size_t aRowCount) const;
 
   public slots:
     /**

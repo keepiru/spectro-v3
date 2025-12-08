@@ -87,6 +87,54 @@ class TestSpectrogramController : public QObject
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
                                  controller.SetFFTSettings(255, FFTWindow::Type::kHann));
     }
+
+    static void TestGetRows()
+    {
+        // The mock FFT processor just returns input samples as magnitudes
+        auto mockFFTProcessorFactory = [](size_t size) {
+            return std::make_unique<MockFFTProcessor>(size);
+        };
+
+        AudioBuffer buffer(1, 44100);
+        buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
+                            13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
+
+        SpectrogramController controller(buffer, mockFFTProcessorFactory, nullptr);
+        controller.SetFFTSettings(8, FFTWindow::Type::kRectangular);
+        controller.SetWindowStride(8);
+
+        // First one - stride 8, 3 rows
+        std::vector<std::vector<float>> want = {
+            { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
+            { 9.0f, 10.0f, 11.0f, 12.0f, 13.0f },
+            { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f },
+        };
+        QCOMPARE(controller.GetRows(0, 0, 3), want);
+
+        // Next with a sample offset
+        want = {
+            { 5.0f, 6.0f, 7.0f, 8.0f, 9.0f },
+            { 13.0f, 14.0f, 15.0f, 16.0f, 17.0f },
+        };
+        QCOMPARE(controller.GetRows(0, 4, 2), want);
+
+        // Then with an overlapping stride
+        controller.SetWindowStride(2);
+        want = {
+            { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
+            { 3.0f, 4.0f, 5.0f, 6.0f, 7.0f },
+            { 5.0f, 6.0f, 7.0f, 8.0f, 9.0f },
+        };
+        QCOMPARE(controller.GetRows(0, 0, 3), want);
+    }
+
+    static void TestGetRowsThrowsOnInvalidChannel()
+    {
+        AudioBuffer buffer(1, 44100);
+        SpectrogramController controller(buffer, nullptr, nullptr);
+
+        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.GetRows(1, 0, 1));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestSpectrogramController)

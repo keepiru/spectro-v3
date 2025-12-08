@@ -46,6 +46,7 @@ void
 SpectrogramController::SetFFTSettings(const size_t aTransformSize,
                                       const FFTWindow::Type aWindowType)
 {
+    // Clear out the old DSP objects
     mFFTProcessors.clear();
     mFFTWindows.clear();
     mSTFTProcessors.clear();
@@ -62,4 +63,14 @@ SpectrogramController::SetFFTSettings(const size_t aTransformSize,
         mFFTWindows.emplace_back(std::move(fftWindow));
         mSTFTProcessors.emplace_back(std::move(stftProcessor));
     }
+}
+
+std::vector<std::vector<float>>
+SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRowCount) const
+{
+    if (aChannel >= mAudioBuffer.GetChannelCount()) {
+        throw std::out_of_range("Channel index out of range");
+    }
+
+    return mSTFTProcessors[aChannel]->ComputeSpectrogram(aFirstSample, mWindowStride, aRowCount);
 }

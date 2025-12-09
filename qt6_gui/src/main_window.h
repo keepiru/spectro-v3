@@ -3,7 +3,9 @@
 
 #include <QMainWindow>
 
-class QLabel;
+class ConfigPanel;
+class SpectrogramView;
+class SpectrumPlot;
 
 /**
  * @brief Main application window for Spectro-v3 spectrum analyzer
@@ -33,6 +35,11 @@ class MainWindow : public QMainWindow
      * @brief Sets up signal-slot connections between components
      */
     void setupConnections();
+
+    // View widgets
+    SpectrogramView* mSpectrogramView = nullptr;
+    SpectrumPlot* mSpectrumPlot = nullptr;
+    ConfigPanel* mConfigPanel = nullptr;
 };
 
 #endif // MAINWINDOW_H

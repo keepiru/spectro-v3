@@ -8,18 +8,25 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# Create GUI library (models and controllers)
+# Create GUI library (models, views, and controllers)
 add_library(spectro_qt6_gui
     models/audio_buffer.cpp
     models/audio_buffer.h
     controllers/spectrogram_controller.cpp
     controllers/spectrogram_controller.h
+    views/spectrogram_view.cpp
+    views/spectrogram_view.h
+    views/spectrum_plot.cpp
+    views/spectrum_plot.h
+    views/config_panel.cpp
+    views/config_panel.h
 )
 
 target_link_libraries(spectro_qt6_gui
     PUBLIC
         spectro_dsp
         Qt6::Core
+        Qt6::Widgets
         Qt6::Multimedia
 )
 
@@ -28,6 +35,7 @@ target_include_directories(spectro_qt6_gui
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/models
         ${CMAKE_CURRENT_SOURCE_DIR}/controllers
+        ${CMAKE_CURRENT_SOURCE_DIR}/views
 )
 
 set_target_properties(spectro_qt6_gui PROPERTIES

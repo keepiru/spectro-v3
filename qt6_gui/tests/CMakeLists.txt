@@ -2,81 +2,32 @@
 
 find_package(Qt6 REQUIRED COMPONENTS Test)
 
-# test_audio_buffer
-add_executable(test_audio_buffer
-    test_audio_buffer.cpp
-)
+# Helper function to create Qt tests
+function(add_qt_test TEST_NAME)
+    cmake_parse_arguments(ARG "" "INCLUDE_DIR" "" ${ARGN})
+    
+    add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
+    
+    if(ARG_INCLUDE_DIR)
+        target_include_directories(${TEST_NAME} PRIVATE ${ARG_INCLUDE_DIR})
+    endif()
+    
+    target_link_libraries(${TEST_NAME}
+        PRIVATE
+            spectro_qt6_gui
+            Qt6::Test
+    )
+    
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+    
+    set_tests_properties(${TEST_NAME} PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+    )
+endfunction()
 
-target_link_libraries(test_audio_buffer
-    PRIVATE
-        spectro_qt6_gui
-        Qt6::Test
-)
-
-add_test(NAME test_audio_buffer COMMAND test_audio_buffer)
-
-# test_spectrogram_controller
-add_executable(test_spectrogram_controller
-    test_spectrogram_controller.cpp
-)
-
-target_include_directories(test_spectrogram_controller
-    PRIVATE
-        ${CMAKE_SOURCE_DIR}/dsp/tests
-)
-
-target_link_libraries(test_spectrogram_controller
-    PRIVATE
-        spectro_qt6_gui
-        Qt6::Test
-)
-
-add_test(NAME test_spectrogram_controller COMMAND test_spectrogram_controller)
-
-# test_spectrogram_view
-add_executable(test_spectrogram_view
-    test_spectrogram_view.cpp
-)
-
-target_link_libraries(test_spectrogram_view
-    PRIVATE
-        spectro_qt6_gui
-        Qt6::Test
-)
-
-add_test(NAME test_spectrogram_view COMMAND test_spectrogram_view)
-set_tests_properties(test_spectrogram_view PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
-)
-
-# test_spectrum_plot
-add_executable(test_spectrum_plot
-    test_spectrum_plot.cpp
-)
-
-target_link_libraries(test_spectrum_plot
-    PRIVATE
-        spectro_qt6_gui
-        Qt6::Test
-)
-
-add_test(NAME test_spectrum_plot COMMAND test_spectrum_plot)
-set_tests_properties(test_spectrum_plot PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
-)
-
-# test_config_panel
-add_executable(test_config_panel
-    test_config_panel.cpp
-)
-
-target_link_libraries(test_config_panel
-    PRIVATE
-        spectro_qt6_gui
-        Qt6::Test
-)
-
-add_test(NAME test_config_panel COMMAND test_config_panel)
-set_tests_properties(test_config_panel PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
-)
+# Define all tests
+add_qt_test(test_audio_buffer)
+add_qt_test(test_spectrogram_controller INCLUDE_DIR ${CMAKE_SOURCE_DIR}/dsp/tests)
+add_qt_test(test_spectrogram_view)
+add_qt_test(test_spectrum_plot)
+add_qt_test(test_config_panel)

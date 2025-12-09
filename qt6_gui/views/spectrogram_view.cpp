@@ -1,11 +1,19 @@
 #include "spectrogram_view.h"
 
+#include "controllers/spectrogram_controller.h"
+
 #include <QPaintEvent>
 #include <QPainter>
+#include <cmath>
+#include <stdexcept>
 
-SpectrogramView::SpectrogramView(QWidget* parent)
+SpectrogramView::SpectrogramView(SpectrogramController* aController, QWidget* parent)
   : QWidget(parent)
+  , mController(aController)
 {
+    if (!aController) {
+        throw std::invalid_argument("SpectrogramView: aController must not be null");
+    }
     setMinimumSize(400, 300);
 }
 

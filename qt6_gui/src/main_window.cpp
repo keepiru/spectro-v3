@@ -1,5 +1,7 @@
 #include "main_window.h"
 
+#include "controllers/spectrogram_controller.h"
+#include "models/audio_buffer.h"
 #include "views/config_panel.h"
 #include "views/spectrogram_view.h"
 #include "views/spectrum_plot.h"
@@ -7,15 +9,27 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <fft_processor.h>
+#include <fft_window.h>
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
 {
     constexpr int kDefaultWindowWidth = 1200;
     constexpr int kDefaultWindowHeight = 800;
+    constexpr size_t kDefaultChannelCount = 2;
+    constexpr size_t kDefaultSampleRate = 44100;
+    constexpr size_t kDefaultStride = 256;
 
     setWindowTitle("Spectro-v3 - Real-time Spectrum Analyzer");
     resize(kDefaultWindowWidth, kDefaultWindowHeight);
+
+    // Create models and controllers
+    mAudioBuffer = new AudioBuffer(kDefaultChannelCount, kDefaultSampleRate, this);
+    mSpectrogramController = new SpectrogramController(*mAudioBuffer, nullptr, nullptr, this);
+
+    // Set initial stride
+    mSpectrogramController->SetWindowStride(kDefaultStride);
 
     createLayout();
     setupConnections();
@@ -42,7 +56,7 @@ MainWindow::createLayout()
      */
 
     // Create view widgets
-    mSpectrogramView = new SpectrogramView(this);
+    mSpectrogramView = new SpectrogramView(mSpectrogramController, this);
     mSpectrumPlot = new SpectrumPlot(this);
     mConfigPanel = new ConfigPanel(this);
 

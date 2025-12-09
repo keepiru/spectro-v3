@@ -3,7 +3,9 @@
 
 #include <QMainWindow>
 
+class AudioBuffer;
 class ConfigPanel;
+class SpectrogramController;
 class SpectrogramView;
 class SpectrumPlot;
 
@@ -35,6 +37,10 @@ class MainWindow : public QMainWindow
      * @brief Sets up signal-slot connections between components
      */
     void setupConnections();
+
+    // Models and controllers
+    AudioBuffer* mAudioBuffer = nullptr;
+    SpectrogramController* mSpectrogramController = nullptr;
 
     // View widgets
     SpectrogramView* mSpectrogramView = nullptr;

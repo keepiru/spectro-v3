@@ -3,6 +3,9 @@
 
 #include <QWidget>
 
+// Forward declarations
+class SpectrogramController;
+
 /**
  * @brief Waterfall spectrogram display widget
  *
@@ -21,14 +24,19 @@ class SpectrogramView : public QWidget
     Q_OBJECT
 
   public:
-    explicit SpectrogramView(QWidget* parent = nullptr);
+    /**
+     * @brief Constructor
+     * @param aController Pointer to spectrogram controller (must not be null)
+     * @param parent Qt parent widget (optional)
+     */
+    explicit SpectrogramView(SpectrogramController* aController, QWidget* parent = nullptr);
     ~SpectrogramView() override = default;
 
   protected:
     void paintEvent(QPaintEvent* event) override;
 
   private:
-    // Future: Spectrogram data buffer, color map settings, etc.
+    SpectrogramController* mController; // Not owned
 };
 
 #endif // SPECTROGRAM_VIEW_H

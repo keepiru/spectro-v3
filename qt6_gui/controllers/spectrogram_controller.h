@@ -30,14 +30,18 @@ class SpectrogramController : public QObject
     /**
      * @brief Constructor
      * @param aAudioBuffer Reference to the audio buffer model
-     * @param aFFTProcessorFactory Factory function to create FFTProcessor instances
-     * @param aFFTWindowFactory Factory function to create FFTWindow instances
+     * @param aFFTProcessorFactory Factory function to create FFTProcessor instances (optional)
+     * @param aFFTWindowFactory Factory function to create FFTWindow instances (optional)
      * @param aParent Qt parent object (optional)
+     *
+     * The factories are used for dependency injection in tests.  By default,
+     * FFTProcessor and FFTWindow instances are created, which is appropriate
+     * for production use.
      *
      */
     SpectrogramController(AudioBuffer& aAudioBuffer,
-                          FFTProcessorFactory aFFTProcessorFactory,
-                          FFTWindowFactory aFFTWindowFactory,
+                          FFTProcessorFactory aFFTProcessorFactory = nullptr,
+                          FFTWindowFactory aFFTWindowFactory = nullptr,
                           QObject* aParent = nullptr);
 
     /**

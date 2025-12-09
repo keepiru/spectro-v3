@@ -19,13 +19,13 @@ class TestSpectrogramController : public QObject
     static void TestConstructor()
     {
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer, nullptr, nullptr);
+        SpectrogramController controller(audioBuffer);
     }
 
     static void TestSetWindowStride()
     {
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer, nullptr, nullptr);
+        SpectrogramController controller(audioBuffer);
 
         QCOMPARE(controller.GetWindowStride(), 0);
 
@@ -36,7 +36,7 @@ class TestSpectrogramController : public QObject
     static void TestSetWindowStrideThorwsOnZeroStride()
     {
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer, nullptr, nullptr);
+        SpectrogramController controller(audioBuffer);
 
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, controller.SetWindowStride(0));
     }
@@ -81,7 +81,7 @@ class TestSpectrogramController : public QObject
     static void TestSetFFTSettingsThrowsOnInvalidWindow()
     {
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer, nullptr, nullptr);
+        SpectrogramController controller(audioBuffer);
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
                                  controller.SetFFTSettings(0, FFTWindow::Type::kHann));
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
@@ -99,7 +99,7 @@ class TestSpectrogramController : public QObject
         buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
                             13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
 
-        SpectrogramController controller(buffer, mockFFTProcessorFactory, nullptr);
+        SpectrogramController controller(buffer, mockFFTProcessorFactory);
         controller.SetFFTSettings(8, FFTWindow::Type::kRectangular);
         controller.SetWindowStride(8);
 
@@ -131,7 +131,7 @@ class TestSpectrogramController : public QObject
     static void TestGetRowsThrowsOnInvalidChannel()
     {
         AudioBuffer buffer(1, 44100);
-        SpectrogramController controller(buffer, nullptr, nullptr);
+        SpectrogramController controller(buffer);
 
         QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.GetRows(1, 0, 1));
     }

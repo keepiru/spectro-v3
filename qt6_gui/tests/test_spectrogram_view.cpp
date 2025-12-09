@@ -18,7 +18,7 @@ class TestSpectrogramView : public QObject
     {
 
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer, nullptr, nullptr);
+        SpectrogramController controller(audioBuffer);
         SpectrogramView view(&controller);
 
         QVERIFY(view.minimumWidth() > 0);
@@ -28,7 +28,7 @@ class TestSpectrogramView : public QObject
     void testIsWidget()
     {
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer, nullptr, nullptr);
+        SpectrogramController controller(audioBuffer);
         SpectrogramView view(&controller);
         QVERIFY(qobject_cast<QWidget*>(&view) != nullptr);
     }

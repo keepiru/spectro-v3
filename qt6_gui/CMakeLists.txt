@@ -38,6 +38,8 @@ set_target_properties(spectro_qt6_gui PROPERTIES
 # Create executable
 add_executable(spectro
     src/main.cpp
+    src/main_window.h
+    src/main_window.cpp
 )
 
 # Link libraries

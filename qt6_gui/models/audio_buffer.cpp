@@ -4,7 +4,6 @@
 #include <memory>
 #include <sample_buffer.h>
 #include <stdexcept>
-#include <string>
 #include <vector>
 
 AudioBuffer::AudioBuffer(size_t aChannelCount, size_t aSampleRate, QObject* aParent)

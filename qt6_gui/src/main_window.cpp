@@ -6,11 +6,14 @@
 #include "views/spectrogram_view.h"
 #include "views/spectrum_plot.h"
 
+#include <cmath>
+#include <cstddef>
+#include <numbers>
+#include <vector>
+
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <fft_processor.h>
-#include <fft_window.h>
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
@@ -34,11 +37,16 @@ MainWindow::MainWindow(QWidget* parent)
         std::vector<float> samples;
         samples.reserve(totalSamples * kDefaultChannelCount);
 
+        constexpr float kStartFrequency = 20.0f;
+        constexpr float kFrequencyMultiplier = 1000.0f;
+        constexpr float kAmplitude = 0.1f;
+        constexpr float kTwoPi = 2.0f * std::numbers::pi_v<float>;
+        
         for (size_t i = 0; i < totalSamples; i++) {
-            float t = static_cast<float>(i) / static_cast<float>(kDefaultSampleRate);
+            const float timePos = static_cast<float>(i) / static_cast<float>(kDefaultSampleRate);
             // Frequency sweep from 20 Hz to 20 kHz over duration
-            float freq = 20.0f * std::pow(1000.0f, t / static_cast<float>(durationSeconds));
-            float sampleValue = 0.1f * std::sin(2.0f * static_cast<float>(M_PI) * freq * t);
+            const float freq = kStartFrequency * std::pow(kFrequencyMultiplier, timePos / static_cast<float>(durationSeconds));
+            const float sampleValue = kAmplitude * std::sin(kTwoPi * freq * timePos);
 
             // Stereo: same signal on both channels
             samples.push_back(sampleValue); // Left channel

@@ -2,11 +2,13 @@
 
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QWidget>
 
 ConfigPanel::ConfigPanel(QWidget* parent)
   : QWidget(parent)
 {
-    setFixedWidth(300);
+    constexpr int kPanelWidth = 300;
+    setFixedWidth(kPanelWidth);
 
     auto* layout = new QVBoxLayout(this);
     auto* label = new QLabel("Configuration Panel\n\nControls will be added here.");

@@ -1,7 +1,14 @@
 #include "spectrum_plot.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <stdexcept>
+
 #include <QPaintEvent>
 #include <QPainter>
+#include <QPolygonF>
+#include <QWidget>
+#include <Qt>
 
 SpectrumPlot::SpectrumPlot(SpectrogramController* aController, QWidget* parent)
   : QWidget(parent)
@@ -10,7 +17,9 @@ SpectrumPlot::SpectrumPlot(SpectrogramController* aController, QWidget* parent)
     if (mController == nullptr) {
         throw std::invalid_argument("SpectrumPlot: aController must not be null");
     }
-    setMinimumSize(400, 200);
+    constexpr int kMinWidth = 400;
+    constexpr int kMinHeight = 200;
+    setMinimumSize(kMinWidth, kMinHeight);
 }
 
 void
@@ -51,10 +60,10 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
         points.reserve(kMagnitudes.size());
 
         const size_t kMaxX = std::min(kWidth, kMagnitudes.size());
-        for (size_t x = 0; x < kMaxX; x++) {
+        for (size_t x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
             // Scale magnitude to fit in widget height
-            const float kY = kHeight - (kMagnitudes[x] * static_cast<float>(kHeight));
-            points.emplace_back(static_cast<float>(x), kY);
+            const float kYCoordinate = kHeight - (kMagnitudes[x] * static_cast<float>(kHeight));
+            points.emplace_back(static_cast<float>(x), kYCoordinate);
         }
 
         painter.drawPolyline(points);

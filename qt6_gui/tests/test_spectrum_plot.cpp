@@ -12,7 +12,7 @@ class TestSpectrumPlot : public QObject
 
         AudioBuffer audioBuffer(2, 44100);
         SpectrogramController controller(audioBuffer);
-        SpectrumPlot plot(&controller);
+        const SpectrumPlot plot(&controller);
         QVERIFY(plot.minimumWidth() > 0);
         QVERIFY(plot.minimumHeight() > 0);
     }

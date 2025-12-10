@@ -9,7 +9,7 @@ class TestConfigPanel : public QObject
   private slots:
     void testConstructor()
     {
-        ConfigPanel panel;
+        const ConfigPanel panel;
         QVERIFY(panel.minimumWidth() > 0);
     }
 

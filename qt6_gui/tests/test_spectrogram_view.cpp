@@ -19,7 +19,7 @@ class TestSpectrogramView : public QObject
 
         AudioBuffer audioBuffer(2, 44100);
         SpectrogramController controller(audioBuffer);
-        SpectrogramView view(&controller);
+        const SpectrogramView view(&controller);
 
         QVERIFY(view.minimumWidth() > 0);
         QVERIFY(view.minimumHeight() > 0);

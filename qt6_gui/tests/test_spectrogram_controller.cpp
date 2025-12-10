@@ -19,7 +19,7 @@ class TestSpectrogramController : public QObject
     static void TestConstructor()
     {
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer);
+        const SpectrogramController controller(audioBuffer);
     }
 
     static void TestSetWindowStride()
@@ -44,13 +44,13 @@ class TestSpectrogramController : public QObject
     static void TestSetFFTSettings()
     {
         std::vector<size_t> procCalls;
-        SpectrogramController::FFTProcessorFactory procSpy = [&procCalls](size_t size) {
+        const SpectrogramController::FFTProcessorFactory procSpy = [&procCalls](size_t size) {
             procCalls.emplace_back(size);
             return std::make_unique<MockFFTProcessor>(size);
         };
 
         std::vector<std::pair<size_t, FFTWindow::Type>> windowCalls;
-        SpectrogramController::FFTWindowFactory windowSpy = [&windowCalls](size_t size,
+        const SpectrogramController::FFTWindowFactory windowSpy = [&windowCalls](size_t size,
                                                                            FFTWindow::Type type) {
             windowCalls.emplace_back(size, type);
             return std::make_unique<FFTWindow>(size, type);
@@ -131,7 +131,7 @@ class TestSpectrogramController : public QObject
     static void TestGetRowsThrowsOnInvalidChannel()
     {
         AudioBuffer buffer(1, 44100);
-        SpectrogramController controller(buffer);
+        const SpectrogramController controller(buffer);
 
         QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.GetRows(1, 0, 1));
     }
@@ -141,7 +141,7 @@ class TestSpectrogramController : public QObject
         AudioBuffer buffer(2, 44100);
         buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
 
-        SpectrogramController controller(buffer);
+        const SpectrogramController controller(buffer);
         const auto kExpectedSampleCount = 5; // 10 samples / 2 channels
         QCOMPARE(controller.GetAvailableSampleCount(), kExpectedSampleCount);
     }
@@ -149,7 +149,7 @@ class TestSpectrogramController : public QObject
     static void TestGetChannelCount()
     {
         AudioBuffer buffer(3, 44100);
-        SpectrogramController controller(buffer);
+        const SpectrogramController controller(buffer);
         QCOMPARE(controller.GetChannelCount(), 3);
     }
 };

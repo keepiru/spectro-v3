@@ -2,10 +2,17 @@
 
 #include "controllers/spectrogram_controller.h"
 
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <stdexcept>
+
+#include <QImage>
 #include <QPaintEvent>
 #include <QPainter>
-#include <cmath>
-#include <stdexcept>
+#include <QWidget>
+#include <Qt>
 
 SpectrogramView::SpectrogramView(SpectrogramController* aController, QWidget* parent)
   : QWidget(parent)
@@ -14,7 +21,9 @@ SpectrogramView::SpectrogramView(SpectrogramController* aController, QWidget* pa
     if (!aController) {
         throw std::invalid_argument("SpectrogramView: aController must not be null");
     }
-    setMinimumSize(400, 300);
+    constexpr int kMinWidth = 400;
+    constexpr int kMinHeight = 300;
+    setMinimumSize(kMinWidth, kMinHeight);
 }
 
 void
@@ -53,13 +62,13 @@ SpectrogramView::paintEvent(QPaintEvent* event)
 
     // Render spectrogram data into image
     // This is the hot path, so avoid branches and unnecessary allocations.
-    for (size_t y = 0; y < kHeight; y++) {
+    for (size_t y = 0; y < kHeight; y++) { // NOLINT(readability-identifier-length)
         // QImage::setPixel is slow, so we're going to access the framebuffer directly
         const auto kScanLine = reinterpret_cast<uint32_t*>(image.scanLine(y));
 
         // Scan the line.
         // This is the inner loop of the hot path, performance matters here.
-        for (size_t x = 0; x < kMaxX; x++) {
+        for (size_t x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
             // Average magnitude across channels
             float magnitude = 0.0f;
             for (size_t ch = 0; ch < kChannels; ch++) {
@@ -68,9 +77,12 @@ SpectrogramView::paintEvent(QPaintEvent* event)
             magnitude /= static_cast<float>(kChannels);
 
             // Map magnitude to color (simple grayscale for now)
-            const uint8_t intensity = std::clamp(static_cast<int>(magnitude * 255.0f), 0, 255);
+            constexpr float kMagnitudeScale = 255.0f;
+            constexpr uint8_t kFullAlpha = 255;
+            const auto intensity = static_cast<uint8_t>(
+              std::clamp(static_cast<int>(magnitude * kMagnitudeScale), 0, 255));
 
-            kScanLine[x] = qRgba(intensity, intensity, intensity, 255);
+            kScanLine[x] = qRgba(intensity, intensity, intensity, kFullAlpha);
         }
     }
 

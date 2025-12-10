@@ -74,3 +74,21 @@ SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRo
 
     return mSTFTProcessors[aChannel]->ComputeSpectrogram(aFirstSample, mWindowStride, aRowCount);
 }
+
+size_t
+SpectrogramController::GetAvailableSampleCount() const
+{
+    if (mAudioBuffer.GetChannelCount() == 0) {
+        return 0;
+    }
+
+    // We currently assume all channels have the same sample count.
+    // TODO: Maybe delegate to AudioBuffer in the future
+    return mAudioBuffer.GetChannelBuffer(0).NumSamples();
+}
+
+size_t
+SpectrogramController::GetChannelCount() const
+{
+    return mAudioBuffer.GetChannelCount();
+}

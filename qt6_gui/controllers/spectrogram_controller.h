@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <audio_buffer.h>
 #include <cstddef>
 #include <cstdint>
 #include <fft_window.h>
@@ -8,9 +9,6 @@
 #include <memory>
 #include <stft_processor.h>
 #include <vector>
-
-// Forward declarations
-class AudioBuffer;
 
 /**
  * @brief Controller for spectrogram data flow and view state
@@ -69,6 +67,18 @@ class SpectrogramController : public QObject
     [[nodiscard]] std::vector<std::vector<float>> GetRows(size_t aChannel,
                                                           int64_t aFirstSample,
                                                           size_t aRowCount) const;
+
+    /**
+     * @brief Get the number of available samples
+     * @return Number of samples currently available in the audio buffer
+     */
+    [[nodiscard]] size_t GetAvailableSampleCount() const;
+
+    /**
+     * @brief Get the number of available channels
+     * @return Number of audio channels
+     */
+    [[nodiscard]] size_t GetChannelCount() const;
 
   public slots:
     /**

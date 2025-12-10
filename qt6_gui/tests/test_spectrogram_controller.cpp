@@ -135,6 +135,23 @@ class TestSpectrogramController : public QObject
 
         QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.GetRows(1, 0, 1));
     }
+
+    static void TestGetAvailableSampleCount()
+    {
+        AudioBuffer buffer(2, 44100);
+        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+
+        SpectrogramController controller(buffer);
+        const auto kExpectedSampleCount = 5; // 10 samples / 2 channels
+        QCOMPARE(controller.GetAvailableSampleCount(), kExpectedSampleCount);
+    }
+
+    static void TestGetChannelCount()
+    {
+        AudioBuffer buffer(3, 44100);
+        SpectrogramController controller(buffer);
+        QCOMPARE(controller.GetChannelCount(), 3);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestSpectrogramController)

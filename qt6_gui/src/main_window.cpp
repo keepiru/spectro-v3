@@ -26,6 +26,28 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Create models and controllers
     mAudioBuffer = new AudioBuffer(kDefaultChannelCount, kDefaultSampleRate, this);
+
+    // for testing, load some frequency sweeps into the audio buffer
+    {
+        const size_t durationSeconds = 10;
+        const size_t totalSamples = durationSeconds * kDefaultSampleRate;
+        std::vector<float> samples;
+        samples.reserve(totalSamples * kDefaultChannelCount);
+
+        for (size_t i = 0; i < totalSamples; i++) {
+            float t = static_cast<float>(i) / static_cast<float>(kDefaultSampleRate);
+            // Frequency sweep from 20 Hz to 20 kHz over duration
+            float freq = 20.0f * std::pow(1000.0f, t / static_cast<float>(durationSeconds));
+            float sampleValue = 0.1f * std::sin(2.0f * static_cast<float>(M_PI) * freq * t);
+
+            // Stereo: same signal on both channels
+            samples.push_back(sampleValue); // Left channel
+            samples.push_back(sampleValue); // Right channel
+        }
+
+        mAudioBuffer->AddSamples(samples);
+    }
+
     mSpectrogramController = new SpectrogramController(*mAudioBuffer, nullptr, nullptr, this);
 
     // Set initial stride

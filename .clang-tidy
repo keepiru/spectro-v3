@@ -12,6 +12,7 @@ Checks: >
   -modernize-use-trailing-return-type,
   -bugprone-easily-swappable-parameters,
   -cppcoreguidelines-avoid-const-or-ref-data-members,
+  -cppcoreguidelines-owning-memory,
 
 CheckOptions:
   # Naming conventions - Mozilla style

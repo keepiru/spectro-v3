@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <stdexcept>
 
 #include <QPaintEvent>
@@ -10,6 +11,7 @@
 #include <QPolygonF>
 #include <QWidget>
 #include <Qt>
+#include <QtTypes>
 
 SpectrumPlot::SpectrumPlot(SpectrogramController* aController, QWidget* parent)
   : QWidget(parent)
@@ -36,7 +38,7 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     const auto kChannels = mController->GetChannelCount();
 
     for (size_t ch = 0; ch < kChannels; ch++) {
-        const auto kRows = mController->GetRows(ch, kTopSample, 1);
+        const auto kRows = mController->GetRows(ch, static_cast<int64_t>(kTopSample), 1);
         if (kRows.empty() || kRows[0].empty()) {
             continue;
         }
@@ -58,12 +60,12 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
         }
 
         QPolygonF points;
-        points.reserve(kMagnitudes.size());
+        points.reserve(static_cast<qsizetype>(kMagnitudes.size()));
 
         const size_t kMaxX = std::min(kWidth, kMagnitudes.size());
         for (size_t x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
             // Scale magnitude to fit in widget height
-            const float kYCoordinate = kHeight - (kMagnitudes[x] * static_cast<float>(kHeight));
+            const float kYCoordinate = static_cast<float>(kHeight) - (kMagnitudes[x] * static_cast<float>(kHeight));
             points.emplace_back(static_cast<float>(x), kYCoordinate);
         }
 

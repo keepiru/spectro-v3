@@ -29,7 +29,7 @@ SpectrogramView::SpectrogramView(SpectrogramController* aController, QWidget* pa
 }
 
 void
-SpectrogramView::paintEvent(QPaintEvent*  /*event*/)
+SpectrogramView::paintEvent(QPaintEvent* /*event*/)
 {
     QPainter painter(this);
 
@@ -51,11 +51,12 @@ SpectrogramView::paintEvent(QPaintEvent*  /*event*/)
     std::vector<std::vector<std::vector<float>>> magnitudesChannelRowBin(kChannels);
 
     for (size_t ch = 0; ch < kChannels; ch++) {
-        magnitudesChannelRowBin[ch] = mController->GetRows(ch, kTopSample, kHeight);
+        magnitudesChannelRowBin[ch] =
+          mController->GetRows(ch, static_cast<int64_t>(kTopSample), kHeight);
     }
 
     // TODO: maybe only allocate this once and reuse
-    QImage image(kWidth, kHeight, QImage::Format_RGBA8888);
+    QImage image(static_cast<int>(kWidth), static_cast<int>(kHeight), QImage::Format_RGBA8888);
     // Fill with black
     image.fill(Qt::black);
 
@@ -66,7 +67,8 @@ SpectrogramView::paintEvent(QPaintEvent*  /*event*/)
     // This is the hot path, so avoid branches and unnecessary allocations.
     for (size_t y = 0; y < kHeight; y++) { // NOLINT(readability-identifier-length)
         // QImage::setPixel is slow, so we're going to access the framebuffer directly
-        auto *const kScanLine = reinterpret_cast<uint32_t*>(image.scanLine(y));
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        auto* const kScanLine = reinterpret_cast<uint32_t*>(image.scanLine(static_cast<int>(y)));
 
         // Scan the line.
         // This is the inner loop of the hot path, performance matters here.
@@ -84,6 +86,7 @@ SpectrogramView::paintEvent(QPaintEvent*  /*event*/)
             const auto intensity = static_cast<uint8_t>(
               std::clamp(static_cast<int>(magnitude * kMagnitudeScale), 0, 255));
 
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
             kScanLine[x] = qRgba(intensity, intensity, intensity, kFullAlpha);
         }
     }

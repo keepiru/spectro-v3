@@ -42,11 +42,13 @@ MainWindow::MainWindow(QWidget* parent)
         constexpr float kFrequencyMultiplier = 1000.0f;
         constexpr float kAmplitude = 0.1f;
         constexpr float kTwoPi = 2.0f * std::numbers::pi_v<float>;
-        
+
         for (size_t i = 0; i < totalSamples; i++) {
             const float timePos = static_cast<float>(i) / static_cast<float>(kDefaultSampleRate);
             // Frequency sweep from 20 Hz to 20 kHz over duration
-            const float freq = kStartFrequency * std::pow(kFrequencyMultiplier, timePos / static_cast<float>(durationSeconds));
+            const float freq =
+              kStartFrequency *
+              std::pow(kFrequencyMultiplier, timePos / static_cast<float>(durationSeconds));
             const float sampleValue = kAmplitude * std::sin(kTwoPi * freq * timePos);
 
             // Stereo: same signal on both channels
@@ -95,8 +97,10 @@ MainWindow::createLayout()
     auto* leftContainer = new QWidget(this);
     auto* leftLayout = new QVBoxLayout(leftContainer);
     leftLayout->setContentsMargins(0, 0, 0, 0);
-    leftLayout->addWidget(mSpectrogramView, 7); // 70% of vertical space
-    leftLayout->addWidget(mSpectrumPlot, 3);    // 30% of vertical space
+    constexpr int kSpectrogramStretch = 7; // 70% of vertical space
+    constexpr int kSpectrumStretch = 3;    // 30% of vertical space
+    leftLayout->addWidget(mSpectrogramView, kSpectrogramStretch);
+    leftLayout->addWidget(mSpectrumPlot, kSpectrumStretch);
 
     // Create main horizontal layout
     auto* mainWidget = new QWidget(this);

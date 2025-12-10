@@ -19,6 +19,7 @@ class TestSpectrumPlot : public QObject
 
     static void TestConstructorThrowsOnNullController()
     {
+        // NOLINTNEXTLINE(misc-const-correctness) - Object is being constructed in exception test
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, SpectrumPlot plot(nullptr));
     }
 

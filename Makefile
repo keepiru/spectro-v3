@@ -7,34 +7,25 @@
 MAKEFLAGS += --no-print-directory
 
 # Configuration
-LOCAL_BUILD_DIR := build
-BUILD_DIR := build-docker
+BUILD_DIR := build
 BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
-DOCKER_IMAGE := spectro-v3-builder
-DOCKER_RUN := docker run --rm -it --user $(shell id -u):$(shell id -g) -v $(PWD):/build -w /build $(DOCKER_IMAGE)
 
 .PHONY: all build configure clean rebuild test test-verbose test-direct test-one \
-        tdd release lint lint-fix help shell build-image \
-        local-configure local-build local-test local-clean local-rebuild local-tdd local-run
+        tdd release lint lint-fix help run
 
 # Default target
 all: build
 
-# Build the Docker image
-build-image:
-	@echo "Building Docker image..."
-	docker build -q -t $(DOCKER_IMAGE) .
-
 # Configure CMake (run once or after CMakeLists.txt changes)
-configure: build-image
+configure:
 	@echo "Configuring CMake..."
-	$(DOCKER_RUN) cmake -B $(BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+	cmake -B $(BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 
 # Build the project (configures if needed)
-build: build-image | $(BUILD_DIR)/Makefile
+build: | $(BUILD_DIR)/Makefile
 	@echo "Building..."
-	$(DOCKER_RUN) cmake --build $(BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
+	cmake --build $(BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
 
 # Ensure build directory exists and is configured
 $(BUILD_DIR)/Makefile:
@@ -51,99 +42,52 @@ rebuild: clean configure build
 # Run tests via CTest
 test: build
 	@echo "Running tests..."
-	$(DOCKER_RUN) ctest --test-dir $(BUILD_DIR) --output-on-failure
+	ctest --test-dir $(BUILD_DIR) --output-on-failure
 
 # Run tests with verbose output (useful for TDD)
 test-verbose: build
 	@echo "Running tests (verbose)..."
-	$(DOCKER_RUN) ctest --test-dir $(BUILD_DIR) --output-on-failure --verbose
+	ctest --test-dir $(BUILD_DIR) --output-on-failure --verbose
 
 # Run test executable directly (faster iteration during TDD)
 test-direct: build
 	@echo "Running tests directly..."
-	$(DOCKER_RUN) $(BUILD_DIR)/dsp/tests/spectro_dsp_tests
+	$(BUILD_DIR)/dsp/tests/spectro_dsp_tests
 
 # Run single test by name pattern (usage: make test-one NAME=FFTProcessor)
 test-one: build
 	@echo "Running tests matching '$(NAME)'..."
-	$(DOCKER_RUN) ctest --test-dir $(BUILD_DIR) --output-on-failure -R "$(NAME)"
+	ctest --test-dir $(BUILD_DIR) --output-on-failure -R "$(NAME)"
 
 # Quick TDD cycle: build and test in one command
 tdd: test-direct
 
 # Release build
-release: build-image
+release:
 	@echo "Building release..."
-	$(DOCKER_RUN) cmake -B $(BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=Release
-	$(DOCKER_RUN) cmake --build $(BUILD_DIR) --config Release -j $(JOBS)
+	cmake -B $(BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=Release
+	cmake --build $(BUILD_DIR) --config Release -j $(JOBS)
 
 # Lint with clang-tidy
-lint: build-image
+lint:
 	@echo "Running clang-tidy on source files..."
-	$(DOCKER_RUN) run-clang-tidy -p $(BUILD_DIR) -use-color -quiet dsp/ qt6_gui/
+	run-clang-tidy -p $(BUILD_DIR) -use-color -quiet dsp/ qt6_gui/
 
 # Lint with automatic fixes (use with caution)
-lint-fix: build-image
+lint-fix:
 	@echo "Running clang-tidy with automatic fixes..."
-	$(DOCKER_RUN) run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet dsp/ qt6_gui/
-
-# Open interactive shell in Docker container
-shell: build-image
-	@echo "Starting Docker shell..."
-	$(DOCKER_RUN) /bin/bash
+	run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet dsp/ qt6_gui/
 
 run: build
 	@echo "Running spectro-v3..."
 	$(BUILD_DIR)/qt6_gui/spectro
 
-# ==============================================================================
-# Local (non-Docker) targets
-# ==============================================================================
-
-# Configure CMake locally
-local-configure:
-	@echo "Configuring CMake locally..."
-	cmake -B $(LOCAL_BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
-
-# Build locally
-local-build: | $(LOCAL_BUILD_DIR)/Makefile
-	@echo "Building locally..."
-	cmake --build $(LOCAL_BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
-
-# Ensure local build directory exists and is configured
-$(LOCAL_BUILD_DIR)/Makefile:
-	@$(MAKE) local-configure
-
-# Run tests locally
-local-test: local-build
-	@echo "Running tests locally..."
-	ctest --test-dir $(LOCAL_BUILD_DIR) --output-on-failure
-
-# Clean local build
-local-clean:
-	@echo "Cleaning local build directory..."
-	rm -rf $(LOCAL_BUILD_DIR)
-
-# Full local rebuild
-local-rebuild: local-clean local-configure local-build
-
-# Quick local TDD cycle
-local-tdd: local-build
-	@echo "Running tests directly (local)..."
-	$(LOCAL_BUILD_DIR)/dsp/tests/spectro_dsp_tests
-
-# Run application locally
-local-run: local-build
-	@echo "Running spectro-v3 locally..."
-	$(LOCAL_BUILD_DIR)/qt6_gui/spectro
-
 # Help target
 help:
-	@echo "Spectro-v3 Build System (Docker-based)"
+	@echo "Spectro-v3 Build System"
 	@echo ""
 	@echo "Build Targets:"
 	@echo "  make              - Build the project (default)"
-	@echo "  make build-image  - Build the Docker image"
 	@echo "  make configure    - Configure CMake"
 	@echo "  make build        - Build the project"
 	@echo "  make clean        - Remove build directory"
@@ -162,19 +106,8 @@ help:
 	@echo "  make lint-fix     - Run clang-tidy with automatic fixes"
 	@echo ""
 	@echo "Development:"
-	@echo "  make shell        - Open interactive shell in Docker"
-	@echo "  make run          - Run application (Docker)"
-	@echo ""
-	@echo "Local (non-Docker) Targets:"
-	@echo "  make local-configure - Configure CMake locally"
-	@echo "  make local-build  - Build locally"
-	@echo "  make local-test   - Run tests locally"
-	@echo "  make local-clean  - Clean local build"
-	@echo "  make local-rebuild - Clean + configure + build locally"
-	@echo "  make local-tdd    - Quick local TDD cycle"
-	@echo "  make local-run    - Run application locally"
+	@echo "  make run          - Run application"
 	@echo ""
 	@echo "Configuration:"
 	@echo "  BUILD_TYPE=$(BUILD_TYPE) (Debug/Release/RelWithDebInfo)"
 	@echo "  JOBS=$(JOBS) (parallel jobs)"
-	@echo "  DOCKER_IMAGE=$(DOCKER_IMAGE)"

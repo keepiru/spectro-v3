@@ -1,6 +1,7 @@
 #include <audio_buffer.h>
 #include <fft_processor.h>
 #include <fft_window.h>
+#include <qobject.h>
 #include <sample_buffer.h>
 #include <spectrogram_controller.h>
 #include <stdexcept>

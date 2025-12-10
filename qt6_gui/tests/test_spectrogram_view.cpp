@@ -9,12 +9,12 @@ class TestSpectrogramView : public QObject
     Q_OBJECT
 
   private slots:
-    void TestConstructorThrowsIfControllerIsNull()
+    static void TestConstructorThrowsIfControllerIsNull()
     {
         QVERIFY_EXCEPTION_THROWN(SpectrogramView(nullptr), std::invalid_argument);
     }
 
-    void testConstructor()
+    static void TestConstructor()
     {
 
         AudioBuffer audioBuffer(2, 44100);
@@ -25,7 +25,7 @@ class TestSpectrogramView : public QObject
         QVERIFY(view.minimumHeight() > 0);
     }
 
-    void testIsWidget()
+    static void TestIsWidget()
     {
         AudioBuffer audioBuffer(2, 44100);
         SpectrogramController controller(audioBuffer);

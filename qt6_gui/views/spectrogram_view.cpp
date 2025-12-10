@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <qrgb.h>
 #include <stdexcept>
 
 #include <QImage>
@@ -13,6 +14,7 @@
 #include <QPainter>
 #include <QWidget>
 #include <Qt>
+#include <vector>
 
 SpectrogramView::SpectrogramView(SpectrogramController* aController, QWidget* parent)
   : QWidget(parent)
@@ -27,7 +29,7 @@ SpectrogramView::SpectrogramView(SpectrogramController* aController, QWidget* pa
 }
 
 void
-SpectrogramView::paintEvent(QPaintEvent* event)
+SpectrogramView::paintEvent(QPaintEvent*  /*event*/)
 {
     QPainter painter(this);
 
@@ -64,7 +66,7 @@ SpectrogramView::paintEvent(QPaintEvent* event)
     // This is the hot path, so avoid branches and unnecessary allocations.
     for (size_t y = 0; y < kHeight; y++) { // NOLINT(readability-identifier-length)
         // QImage::setPixel is slow, so we're going to access the framebuffer directly
-        const auto kScanLine = reinterpret_cast<uint32_t*>(image.scanLine(y));
+        auto *const kScanLine = reinterpret_cast<uint32_t*>(image.scanLine(y));
 
         // Scan the line.
         // This is the inner loop of the hot path, performance matters here.

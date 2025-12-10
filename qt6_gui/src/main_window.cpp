@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstddef>
 #include <numbers>
+#include <qmainwindow.h>
 #include <vector>
 
 #include <QHBoxLayout>

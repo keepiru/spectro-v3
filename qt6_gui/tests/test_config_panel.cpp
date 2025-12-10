@@ -7,13 +7,13 @@ class TestConfigPanel : public QObject
     Q_OBJECT
 
   private slots:
-    void testConstructor()
+    static void TestConstructor()
     {
         const ConfigPanel panel;
         QVERIFY(panel.minimumWidth() > 0);
     }
 
-    void testIsWidget()
+    static void TestIsWidget()
     {
         ConfigPanel panel;
         QVERIFY(qobject_cast<QWidget*>(&panel) != nullptr);

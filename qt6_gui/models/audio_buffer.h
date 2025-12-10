@@ -56,7 +56,7 @@ class AudioBuffer : public QObject
      * @return Vector of samples.  Invalid samples are filled with zeros.
      * @throws std::out_of_range if aChannelIndex >= channel count
      */
-    [[nodiscard]] const std::vector<float> GetSamples(const size_t aChannelIndex,
+    [[nodiscard]] std::vector<float> GetSamples(const size_t aChannelIndex,
                                                       const int64_t aStartSample,
                                                       const size_t aSampleCount) const;
 

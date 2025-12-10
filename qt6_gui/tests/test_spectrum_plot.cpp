@@ -7,7 +7,7 @@ class TestSpectrumPlot : public QObject
     Q_OBJECT
 
   private slots:
-    void testConstructor()
+    static void TestConstructor()
     {
 
         AudioBuffer audioBuffer(2, 44100);
@@ -17,12 +17,12 @@ class TestSpectrumPlot : public QObject
         QVERIFY(plot.minimumHeight() > 0);
     }
 
-    void testConstructorThrowsOnNullController()
+    static void TestConstructorThrowsOnNullController()
     {
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, SpectrumPlot plot(nullptr));
     }
 
-    void testIsWidget()
+    static void TestIsWidget()
     {
         AudioBuffer audioBuffer(2, 44100);
         SpectrogramController controller(audioBuffer);

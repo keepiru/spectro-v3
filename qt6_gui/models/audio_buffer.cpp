@@ -1,7 +1,9 @@
 #include "audio_buffer.h"
 #include <QObject>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
+#include <qtmetamacros.h>
 #include <sample_buffer.h>
 #include <stdexcept>
 #include <vector>
@@ -49,7 +51,7 @@ AudioBuffer::AddSamples(const std::vector<float>& aSamples)
     emit dataAvailable(kSamplesPerChannel);
 }
 
-const std::vector<float>
+std::vector<float>
 AudioBuffer::GetSamples(const size_t aChannelIndex,
                         const int64_t aStartSample,
                         const size_t aSampleCount) const

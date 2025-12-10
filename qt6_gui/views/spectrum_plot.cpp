@@ -1,4 +1,5 @@
 #include "spectrum_plot.h"
+#include "spectrogram_controller.h"
 
 #include <algorithm>
 #include <cstddef>

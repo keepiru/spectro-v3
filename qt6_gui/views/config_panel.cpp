@@ -3,6 +3,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <qnamespace.h>
 
 ConfigPanel::ConfigPanel(QWidget* parent)
   : QWidget(parent)

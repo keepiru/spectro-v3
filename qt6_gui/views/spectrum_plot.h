@@ -2,6 +2,7 @@
 #define SPECTRUM_PLOT_H
 
 #include <QWidget>
+#include <spectrogram_controller.h>
 
 /**
  * @brief Real-time frequency spectrum line plot widget
@@ -21,14 +22,14 @@ class SpectrumPlot : public QWidget
     Q_OBJECT
 
   public:
-    explicit SpectrumPlot(QWidget* parent = nullptr);
+    explicit SpectrumPlot(SpectrogramController* aController, QWidget* parent = nullptr);
     ~SpectrumPlot() override = default;
 
   protected:
     void paintEvent(QPaintEvent* event) override;
 
   private:
-    // Future: Spectrum data buffer, plot settings, etc.
+    SpectrogramController* mController; // Not owned
 };
 
 #endif // SPECTRUM_PLOT_H

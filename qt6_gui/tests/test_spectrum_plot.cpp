@@ -9,14 +9,24 @@ class TestSpectrumPlot : public QObject
   private slots:
     void testConstructor()
     {
-        SpectrumPlot plot;
+
+        AudioBuffer audioBuffer(2, 44100);
+        SpectrogramController controller(audioBuffer);
+        SpectrumPlot plot(&controller);
         QVERIFY(plot.minimumWidth() > 0);
         QVERIFY(plot.minimumHeight() > 0);
     }
 
+    void testConstructorThrowsOnNullController()
+    {
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, SpectrumPlot plot(nullptr));
+    }
+
     void testIsWidget()
     {
-        SpectrumPlot plot;
+        AudioBuffer audioBuffer(2, 44100);
+        SpectrogramController controller(audioBuffer);
+        SpectrumPlot plot(&controller);
         QVERIFY(qobject_cast<QWidget*>(&plot) != nullptr);
     }
 };

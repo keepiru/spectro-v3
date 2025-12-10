@@ -79,7 +79,7 @@ MainWindow::createLayout()
 
     // Create view widgets
     mSpectrogramView = new SpectrogramView(mSpectrogramController, this);
-    mSpectrumPlot = new SpectrumPlot(this);
+    mSpectrumPlot = new SpectrumPlot(mSpectrogramController, this);
     mConfigPanel = new ConfigPanel(this);
 
     // Create left container with vertical layout for the two plots

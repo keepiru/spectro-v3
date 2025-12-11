@@ -27,6 +27,7 @@ endfunction()
 
 # Define all tests
 add_qt_test(test_audio_buffer)
+add_qt_test(test_audio_recorder)
 add_qt_test(test_spectrogram_controller INCLUDE_DIR ${CMAKE_SOURCE_DIR}/dsp/tests)
 add_qt_test(test_spectrogram_view)
 add_qt_test(test_spectrum_plot)

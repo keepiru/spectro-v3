@@ -1,12 +1,9 @@
 #include "audio_recorder.h"
-
+#include "audio_buffer.h"
 #include <QAudioDevice>
 
-#include "audio_buffer.h"
-
-AudioRecorder::AudioRecorder(QObject* parent, AudioSourceFactory factory)
-  : QObject(parent)
-  , mAudioSourceFactory(factory ? std::move(factory) : CreateDefaultFactory())
+AudioRecorder::AudioRecorder(QObject* aParent)
+  : QObject(aParent)
 {
 }
 
@@ -16,25 +13,36 @@ AudioRecorder::~AudioRecorder()
 }
 
 bool
-AudioRecorder::Start(AudioBuffer* buffer, const QAudioDevice& device)
+AudioRecorder::Start(AudioBuffer* aAudioBuffer,
+                     const QAudioDevice& aQAudioDevice,
+                     QIODevice* aMockQIODevice)
 {
-    if (!buffer) {
+    if (!aAudioBuffer) {
         throw std::invalid_argument("AudioBuffer pointer cannot be null");
     }
 
-    mAudioBuffer = buffer;
-    auto format = CreateFormatFromBuffer(buffer);
+    mAudioBuffer = aAudioBuffer;
+    auto format = CreateFormatFromBuffer(aAudioBuffer);
 
-    mAudioSource = mAudioSourceFactory(format, device);
+    mAudioSource = std::make_unique<QAudioSource>(aQAudioDevice, format);
+
     if (!mAudioSource) {
         emit errorOccurred("Failed to create QAudioSource");
         return false;
     }
 
+    // In test, this value will be discarded and replaced with the mock.
+    // Unfortunately we can't override start() to inject the mock.
     mAudioIODevice = mAudioSource->start();
+
     if (!mAudioIODevice) {
         emit errorOccurred("Failed to start audio input");
         return false;
+    }
+
+    // In test, discard the real QIODevice and replace it with the mock.
+    if (aMockQIODevice) {
+        mAudioIODevice = aMockQIODevice;
     }
 
     connect(mAudioIODevice, &QIODevice::readyRead, this, &AudioRecorder::ReadAudioData);
@@ -48,19 +56,12 @@ AudioRecorder::Stop()
     // TODO: Implement
 }
 
-AudioRecorder::AudioSourceFactory
-AudioRecorder::CreateDefaultFactory()
-{
-    // TODO: Implement
-    return nullptr;
-}
-
 QAudioFormat
-AudioRecorder::CreateFormatFromBuffer(const AudioBuffer* buffer)
+AudioRecorder::CreateFormatFromBuffer(const AudioBuffer* aBuffer)
 {
     QAudioFormat format;
-    format.setSampleRate(buffer->GetSampleRate());
-    format.setChannelCount(buffer->GetChannelCount());
+    format.setSampleRate(aBuffer->GetSampleRate());
+    format.setChannelCount(aBuffer->GetChannelCount());
     format.setSampleFormat(QAudioFormat::Float);
     return format;
 }

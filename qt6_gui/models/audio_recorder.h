@@ -22,49 +22,55 @@ class AudioRecorder : public QObject
     Q_OBJECT
 
   public:
+    struct AudioSourceFactoryResult
+    {
+        std::unique_ptr<QAudioSource> audioSource;
+        QIODevice* ioDevice = nullptr;
+    };
+
     /// Factory function type for creating QAudioSource instances (for testing).
+    /// We can't easily mock QAudioSource#start because it's not virtual, so we
+    /// also start the QAudioSource here and return the QIODevice.
     using AudioSourceFactory =
-      std::function<std::unique_ptr<QAudioSource>(const QAudioFormat&, const QAudioDevice&)>;
+      std::function<AudioSourceFactoryResult(const QAudioDevice&, const QAudioFormat&)>;
 
     /// @brief Constructs an AudioRecorder.
-    /// @param parent Qt parent object for memory management.
-    /// @param factory Optional factory for creating QAudioSource (for testing).
-    explicit AudioRecorder(QObject* parent = nullptr, AudioSourceFactory factory = nullptr);
+    /// @param aParent Qt parent object for memory management.
+    explicit AudioRecorder(QObject* aParent = nullptr);
 
     ~AudioRecorder() override;
 
     /// @brief Starts audio capture, writing samples to the specified buffer.
-    /// @param buffer The AudioBuffer to write captured samples to.
-    /// @param device The audio input device to capture from.
+    /// @param aAudioBuffer The AudioBuffer to write captured samples to.
+    /// @param aQAudioDevice The audio input device to capture from.
+    /// @param aQIODevice Mock audio IO device for testing.  (optional)
     /// @return true if capture started successfully, false otherwise.
-    /// @note Audio format (sample rate, channels) is inferred from the buffer.
-    bool Start(AudioBuffer* buffer, const QAudioDevice& device);
+    /// @note Audio format (sample rate, channels) is inferred from aAudioBuffer.
+    bool Start(AudioBuffer* aAudioBuffer,
+               const QAudioDevice& aQAudioDevice,
+               QIODevice* aQIODevice = nullptr);
 
     /// @brief Stops audio capture.
     void Stop();
 
   signals:
     /// @brief Emitted when recording state changes.
-    /// @param isRecording true if now recording, false if stopped.
-    void recordingStateChanged(bool isRecording);
+    /// @param aIsRecording true if now recording, false if stopped.
+    void recordingStateChanged(bool aIsRecording);
 
     /// @brief Emitted when an error occurs during capture.
-    /// @param errorMessage Description of the error.
-    void errorOccurred(const QString& errorMessage);
+    /// @param aErrorMessage Description of the error.
+    void errorOccurred(const QString& aErrorMessage);
 
   private:
-    AudioSourceFactory mAudioSourceFactory;
     std::unique_ptr<QAudioSource> mAudioSource;
     QIODevice* mAudioIODevice = nullptr;
     AudioBuffer* mAudioBuffer = nullptr;
 
-    /// @brief Creates the default QAudioSource factory.
-    static AudioSourceFactory CreateDefaultFactory();
-
     /// @brief Creates a QAudioFormat from AudioBuffer settings.
-    static QAudioFormat CreateFormatFromBuffer(const AudioBuffer* buffer);
+    static QAudioFormat CreateFormatFromBuffer(const AudioBuffer* aBuffer);
 
-    /// @brief Reads available audio data and writes to the buffer.
+    /// @brief Reads available audio data and writes to the aBuffer.
     void ReadAudioData();
 };
 

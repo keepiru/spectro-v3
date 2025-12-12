@@ -57,8 +57,8 @@ class AudioBuffer : public QObject
      * @throws std::out_of_range if aChannelIndex >= channel count
      */
     [[nodiscard]] std::vector<float> GetSamples(const size_t aChannelIndex,
-                                                      const int64_t aStartSample,
-                                                      const size_t aSampleCount) const;
+                                                const int64_t aStartSample,
+                                                const size_t aSampleCount) const;
 
     /**
      * @brief Get the underlying SampleBuffer for a specific channel

@@ -22,14 +22,22 @@ class AudioRecorder : public QObject
     Q_OBJECT
 
   public:
+    struct AudioSourceFactoryResult
+    {
+        std::unique_ptr<QAudioSource> audioSource;
+        QIODevice* ioDevice = nullptr;
+    };
+
     /// Factory function type for creating QAudioSource instances (for testing).
+    /// We can't easily mock QAudioSource#start because it's not virtual, so we
+    /// also start the QAudioSource here and return the QIODevice.
     using AudioSourceFactory =
-      std::function<std::unique_ptr<QAudioSource>(const QAudioFormat&, const QAudioDevice&)>;
+      std::function<AudioSourceFactoryResult(const QAudioDevice&, const QAudioFormat&)>;
 
     /// @brief Constructs an AudioRecorder.
     /// @param parent Qt parent object for memory management.
     /// @param factory Optional factory for creating QAudioSource (for testing).
-    explicit AudioRecorder(QObject* parent = nullptr, AudioSourceFactory factory = nullptr);
+    explicit AudioRecorder(QObject* parent = nullptr);
 
     ~AudioRecorder() override;
 
@@ -38,7 +46,9 @@ class AudioRecorder : public QObject
     /// @param device The audio input device to capture from.
     /// @return true if capture started successfully, false otherwise.
     /// @note Audio format (sample rate, channels) is inferred from the buffer.
-    bool Start(AudioBuffer* buffer, const QAudioDevice& device);
+    bool Start(AudioBuffer* buffer,
+               const QAudioDevice& device,
+               AudioSourceFactory aAudioSourceFactory = nullptr);
 
     /// @brief Stops audio capture.
     void Stop();
@@ -53,13 +63,12 @@ class AudioRecorder : public QObject
     void errorOccurred(const QString& errorMessage);
 
   private:
-    AudioSourceFactory mAudioSourceFactory;
     std::unique_ptr<QAudioSource> mAudioSource;
     QIODevice* mAudioIODevice = nullptr;
     AudioBuffer* mAudioBuffer = nullptr;
 
     /// @brief Creates the default QAudioSource factory.
-    static AudioSourceFactory CreateDefaultFactory();
+    static AudioSourceFactory CreateDefaultAudioSourceFactory();
 
     /// @brief Creates a QAudioFormat from AudioBuffer settings.
     static QAudioFormat CreateFormatFromBuffer(const AudioBuffer* buffer);

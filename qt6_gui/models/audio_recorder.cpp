@@ -4,9 +4,8 @@
 
 #include "audio_buffer.h"
 
-AudioRecorder::AudioRecorder(QObject* parent, AudioSourceFactory factory)
+AudioRecorder::AudioRecorder(QObject* parent)
   : QObject(parent)
-  , mAudioSourceFactory(factory ? std::move(factory) : CreateDefaultFactory())
 {
 }
 
@@ -16,22 +15,32 @@ AudioRecorder::~AudioRecorder()
 }
 
 bool
-AudioRecorder::Start(AudioBuffer* buffer, const QAudioDevice& device)
+AudioRecorder::Start(AudioBuffer* buffer,
+                     const QAudioDevice& device,
+                     AudioSourceFactory aAudioSourceFactory)
 {
     if (!buffer) {
         throw std::invalid_argument("AudioBuffer pointer cannot be null");
     }
 
+    // We're supplied with an AudioSourceFactory in test.  In prod, we
+    // use the default.
+    if (!aAudioSourceFactory) {
+        aAudioSourceFactory = CreateDefaultAudioSourceFactory();
+    }
+
     mAudioBuffer = buffer;
     auto format = CreateFormatFromBuffer(buffer);
 
-    mAudioSource = mAudioSourceFactory(format, device);
+    auto factoryResult = aAudioSourceFactory(device, format);
+    mAudioSource = std::move(factoryResult.audioSource);
+    mAudioIODevice = factoryResult.ioDevice;
+
     if (!mAudioSource) {
         emit errorOccurred("Failed to create QAudioSource");
         return false;
     }
 
-    mAudioIODevice = mAudioSource->start();
     if (!mAudioIODevice) {
         emit errorOccurred("Failed to start audio input");
         return false;
@@ -49,10 +58,15 @@ AudioRecorder::Stop()
 }
 
 AudioRecorder::AudioSourceFactory
-AudioRecorder::CreateDefaultFactory()
+AudioRecorder::CreateDefaultAudioSourceFactory()
 {
-    // TODO: Implement
-    return nullptr;
+    return [](const QAudioDevice& device, const QAudioFormat& format) -> AudioSourceFactoryResult {
+        auto source = std::make_unique<QAudioSource>(device, format);
+        // QAudioSource#start isn't virtual so we can't easily mock this call.
+        // Perform it here so we can also inject the QIODevice during testing.
+        auto ioDevice = source->start();
+        return { .audioSource = std::move(source), .ioDevice = ioDevice };
+    };
 }
 
 QAudioFormat

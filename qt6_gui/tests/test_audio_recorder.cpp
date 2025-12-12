@@ -19,11 +19,11 @@ class TestAudioRecorder : public QObject
         // Constructor should not crash
     }
 
-    void TestStartWithNullBufferFails()
+    void TestStartWithNullBufferThrows()
     {
         AudioRecorder recorder;
         QAudioDevice device = QMediaDevices::defaultAudioInput();
-        QCOMPARE(recorder.Start(nullptr, device), false);
+        QVERIFY_EXCEPTION_THROWN(recorder.Start(nullptr, device), std::invalid_argument);
     }
 
     void TestStartWithValidBufferSucceeds()

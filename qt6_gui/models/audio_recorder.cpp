@@ -18,10 +18,28 @@ AudioRecorder::~AudioRecorder()
 bool
 AudioRecorder::Start(AudioBuffer* buffer, const QAudioDevice& device)
 {
-    // TODO: Implement
-    (void)buffer;
-    (void)device;
-    return false;
+    if (!buffer) {
+        throw std::invalid_argument("AudioBuffer pointer cannot be null");
+    }
+
+    mAudioBuffer = buffer;
+    auto format = CreateFormatFromBuffer(buffer);
+
+    mAudioSource = mAudioSourceFactory(format, device);
+    if (!mAudioSource) {
+        emit errorOccurred("Failed to create QAudioSource");
+        return false;
+    }
+
+    mAudioIODevice = mAudioSource->start();
+    if (!mAudioIODevice) {
+        emit errorOccurred("Failed to start audio input");
+        return false;
+    }
+
+    connect(mAudioIODevice, &QIODevice::readyRead, this, &AudioRecorder::ReadAudioData);
+    emit recordingStateChanged(true);
+    return true;
 }
 
 void

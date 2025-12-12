@@ -29,8 +29,7 @@ class AudioRecorder : public QObject
     /// @brief Constructs an AudioRecorder.
     /// @param parent Qt parent object for memory management.
     /// @param factory Optional factory for creating QAudioSource (for testing).
-    explicit AudioRecorder(QObject* parent = nullptr,
-                           AudioSourceFactory factory = AudioSourceFactory());
+    explicit AudioRecorder(QObject* parent = nullptr, AudioSourceFactory factory = nullptr);
 
     ~AudioRecorder() override;
 

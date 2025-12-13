@@ -20,11 +20,11 @@ MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
   , mAudioRecorder(new AudioRecorder(this))
 {
-    constexpr int kDefaultWindowWidth = 1200;
+    constexpr int kDefaultWindowWidth = 1400;
     constexpr int kDefaultWindowHeight = 800;
     constexpr size_t kDefaultChannelCount = 2;
     constexpr size_t kDefaultSampleRate = 44100;
-    constexpr size_t kDefaultStride = 256;
+    constexpr size_t kDefaultStride = 1024;
 
     setWindowTitle("Spectro-v3 - Real-time Spectrum Analyzer");
     resize(kDefaultWindowWidth, kDefaultWindowHeight);

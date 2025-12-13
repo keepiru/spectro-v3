@@ -50,30 +50,41 @@ class TestSpectrogramController : public QObject
         };
 
         std::vector<std::pair<size_t, FFTWindow::Type>> windowCalls;
-        const SpectrogramController::FFTWindowFactory windowSpy = [&windowCalls](size_t size,
-                                                                           FFTWindow::Type type) {
-            windowCalls.emplace_back(size, type);
-            return std::make_unique<FFTWindow>(size, type);
-        };
+        const SpectrogramController::FFTWindowFactory windowSpy =
+          [&windowCalls](size_t size, FFTWindow::Type type) {
+              windowCalls.emplace_back(size, type);
+              return std::make_unique<FFTWindow>(size, type);
+          };
 
         AudioBuffer audioBuffer(2, 44100);
         SpectrogramController controller(audioBuffer, procSpy, windowSpy);
 
         // Constructor calls with defaults
-        QCOMPARE(procCalls, (std::vector<size_t>{ 512, 512 }));
+        QCOMPARE(procCalls,
+                 (std::vector<size_t>{ SpectrogramController::kDefaultFFTSize,
+                                       SpectrogramController::kDefaultFFTSize }));
         QCOMPARE(windowCalls,
                  (std::vector<std::pair<size_t, FFTWindow::Type>>{
-                   std::make_pair(512, FFTWindow::Type::kHann),
-                   std::make_pair(512, FFTWindow::Type::kHann) }));
+                   std::make_pair(SpectrogramController::kDefaultFFTSize,
+                                  SpectrogramController::kDefaultWindowType),
+                   std::make_pair(SpectrogramController::kDefaultFFTSize,
+                                  SpectrogramController::kDefaultWindowType),
+                 }));
 
         controller.SetFFTSettings(1024, FFTWindow::Type::kRectangular);
 
         // SetFFTSettings calls again with new settings
-        QCOMPARE(procCalls, (std::vector<size_t>{ 512, 512, 1024, 1024 }));
+        QCOMPARE(procCalls,
+                 (std::vector<size_t>{ SpectrogramController::kDefaultFFTSize,
+                                       SpectrogramController::kDefaultFFTSize,
+                                       1024,
+                                       1024 }));
         QCOMPARE(windowCalls,
                  (std::vector<std::pair<size_t, FFTWindow::Type>>{
-                   std::make_pair(512, FFTWindow::Type::kHann),
-                   std::make_pair(512, FFTWindow::Type::kHann),
+                   std::make_pair(SpectrogramController::kDefaultFFTSize,
+                                  SpectrogramController::kDefaultWindowType),
+                   std::make_pair(SpectrogramController::kDefaultFFTSize,
+                                  SpectrogramController::kDefaultWindowType),
                    std::make_pair(1024, FFTWindow::Type::kRectangular),
                    std::make_pair(1024, FFTWindow::Type::kRectangular) }));
     }

@@ -36,8 +36,7 @@ SpectrogramController::SpectrogramController(AudioBuffer& aAudioBuffer,
     }
 
     // Initialize with default FFT settings
-    constexpr size_t kDefaultFFTSize = 512;
-    SetFFTSettings(kDefaultFFTSize, FFTWindow::Type::kHann);
+    SetFFTSettings(kDefaultFFTSize, kDefaultWindowType);
 }
 
 void

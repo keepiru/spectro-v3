@@ -6,18 +6,19 @@
 #include "views/spectrogram_view.h"
 #include "views/spectrum_plot.h"
 
-#include <cmath>
-#include <cstddef>
-#include <numbers>
-#include <qmainwindow.h>
-#include <vector>
-
 #include <QHBoxLayout>
+#include <QMediaDevices>
+#include <QOverload>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <audio_recorder.h>
+#include <cmath>
+#include <cstddef>
+#include <qmainwindow.h>
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
+  , mAudioRecorder(new AudioRecorder(this))
 {
     constexpr int kDefaultWindowWidth = 1200;
     constexpr int kDefaultWindowHeight = 800;
@@ -31,33 +32,8 @@ MainWindow::MainWindow(QWidget* parent)
     // Create models and controllers
     mAudioBuffer = new AudioBuffer(kDefaultChannelCount, kDefaultSampleRate, this);
 
-    // for testing, load some frequency sweeps into the audio buffer
-    {
-        const size_t durationSeconds = 10;
-        const size_t totalSamples = durationSeconds * kDefaultSampleRate;
-        std::vector<float> samples;
-        samples.reserve(totalSamples * kDefaultChannelCount);
-
-        constexpr float kStartFrequency = 20.0f;
-        constexpr float kFrequencyMultiplier = 1000.0f;
-        constexpr float kAmplitude = 0.1f;
-        constexpr float kTwoPi = 2.0f * std::numbers::pi_v<float>;
-
-        for (size_t i = 0; i < totalSamples; i++) {
-            const float timePos = static_cast<float>(i) / static_cast<float>(kDefaultSampleRate);
-            // Frequency sweep from 20 Hz to 20 kHz over duration
-            const float freq =
-              kStartFrequency *
-              std::pow(kFrequencyMultiplier, timePos / static_cast<float>(durationSeconds));
-            const float sampleValue = kAmplitude * std::sin(kTwoPi * freq * timePos);
-
-            // Stereo: same signal on both channels
-            samples.push_back(sampleValue); // Left channel
-            samples.push_back(sampleValue); // Right channel
-        }
-
-        mAudioBuffer->AddSamples(samples);
-    }
+    // For now we don't have a config UI, so just start recording with defaults
+    mAudioRecorder->Start(mAudioBuffer, QMediaDevices::defaultAudioInput());
 
     mSpectrogramController = new SpectrogramController(*mAudioBuffer, nullptr, nullptr, this);
 
@@ -117,4 +93,16 @@ MainWindow::setupConnections()
 {
     // Future: Connect signals/slots between AudioBuffer, SpectrogramController,
     // and view widgets
+
+    // Update SpectrogramView when new audio data is available
+    connect(mAudioBuffer,
+            &AudioBuffer::dataAvailable,
+            mSpectrogramView,
+            QOverload<>::of(&SpectrogramView::update));
+
+    // Also update SpectrumPlot
+    connect(mAudioBuffer,
+            &AudioBuffer::dataAvailable,
+            mSpectrumPlot,
+            QOverload<>::of(&SpectrumPlot::update));
 }

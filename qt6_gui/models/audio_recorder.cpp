@@ -8,6 +8,7 @@
 #include <QIODevice>
 #include <QObject>
 #include <QtGlobal>
+#include <QtTypes>
 #include <cstddef>
 #include <memory>
 #include <qtmetamacros.h>
@@ -42,6 +43,16 @@ AudioRecorder::Start(AudioBuffer* aAudioBuffer,
         Q_EMIT errorOccurred("Failed to create QAudioSource");
         return false;
     }
+
+    // How many samples the source should buffer before triggering readyRead.
+    // 44100Hz sample rate * 2 channels * 4 bytes per sample / 60Hz display rate
+    // gives us 5880 bytes.  We'll choose something smaller than that to keep
+    // the updates coming quickly even if the sample rate is lower.  In
+    // practice, we seem to get ~3-4K, perhaps due to scheduling limitations.
+    // TODO: investigate how to choose an optimal value here, taking into
+    // account sample rate, channels, display refresh rate, jitter, etc.
+    constexpr qsizetype kSourceBufferSize = 2048;
+    mAudioSource->setBufferSize(kSourceBufferSize);
 
     // In test, this value will be discarded and replaced with the mock.
     // Unfortunately we can't override start() to inject the mock.
@@ -92,15 +103,16 @@ AudioRecorder::ReadAudioData()
         throw std::runtime_error("AudioRecorder::ReadAudioData called when not recording");
     }
 
-    const auto bytesAvailable = mAudioIODevice->bytesAvailable();
-    if (bytesAvailable % sizeof(float) != 0) {
+    // Read it into a QByteArray, then convert to float vector.
+    const QByteArray audioData = mAudioIODevice->readAll();
+    if (audioData.size() % sizeof(float) != 0) {
         throw std::runtime_error(
-          "AudioRecorder::ReadAudioData: Available bytes not divisible by sample size");
+          "AudioRecorder::ReadAudioData: Read bytes not divisible by sample size");
     }
 
-    // Read it into a QByteArray, then convert to float vector.
-    const QByteArray audioData = mAudioIODevice->read(bytesAvailable);
     const auto sampleCount = static_cast<size_t>(audioData.size() / sizeof(float));
+
+    // Type punning is intentional: we need to interpret the byte stream as floats.
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     const auto* sampleData = reinterpret_cast<const float*>(audioData.constData());
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)

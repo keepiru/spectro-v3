@@ -51,6 +51,7 @@ class AudioRecorder : public QObject
                QIODevice* aMockQIODevice = nullptr);
 
     /// @brief Stops audio capture.
+    /// @note no-op unless a capture is in progress.
     void Stop();
 
   signals:

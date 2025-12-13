@@ -89,7 +89,26 @@ class TestAudioRecorder : public QObject
     static void TestStopWhenNotRecordingIsNoOp()
     {
         AudioRecorder recorder;
+        const QSignalSpy spy(&recorder, &AudioRecorder::recordingStateChanged);
+        recorder.Stop();          // Should not crash
+        QCOMPARE(spy.count(), 0); // No events should be emitted
+    }
+
+    static void TestStopAfterStartSucceeds()
+    {
+        AudioBuffer buffer(1, 48000);
+        AudioRecorder recorder;
+        MockQIODevice ioDevice;
+        recorder.Start(&buffer, QAudioDevice(), &ioDevice);
+        QSignalSpy spy(&recorder, &AudioRecorder::recordingStateChanged);
+
         recorder.Stop(); // Should not crash
+        QCOMPARE(spy.count(), 1);
+        const QList<QVariant> arguments = spy.takeFirst();
+        QCOMPARE(arguments.at(0).toBool(), false);
+
+        recorder.Stop();          // Repeating should be a no-op
+        QCOMPARE(spy.count(), 0); // No new signals
     }
 
     static void TestRecordingStateChangedSignalEmitted()

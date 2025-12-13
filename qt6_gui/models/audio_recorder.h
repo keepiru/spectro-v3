@@ -43,12 +43,12 @@ class AudioRecorder : public QObject
     /// @brief Starts audio capture, writing samples to the specified buffer.
     /// @param aAudioBuffer The AudioBuffer to write captured samples to.
     /// @param aQAudioDevice The audio input device to capture from.
-    /// @param aQIODevice Mock audio IO device for testing.  (optional)
+    /// @param aMockQIODevice Mock audio IO device for testing.  (optional)
     /// @return true if capture started successfully, false otherwise.
     /// @note Audio format (sample rate, channels) is inferred from aAudioBuffer.
     bool Start(AudioBuffer* aAudioBuffer,
                const QAudioDevice& aQAudioDevice,
-               QIODevice* aQIODevice = nullptr);
+               QIODevice* aMockQIODevice = nullptr);
 
     /// @brief Stops audio capture.
     void Stop();

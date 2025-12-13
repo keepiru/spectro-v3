@@ -1,6 +1,16 @@
 #include "audio_recorder.h"
 #include "audio_buffer.h"
 #include <QAudioDevice>
+#include <QAudioFormat>
+#include <QAudioSource>
+#include <QByteArray>
+#include <QIODevice>
+#include <QObject>
+#include <QtGlobal>
+#include <cstddef>
+#include <memory>
+#include <stdexcept>
+#include <vector>
 
 AudioRecorder::AudioRecorder(QObject* aParent)
   : QObject(aParent)
@@ -69,5 +79,26 @@ AudioRecorder::CreateFormatFromBuffer(const AudioBuffer* aBuffer)
 void
 AudioRecorder::ReadAudioData()
 {
-    // TODO: Implement
+    if (!mAudioBuffer || !mAudioIODevice) {
+        // These should be set during Start(), and this callback shouldn't
+        // happen unless we're started and recording.
+        throw std::runtime_error("AudioRecorder::ReadAudioData called when not recording");
+    }
+
+    const auto bytesAvailable = mAudioIODevice->bytesAvailable();
+    if (bytesAvailable % sizeof(float) != 0) {
+        throw std::runtime_error(
+          "AudioRecorder::ReadAudioData: Available bytes not divisible by sample size");
+    }
+
+    // Read it into a QByteArray, then convert to float vector.
+    const QByteArray audioData = mAudioIODevice->read(bytesAvailable);
+    const auto sampleCount = static_cast<size_t>(audioData.size() / sizeof(float));
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    const auto* sampleData = reinterpret_cast<const float*>(audioData.constData());
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    const std::vector<float> samples(sampleData, sampleData + sampleCount);
+
+    // Then send it to the AudioBuffer.
+    mAudioBuffer->AddSamples(samples);
 }

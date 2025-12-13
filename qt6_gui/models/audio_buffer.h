@@ -68,6 +68,9 @@ class AudioBuffer : public QObject
      */
     [[nodiscard]] const SampleBuffer& GetChannelBuffer(size_t aChannelIndex) const;
 
+    // Get the number of samples
+    [[nodiscard]] size_t NumSamples() const { return mChannelBuffers[0]->NumSamples(); }
+
   signals:
     /**
      * @brief Emitted when new audio samples are added

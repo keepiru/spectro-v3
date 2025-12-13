@@ -1,5 +1,6 @@
 #include "audio_recorder.h"
 #include "audio_buffer.h"
+#include <QAudio>
 #include <QAudioDevice>
 #include <QAudioFormat>
 #include <QAudioSource>
@@ -64,7 +65,12 @@ AudioRecorder::Start(AudioBuffer* aAudioBuffer,
 void
 AudioRecorder::Stop()
 {
-    // TODO: Implement
+    if (mAudioSource && mAudioSource->state() != QAudio::StoppedState) {
+        mAudioSource->stop();
+        mAudioSource.reset();
+        Q_EMIT recordingStateChanged(false);
+    }
+    mAudioIODevice = nullptr;
 }
 
 QAudioFormat

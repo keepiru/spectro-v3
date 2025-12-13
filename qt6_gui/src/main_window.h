@@ -4,6 +4,7 @@
 #include <QMainWindow>
 
 class AudioBuffer;
+class AudioRecorder;
 class ConfigPanel;
 class SpectrogramController;
 class SpectrogramView;
@@ -41,6 +42,7 @@ class MainWindow : public QMainWindow
     // Models and controllers
     AudioBuffer* mAudioBuffer = nullptr;
     SpectrogramController* mSpectrogramController = nullptr;
+    AudioRecorder* mAudioRecorder = nullptr;
 
     // View widgets
     SpectrogramView* mSpectrogramView = nullptr;

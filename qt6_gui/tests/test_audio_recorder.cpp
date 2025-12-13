@@ -22,6 +22,7 @@ class MockQIODevice : public QIODevice
      */
     void SimulateAudioData(const std::vector<float>& samples)
     {
+        // Type punning is intentional: converting float samples to byte stream
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         const char* dataPtr = reinterpret_cast<const char*>(samples.data());
         const auto dataSize =
@@ -29,12 +30,6 @@ class MockQIODevice : public QIODevice
         mBuffer.append(dataPtr, dataSize);
         emit readyRead();
     }
-
-    /**
-     * @brief Returns the number of bytes available for reading.
-     * @return Number of bytes available.
-     */
-    [[nodiscard]] qint64 bytesAvailable() const override { return mBuffer.size(); }
 
     /**
      * @brief Reads data from the internal buffer.

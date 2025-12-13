@@ -83,6 +83,11 @@ lint-fix:
 	@echo "Running clang-tidy with automatic fixes..."
 	@find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet
 
+# Lint files changed in git
+lint-changed:
+	@echo "Running clang-tidy on changed files..."
+	@git diff --name-only HEAD | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
+
 run: build
 	@echo "Running spectro-v3..."
 	$(BUILD_DIR)/qt6_gui/spectro

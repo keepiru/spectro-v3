@@ -12,7 +12,7 @@ BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
 
 .PHONY: all build configure clean rebuild test test-verbose test-direct test-one \
-        tdd release lint lint-fix help run
+        tdd release lint lint-fix lint-files help run
 
 # Default target
 all: build
@@ -73,6 +73,11 @@ lint:
 	@echo "Running clang-tidy on source files..."
 	@find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
 
+# Lint specific files (usage: make lint-file FILE="file1.cpp file2.cpp")
+lint-files:
+	@echo "Running clang-tidy..."
+	@run-clang-tidy -p $(BUILD_DIR) -use-color -quiet $(filter-out $@,$(MAKECMDGOALS))
+
 # Lint with automatic fixes (use with caution)
 lint-fix:
 	@echo "Running clang-tidy with automatic fixes..."
@@ -103,6 +108,7 @@ help:
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  make lint         - Run clang-tidy on all source files"
+	@echo "  make lint-files <file1> <file2> - Run clang-tidy on specific files"
 	@echo "  make lint-fix     - Run clang-tidy with automatic fixes"
 	@echo ""
 	@echo "Development:"

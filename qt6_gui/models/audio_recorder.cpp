@@ -1,11 +1,9 @@
 #include "audio_recorder.h"
-
+#include "audio_buffer.h"
 #include <QAudioDevice>
 
-#include "audio_buffer.h"
-
-AudioRecorder::AudioRecorder(QObject* parent)
-  : QObject(parent)
+AudioRecorder::AudioRecorder(QObject* aParent)
+  : QObject(aParent)
 {
 }
 
@@ -15,35 +13,36 @@ AudioRecorder::~AudioRecorder()
 }
 
 bool
-AudioRecorder::Start(AudioBuffer* buffer,
-                     const QAudioDevice& device,
-                     AudioSourceFactory aAudioSourceFactory)
+AudioRecorder::Start(AudioBuffer* aAudioBuffer,
+                     const QAudioDevice& aQAudioDevice,
+                     QIODevice* aMockQIODevice)
 {
-    if (!buffer) {
+    if (!aAudioBuffer) {
         throw std::invalid_argument("AudioBuffer pointer cannot be null");
     }
 
-    // We're supplied with an AudioSourceFactory in test.  In prod, we
-    // use the default.
-    if (!aAudioSourceFactory) {
-        aAudioSourceFactory = CreateDefaultAudioSourceFactory();
-    }
+    mAudioBuffer = aAudioBuffer;
+    auto format = CreateFormatFromBuffer(aAudioBuffer);
 
-    mAudioBuffer = buffer;
-    auto format = CreateFormatFromBuffer(buffer);
-
-    auto factoryResult = aAudioSourceFactory(device, format);
-    mAudioSource = std::move(factoryResult.audioSource);
-    mAudioIODevice = factoryResult.ioDevice;
+    mAudioSource = std::make_unique<QAudioSource>(aQAudioDevice, format);
 
     if (!mAudioSource) {
         emit errorOccurred("Failed to create QAudioSource");
         return false;
     }
 
+    // In test, this value will be discarded and replaced with the mock.
+    // Unfortunately we can't override start() to inject the mock.
+    mAudioIODevice = mAudioSource->start();
+
     if (!mAudioIODevice) {
         emit errorOccurred("Failed to start audio input");
         return false;
+    }
+
+    // In test, discard the real QIODevice and replace it with the mock.
+    if (aMockQIODevice) {
+        mAudioIODevice = aMockQIODevice;
     }
 
     connect(mAudioIODevice, &QIODevice::readyRead, this, &AudioRecorder::ReadAudioData);
@@ -57,24 +56,12 @@ AudioRecorder::Stop()
     // TODO: Implement
 }
 
-AudioRecorder::AudioSourceFactory
-AudioRecorder::CreateDefaultAudioSourceFactory()
-{
-    return [](const QAudioDevice& device, const QAudioFormat& format) -> AudioSourceFactoryResult {
-        auto source = std::make_unique<QAudioSource>(device, format);
-        // QAudioSource#start isn't virtual so we can't easily mock this call.
-        // Perform it here so we can also inject the QIODevice during testing.
-        auto ioDevice = source->start();
-        return { .audioSource = std::move(source), .ioDevice = ioDevice };
-    };
-}
-
 QAudioFormat
-AudioRecorder::CreateFormatFromBuffer(const AudioBuffer* buffer)
+AudioRecorder::CreateFormatFromBuffer(const AudioBuffer* aBuffer)
 {
     QAudioFormat format;
-    format.setSampleRate(buffer->GetSampleRate());
-    format.setChannelCount(buffer->GetChannelCount());
+    format.setSampleRate(aBuffer->GetSampleRate());
+    format.setChannelCount(aBuffer->GetChannelCount());
     format.setSampleFormat(QAudioFormat::Float);
     return format;
 }

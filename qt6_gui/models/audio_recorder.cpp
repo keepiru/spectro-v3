@@ -9,6 +9,7 @@
 #include <QtGlobal>
 #include <cstddef>
 #include <memory>
+#include <qtmetamacros.h>
 #include <stdexcept>
 #include <vector>
 
@@ -32,12 +33,12 @@ AudioRecorder::Start(AudioBuffer* aAudioBuffer,
     }
 
     mAudioBuffer = aAudioBuffer;
-    auto format = CreateFormatFromBuffer(aAudioBuffer);
+    const auto format = CreateFormatFromBuffer(aAudioBuffer);
 
     mAudioSource = std::make_unique<QAudioSource>(aQAudioDevice, format);
 
     if (!mAudioSource) {
-        emit errorOccurred("Failed to create QAudioSource");
+        Q_EMIT errorOccurred("Failed to create QAudioSource");
         return false;
     }
 
@@ -46,7 +47,7 @@ AudioRecorder::Start(AudioBuffer* aAudioBuffer,
     mAudioIODevice = mAudioSource->start();
 
     if (!mAudioIODevice) {
-        emit errorOccurred("Failed to start audio input");
+        Q_EMIT errorOccurred("Failed to start audio input");
         return false;
     }
 
@@ -56,7 +57,7 @@ AudioRecorder::Start(AudioBuffer* aAudioBuffer,
     }
 
     connect(mAudioIODevice, &QIODevice::readyRead, this, &AudioRecorder::ReadAudioData);
-    emit recordingStateChanged(true);
+    Q_EMIT recordingStateChanged(true);
     return true;
 }
 
@@ -70,8 +71,8 @@ QAudioFormat
 AudioRecorder::CreateFormatFromBuffer(const AudioBuffer* aBuffer)
 {
     QAudioFormat format;
-    format.setSampleRate(aBuffer->GetSampleRate());
-    format.setChannelCount(aBuffer->GetChannelCount());
+    format.setSampleRate(static_cast<int>(aBuffer->GetSampleRate()));
+    format.setChannelCount(static_cast<int>(aBuffer->GetChannelCount()));
     format.setSampleFormat(QAudioFormat::Float);
     return format;
 }

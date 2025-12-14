@@ -11,7 +11,7 @@ BUILD_DIR := build
 BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
 
-.PHONY: all build configure clean rebuild test test-verbose test-direct test-one \
+.PHONY: all build configure clean rebuild test test-one \
         tdd release lint lint-fix lint-files help run
 
 # Default target
@@ -42,25 +42,12 @@ rebuild: clean configure build
 # Run tests via CTest
 test: build
 	@echo "Running tests..."
-	ctest --test-dir $(BUILD_DIR) --output-on-failure --quiet
-
-# Run tests with verbose output (useful for TDD)
-test-verbose: build
-	@echo "Running tests (verbose)..."
-	ctest --test-dir $(BUILD_DIR) --output-on-failure --verbose
-
-# Run test executable directly (faster iteration during TDD)
-test-direct: build
-	@echo "Running tests directly..."
-	$(BUILD_DIR)/dsp/tests/spectro_dsp_tests
+	ctest --test-dir $(BUILD_DIR) --output-on-failure --progress
 
 # Run single test by name pattern (usage: make test-one NAME=FFTProcessor)
 test-one: build
 	@echo "Running tests matching '$(NAME)'..."
 	ctest --test-dir $(BUILD_DIR) --output-on-failure -R "$(NAME)"
-
-# Quick TDD cycle: build and test in one command
-tdd: test-direct
 
 # Release build
 release:

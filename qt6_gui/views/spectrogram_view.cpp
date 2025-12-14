@@ -2,18 +2,18 @@
 
 #include "controllers/spectrogram_controller.h"
 
-#include <algorithm>
-#include <cmath>
-#include <cstddef>
-#include <cstdint>
-#include <qrgb.h>
-#include <stdexcept>
-
 #include <QImage>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QWidget>
 #include <Qt>
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <dsp_utils.h>
+#include <qrgb.h>
+#include <stdexcept>
 #include <vector>
 
 SpectrogramView::SpectrogramView(SpectrogramController* aController, QWidget* parent)
@@ -79,13 +79,18 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
                 magnitude += magnitudesChannelRowBin[ch][y][x];
             }
             magnitude /= static_cast<float>(kChannels);
+            const float decibels = DSPUtils::MagnitudeToDecibels(magnitude);
 
-            // Map magnitude to color (simple grayscale for now)
-            constexpr float kMagnitudeScale = 255.0f;
-            constexpr uint8_t kFullAlpha = 255;
+            // Map decibels to color (simple grayscale for now)
             const auto intensity = static_cast<uint8_t>(
-              std::clamp(static_cast<int>(magnitude * kMagnitudeScale), 0, 255));
+              std::clamp(static_cast<int>((decibels - mController->GetApertureMinDecibels()) /
+                                          (mController->GetApertureMaxDecibels() -
+                                           mController->GetApertureMinDecibels()) *
+                                          255.0f),
+                         0,
+                         255));
 
+            constexpr uint8_t kFullAlpha = 255;
             // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
             kScanLine[x] = qRgba(intensity, intensity, intensity, kFullAlpha);
         }

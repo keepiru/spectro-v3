@@ -1,17 +1,17 @@
 #include "spectrum_plot.h"
 #include "spectrogram_controller.h"
 
-#include <algorithm>
-#include <cstddef>
-#include <cstdint>
-#include <stdexcept>
-
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPolygonF>
 #include <QWidget>
 #include <Qt>
 #include <QtTypes>
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <dsp_utils.h>
+#include <stdexcept>
 
 SpectrumPlot::SpectrumPlot(SpectrogramController* aController, QWidget* parent)
   : QWidget(parent)
@@ -64,8 +64,12 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
 
         const size_t kMaxX = std::min(kWidth, kMagnitudes.size());
         for (size_t x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
-            // Scale magnitude to fit in widget height
-            const float kYCoordinate = static_cast<float>(kHeight) - (kMagnitudes[x] * static_cast<float>(kHeight));
+            const float kDecibels = DSPUtils::MagnitudeToDecibels(kMagnitudes[x]);
+            const float kNormalizedMagnitude =
+              (kDecibels - mController->GetApertureMinDecibels()) /
+              (mController->GetApertureMaxDecibels() - mController->GetApertureMinDecibels());
+            const float kYCoordinate =
+              static_cast<float>(kHeight) - (kNormalizedMagnitude * static_cast<float>(kHeight));
             points.emplace_back(static_cast<float>(x), kYCoordinate);
         }
 

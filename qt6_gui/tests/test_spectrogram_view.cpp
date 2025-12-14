@@ -32,6 +32,34 @@ class TestSpectrogramView : public QObject
         SpectrogramView view(&controller);
         QVERIFY(qobject_cast<QWidget*>(&view) != nullptr);
     }
+
+    static void TestSetColorMapInvalid()
+    {
+        AudioBuffer audioBuffer(2, 44100);
+        SpectrogramController controller(audioBuffer);
+        SpectrogramView view(&controller);
+
+        // Invalid enum value (not in defined range)
+        // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
+        const auto invalidValue = static_cast<SpectrogramView::ColorMapType>(999);
+        QVERIFY_EXCEPTION_THROWN(view.SetColorMap(invalidValue), std::invalid_argument);
+    }
+
+    static void TestSetColorMapGrayscale()
+    {
+        AudioBuffer audioBuffer(2, 44100);
+        SpectrogramController controller(audioBuffer);
+        SpectrogramView view(&controller);
+
+        view.SetColorMap(SpectrogramView::ColorMapType::kGrayscale);
+
+        for (size_t i = 0; i < 256; i++) {
+            const auto intensity = static_cast<uint8_t>(i);
+            const auto kHave = view.GetColorMapValue(intensity);
+            const auto kWant = qRgba(intensity, intensity, intensity, 255);
+            QCOMPARE(kHave, kWant);
+        }
+    }
 };
 
 QTEST_MAIN(TestSpectrogramView)

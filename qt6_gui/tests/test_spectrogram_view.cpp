@@ -56,8 +56,9 @@ class TestSpectrogramView : public QObject
         for (size_t i = 0; i < 256; i++) {
             const auto intensity = static_cast<uint8_t>(i);
             const auto kHave = view.GetColorMapValue(intensity);
-            const auto kWant = qRgba(intensity, intensity, intensity, 255);
-            QCOMPARE(kHave, kWant);
+            QCOMPARE(kHave.r, intensity);
+            QCOMPARE(kHave.g, intensity);
+            QCOMPARE(kHave.b, intensity);
         }
     }
 };

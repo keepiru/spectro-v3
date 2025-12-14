@@ -1,9 +1,9 @@
 #ifndef SPECTROGRAM_VIEW_H
 #define SPECTROGRAM_VIEW_H
 
-#include <array>
 #include <QRgb>
 #include <QWidget>
+#include <array>
 
 // Forward declarations
 class SpectrogramController;
@@ -36,6 +36,20 @@ class SpectrogramView : public QWidget
     };
 
     /**
+     * @brief Lightweight RGB color representation for LUT
+     *
+     * Used in the color map lookup table (LUT) to represent colors as raw 8-bit
+     * RGB values. This avoids repeated qRgb() calls in the hot path when
+     * rendering the spectrogram.
+     */
+    struct ColorMapEntry
+    {
+        uint8_t r;
+        uint8_t g;
+        uint8_t b;
+    };
+
+    /**
      * @brief Constructor
      * @param aController Pointer to spectrogram controller (must not be null)
      * @param parent Qt parent widget (optional)
@@ -57,7 +71,10 @@ class SpectrogramView : public QWidget
      * This is used to test LUT generation.  Prod code accesses the array
      * directly for performance.
      */
-    [[nodiscard]] QRgb GetColorMapValue(uint8_t aIndex) const { return mColorMapLUT[aIndex]; }
+    [[nodiscard]] ColorMapEntry GetColorMapValue(uint8_t aIndex) const
+    {
+        return mColorMapLUT[aIndex];
+    }
 
   protected:
     void paintEvent(QPaintEvent* event) override;
@@ -65,7 +82,8 @@ class SpectrogramView : public QWidget
   private:
     SpectrogramController* mController; // Not owned
 
-    std::array<QRgb, 256> mColorMapLUT; // Precomputed color map for magnitude to color mapping
+    // Precomputed color map for magnitude to color mapping
+    std::array<ColorMapEntry, 256> mColorMapLUT;
 };
 
 #endif // SPECTROGRAM_VIEW_H

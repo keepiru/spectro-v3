@@ -1,8 +1,8 @@
 #ifndef SPECTRUM_PLOT_H
 #define SPECTRUM_PLOT_H
 
+#include "controllers/spectrogram_controller.h"
 #include <QWidget>
-#include <spectrogram_controller.h>
 
 /**
  * @brief Real-time frequency spectrum line plot widget

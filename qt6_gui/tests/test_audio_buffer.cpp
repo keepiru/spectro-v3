@@ -1,4 +1,4 @@
-#include "../models/audio_buffer.h"
+#include "models/audio_buffer.h"
 #include <QObject>
 #include <QSignalSpy>
 #include <QTest>

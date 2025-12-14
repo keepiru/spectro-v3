@@ -1,15 +1,14 @@
-#include <audio_buffer.h>
-#include <fft_processor.h>
-#include <fft_window.h>
-#include <qobject.h>
-#include <sample_buffer.h>
-#include <spectrogram_controller.h>
-#include <stdexcept>
-#include <stft_processor.h>
-
+#include "controllers/spectrogram_controller.h"
+#include "models/audio_buffer.h"
 #include <cstddef>
 #include <cstdint>
+#include <fft_processor.h>
+#include <fft_window.h>
 #include <memory>
+#include <qobject.h>
+#include <sample_buffer.h>
+#include <stdexcept>
+#include <stft_processor.h>
 #include <utility>
 #include <vector>
 

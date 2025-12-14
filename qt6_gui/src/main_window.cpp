@@ -1,17 +1,15 @@
 #include "main_window.h"
-
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
+#include "models/audio_recorder.h"
 #include "views/config_panel.h"
 #include "views/spectrogram_view.h"
 #include "views/spectrum_plot.h"
-
 #include <QHBoxLayout>
 #include <QMediaDevices>
 #include <QOverload>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <audio_recorder.h>
 #include <cmath>
 #include <cstddef>
 #include <qmainwindow.h>

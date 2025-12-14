@@ -1,11 +1,10 @@
 #ifndef SPECTROGRAM_VIEW_H
 #define SPECTROGRAM_VIEW_H
 
+#include "include/global_constants.h"
 #include <QRgb>
 #include <QWidget>
 #include <array>
-
-#include "include/global_constants.h"
 
 // Forward declarations
 class SpectrogramController;

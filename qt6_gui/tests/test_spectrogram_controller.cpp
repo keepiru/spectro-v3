@@ -1,13 +1,13 @@
+#include "controllers/spectrogram_controller.h"
+#include "models/audio_buffer.h"
 #include <QObject>
 #include <QTest>
-#include <audio_buffer.h>
 #include <cstddef>
 #include <fft_window.h>
 #include <ifft_processor.h>
 #include <memory>
 #include <mock_fft_processor.h>
 #include <span>
-#include <spectrogram_controller.h>
 #include <stdexcept>
 #include <vector>
 

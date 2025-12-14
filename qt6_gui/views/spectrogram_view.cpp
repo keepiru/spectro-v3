@@ -1,5 +1,4 @@
 #include "spectrogram_view.h"
-
 #include "controllers/spectrogram_controller.h"
 #include "include/global_constants.h"
 #include <QImage>

@@ -35,9 +35,6 @@ target_link_libraries(spectro_qt6_gui
 target_include_directories(spectro_qt6_gui
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/models
-        ${CMAKE_CURRENT_SOURCE_DIR}/controllers
-        ${CMAKE_CURRENT_SOURCE_DIR}/views
 )
 
 set_target_properties(spectro_qt6_gui PROPERTIES

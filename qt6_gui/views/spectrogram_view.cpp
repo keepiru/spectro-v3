@@ -4,6 +4,7 @@
 #include <QImage>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QRgb>
 #include <QWidget>
 #include <Qt>
 #include <algorithm>

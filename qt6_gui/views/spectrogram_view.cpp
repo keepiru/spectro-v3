@@ -19,6 +19,7 @@
 SpectrogramView::SpectrogramView(SpectrogramController* aController, QWidget* parent)
   : QWidget(parent)
   , mController(aController)
+  , mColorMapLUT()
 {
     if (!aController) {
         throw std::invalid_argument("SpectrogramView: aController must not be null");
@@ -26,6 +27,7 @@ SpectrogramView::SpectrogramView(SpectrogramController* aController, QWidget* pa
     constexpr int kMinWidth = 400;
     constexpr int kMinHeight = 300;
     setMinimumSize(kMinWidth, kMinHeight);
+    SetColorMap(ColorMapType::kGrayscale);
 }
 
 void
@@ -90,12 +92,26 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
                          0,
                          255));
 
-            constexpr uint8_t kFullAlpha = 255;
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            kScanLine[x] = qRgba(intensity, intensity, intensity, kFullAlpha);
+            kScanLine[x] = mColorMapLUT.at(intensity);
         }
     }
 
     // blit the result
     painter.drawImage(0, 0, image);
+}
+
+void
+SpectrogramView::SetColorMap(ColorMapType aType)
+{
+    const size_t kLUTSize = mColorMapLUT.size();
+    switch (aType) {
+        case ColorMapType::kGrayscale:
+            for (size_t i = 0; i < kLUTSize; i++) {
+                const auto intensity = static_cast<uint8_t>(i);
+                mColorMapLUT.at(i) = qRgb(intensity, intensity, intensity);
+            }
+            break;
+        default:
+            throw std::invalid_argument("SpectrogramView::SetColorMap: Unsupported color map type");
+    }
 }

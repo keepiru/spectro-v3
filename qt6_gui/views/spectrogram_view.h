@@ -1,9 +1,9 @@
 #pragma once
 
 #include "include/global_constants.h"
-#include <QRgb>
 #include <QWidget>
 #include <array>
+#include <cstdint>
 
 // Forward declarations
 class SpectrogramController;

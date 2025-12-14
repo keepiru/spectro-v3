@@ -1,3 +1,5 @@
+#include "controllers/spectrogram_controller.h"
+#include "models/audio_buffer.h"
 #include "views/spectrum_plot.h"
 
 #include <QTest>

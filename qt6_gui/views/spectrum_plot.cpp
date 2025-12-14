@@ -1,4 +1,5 @@
 #include "spectrum_plot.h"
+#include "controllers/spectrogram_controller.h"
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPolygonF>

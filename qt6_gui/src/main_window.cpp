@@ -6,13 +6,13 @@
 #include "views/spectrogram_view.h"
 #include "views/spectrum_plot.h"
 #include <QHBoxLayout>
+#include <QMainWindow>
 #include <QMediaDevices>
 #include <QOverload>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <cmath>
 #include <cstddef>
-#include <qmainwindow.h>
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)

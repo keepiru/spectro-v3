@@ -2,7 +2,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <qnamespace.h>
+#include <Qt>
 
 ConfigPanel::ConfigPanel(QWidget* parent)
   : QWidget(parent)

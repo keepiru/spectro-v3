@@ -1,7 +1,8 @@
 #pragma once
 
-#include "controllers/spectrogram_controller.h"
 #include <QWidget>
+
+class SpectrogramController;
 
 /**
  * @brief Real-time frequency spectrum line plot widget

@@ -1,6 +1,6 @@
 #pragma once
+#include "models/audio_buffer.h"
 #include <QObject>
-#include <audio_buffer.h>
 #include <cstddef>
 #include <cstdint>
 #include <fft_window.h>

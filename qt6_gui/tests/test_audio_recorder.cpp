@@ -1,6 +1,5 @@
-#include "../models/audio_buffer.h"
-#include "../models/audio_recorder.h"
-
+#include "models/audio_buffer.h"
+#include "models/audio_recorder.h"
 #include <QAudioDevice>
 #include <QAudioFormat>
 #include <QMediaDevices>

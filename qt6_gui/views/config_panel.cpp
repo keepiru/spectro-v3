@@ -1,5 +1,4 @@
 #include "config_panel.h"
-
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QWidget>

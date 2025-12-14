@@ -1,7 +1,7 @@
+#include "controllers/spectrogram_controller.h"
 #include "include/global_constants.h"
+#include "models/audio_buffer.h"
 #include "views/spectrogram_view.h"
-#include <audio_buffer.h>
-#include <spectrogram_controller.h>
 
 #include <QTest>
 

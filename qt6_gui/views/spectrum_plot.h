@@ -1,5 +1,4 @@
-#ifndef SPECTRUM_PLOT_H
-#define SPECTRUM_PLOT_H
+#pragma once
 
 #include "controllers/spectrogram_controller.h"
 #include <QWidget>
@@ -31,5 +30,3 @@ class SpectrumPlot : public QWidget
   private:
     SpectrogramController* mController; // Not owned
 };
-
-#endif // SPECTRUM_PLOT_H

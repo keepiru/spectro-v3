@@ -1,5 +1,4 @@
-#ifndef CONFIG_PANEL_H
-#define CONFIG_PANEL_H
+#pragma once
 
 #include <QWidget>
 
@@ -29,5 +28,3 @@ class ConfigPanel : public QWidget
   private:
     // Future: Control widgets (combo boxes, sliders, etc.)
 };
-
-#endif // CONFIG_PANEL_H

@@ -42,7 +42,7 @@ rebuild: clean configure build
 # Run tests via CTest
 test: build
 	@echo "Running tests..."
-	ctest --test-dir $(BUILD_DIR) --output-on-failure
+	ctest --test-dir $(BUILD_DIR) --output-on-failure --quiet
 
 # Run tests with verbose output (useful for TDD)
 test-verbose: build

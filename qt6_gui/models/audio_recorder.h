@@ -1,5 +1,4 @@
-#ifndef AUDIO_RECORDER_H
-#define AUDIO_RECORDER_H
+#pragma once
 
 #include <QAudioFormat>
 #include <QAudioSource>
@@ -74,5 +73,3 @@ class AudioRecorder : public QObject
     /// @brief Reads available audio data and writes to the aBuffer.
     void ReadAudioData();
 };
-
-#endif // AUDIO_RECORDER_H

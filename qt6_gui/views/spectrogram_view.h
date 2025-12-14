@@ -1,5 +1,4 @@
-#ifndef SPECTROGRAM_VIEW_H
-#define SPECTROGRAM_VIEW_H
+#pragma once
 
 #include "include/global_constants.h"
 #include <QRgb>
@@ -103,5 +102,3 @@ class SpectrogramView : public QWidget
     // nested array structure provides fast access in the hot path.
     std::array<std::array<ColorMapEntry, kColorMapLUTSize>, gkMaxChannels> mColorMapLUT;
 };
-
-#endif // SPECTROGRAM_VIEW_H

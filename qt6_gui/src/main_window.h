@@ -1,5 +1,4 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
 
@@ -49,5 +48,3 @@ class MainWindow : public QMainWindow
     SpectrumPlot* mSpectrumPlot = nullptr;
     ConfigPanel* mConfigPanel = nullptr;
 };
-
-#endif // MAINWINDOW_H

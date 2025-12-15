@@ -7,8 +7,8 @@
 #include <fft_window.h>
 #include <memory>
 #include <sample_buffer.h>
+#include <span>
 #include <stdexcept>
-#include <stft_processor.h>
 #include <utility>
 #include <vector>
 
@@ -54,19 +54,15 @@ SpectrogramController::SetFFTSettings(const size_t aTransformSize,
     // Clear out the old DSP objects
     mFFTProcessors.clear();
     mFFTWindows.clear();
-    mSTFTProcessors.clear();
 
     // Create FFT and window instances for each channel
     for (size_t i = 0; i < mAudioBuffer.GetChannelCount(); i++) {
         auto fftProcessor = mFFTProcessorFactory(aTransformSize);
         auto fftWindow = mFFTWindowFactory(aTransformSize, aWindowType);
         const auto& sampleBuffer = mAudioBuffer.GetChannelBuffer(i);
-        auto stftProcessor =
-          std::make_unique<STFTProcessor>(*fftProcessor, *fftWindow, sampleBuffer);
 
         mFFTProcessors.emplace_back(std::move(fftProcessor));
         mFFTWindows.emplace_back(std::move(fftWindow));
-        mSTFTProcessors.emplace_back(std::move(stftProcessor));
     }
 }
 
@@ -77,7 +73,22 @@ SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRo
         throw std::out_of_range("Channel index out of range");
     }
 
-    return mSTFTProcessors[aChannel]->ComputeSpectrogram(aFirstSample, mWindowStride, aRowCount);
+    std::vector<std::vector<float>> spectrogram;
+    spectrogram.reserve(aRowCount);
+
+    const auto kSampleCount = mFFTWindows[aChannel]->GetSize();
+
+    for (size_t row = 0; row < aRowCount; row++) {
+        const int64_t kWindowFirstSample = aFirstSample + static_cast<int64_t>(row * mWindowStride);
+        // Future performance optimization: grab the entire needed range once
+        // before the loop to minimize locking and copy overhead.
+        const auto kSamples = mAudioBuffer.GetSamples(aChannel, kWindowFirstSample, kSampleCount);
+        auto windowedSamples = mFFTWindows[aChannel]->Apply(kSamples);
+        auto windowedSpan = std::span<float>(windowedSamples);
+        const auto kSpectrum = mFFTProcessors[aChannel]->ComputeMagnitudes(windowedSpan);
+        spectrogram.push_back(kSpectrum);
+    }
+    return spectrogram;
 }
 
 size_t

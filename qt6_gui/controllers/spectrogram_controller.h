@@ -133,4 +133,8 @@ class SpectrogramController : public QObject
     // plot.
     float mApertureMinDecibels = -30.0f;
     float mApertureMaxDecibels = 30.0f;
+
+    // Spectrogram row cache.  Key: (channel, first sample).  Stores a single row
+    // of spectrogram data for reuse.
+    mutable std::map<std::pair<size_t, int64_t>, std::vector<float>> mSpectrogramRowCache;
 };

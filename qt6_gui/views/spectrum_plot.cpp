@@ -33,7 +33,7 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     const auto kAvailableSampleCount = mController->GetAvailableSampleCount();
     const auto kStride = mController->GetWindowStride();
     // Round down to nearest stride
-    const auto kTopSample = (kAvailableSampleCount / kStride) * kStride;
+    const auto kTopSample = (((kAvailableSampleCount) / kStride) - 1) * kStride;
     const auto kChannels = mController->GetChannelCount();
 
     for (size_t ch = 0; ch < kChannels; ch++) {

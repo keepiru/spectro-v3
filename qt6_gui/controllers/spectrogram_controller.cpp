@@ -54,6 +54,7 @@ SpectrogramController::SetFFTSettings(const size_t aTransformSize,
     // Clear out the old DSP objects
     mFFTProcessors.clear();
     mFFTWindows.clear();
+    mSpectrogramRowCache.clear();
 
     // Create FFT and window instances for each channel
     for (size_t i = 0; i < mAudioBuffer.GetChannelCount(); i++) {
@@ -95,12 +96,31 @@ SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRo
             continue;
         }
 
+        // Check cache first
+        const std::pair<size_t, int64_t> cacheKey = {
+            aChannel, aFirstSample + static_cast<int64_t>(row * mWindowStride)
+        };
+
+        const auto cacheIt = mSpectrogramRowCache.find(cacheKey);
+        if (cacheIt != mSpectrogramRowCache.end()) {
+            // Found in cache
+            spectrogram.push_back(cacheIt->second);
+            continue;
+        }
+
+        // Not in cache, compute it
+
         // Future performance optimization: grab the entire needed range once
         // before the loop to minimize locking and copy overhead.
         const auto kSamples = mAudioBuffer.GetSamples(aChannel, kWindowFirstSample, kSampleCount);
         auto windowedSamples = mFFTWindows[aChannel]->Apply(kSamples);
         auto windowedSpan = std::span<float>(windowedSamples);
         const auto kSpectrum = mFFTProcessors[aChannel]->ComputeMagnitudes(windowedSpan);
+
+        // Store in cache
+        mSpectrogramRowCache.emplace(cacheKey, kSpectrum);
+
+        // And in the result
         spectrogram.push_back(kSpectrum);
     }
     return spectrogram;

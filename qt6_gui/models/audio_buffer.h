@@ -51,13 +51,14 @@ class AudioBuffer : public QObject
     /**
      * @brief Get samples from a specific channel
      * @param aChannelIndex Channel index (0-based)
-     * @param aStartSample Starting sample index, possibly negative
+     * @param aStartSample Starting sample index
      * @param aSampleCount Number of samples to retrieve
-     * @return Vector of samples.  Invalid samples are filled with zeros.
-     * @throws std::out_of_range if aChannelIndex >= channel count
+     * @return Vector of samples.
+     * @throws std::out_of_range if aChannelIndex >= channel count, or if there
+     * aren't enough samples to fill the request.
      */
     [[nodiscard]] std::vector<float> GetSamples(const size_t aChannelIndex,
-                                                const int64_t aStartSample,
+                                                const size_t aStartSample,
                                                 const size_t aSampleCount) const;
 
     /**

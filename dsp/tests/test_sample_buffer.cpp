@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cstddef>
 #include <sample_buffer.h>
+#include <stdexcept>
 #include <thread>
 #include <vector>
 
@@ -30,23 +31,9 @@ TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
         REQUIRE(retrieved == std::vector<float>({ 0.2f, 0.3f }));
     }
 
-    SECTION("Retrieve samples zero-padded before start")
+    SECTION("Throws when retrieving beyond buffer size")
     {
-        auto retrieved = buffer.GetSamples(-2, 4);
-        REQUIRE(retrieved == std::vector<float>({ 0.0f, 0.0f, 0.1f, 0.2f }));
-    }
-
-    SECTION("Retrieve samples zero-padded after end")
-    {
-        auto retrieved = buffer.GetSamples(2, 4);
-        REQUIRE(retrieved == std::vector<float>({ 0.3f, 0.4f, 0.0f, 0.0f }));
-    }
-
-    SECTION("Retrieve samples zero-padded on both sides")
-    {
-        auto retrieved = buffer.GetSamples(-2, 8);
-        REQUIRE(retrieved ==
-                std::vector<float>({ 0.0f, 0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.0f, 0.0f }));
+        REQUIRE_THROWS_AS(buffer.GetSamples(2, 4), std::out_of_range);
     }
 
     SECTION("Append more samples")

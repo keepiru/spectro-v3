@@ -1,7 +1,8 @@
 #include <cstddef>
-#include <cstdint>
+#include <format>
 #include <mutex>
 #include <sample_buffer.h>
+#include <stdexcept>
 #include <vector>
 
 size_t
@@ -19,17 +20,19 @@ SampleBuffer::AddSamples(const std::vector<float>& aSamples)
 }
 
 std::vector<float>
-SampleBuffer::GetSamples(int64_t aStartSample, size_t aSampleCount) const
+SampleBuffer::GetSamples(size_t aStartSample, size_t aSampleCount) const
 {
-    std::vector<float> result(aSampleCount, 0.0f);
     std::lock_guard<std::mutex> const kLock(mMutex);
-
-    for (size_t i = 0; i < aSampleCount; ++i) {
-        int64_t const kSampleIndex = aStartSample + static_cast<int64_t>(i);
-        // Only copy from available data.  Everything else remains zeroed.
-        if (kSampleIndex >= 0 && static_cast<size_t>(kSampleIndex) < mData.size()) {
-            result[i] = mData[kSampleIndex];
-        }
+    if (aStartSample > mData.size() || aSampleCount > (mData.size() - aStartSample)) {
+        throw std::out_of_range(
+          std::format("SampleBuffer::GetSamples: Not enough samples to fulfill request: "
+                      "requested start {}, count {}, available {}",
+                      aStartSample,
+                      aSampleCount,
+                      mData.size()));
     }
-    return result;
+
+    // The check above guarantees the range is valid.
+    // NOLINTNEXTLINE(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+    return { mData.begin() + aStartSample, mData.begin() + aStartSample + aSampleCount };
 }

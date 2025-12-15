@@ -40,12 +40,11 @@ class TestAudioBuffer : public QObject
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, buffer.AddSamples({ 1, 2, 3, 4, 5 }));
     }
 
-    static void TestGetSamplesFillsZeros()
+    static void TestGetSamplesThrowsIfInsufficientSamples()
     {
         AudioBuffer buffer(2, 44100);
         buffer.AddSamples({ 1, 2, 3, 4 });
-        QCOMPARE(buffer.GetSamples(0, -2, 4), std::vector<float>({ 0, 0, 1, 3 }));
-        QCOMPARE(buffer.GetSamples(1, 1, 4), std::vector<float>({ 4, 0, 0, 0 }));
+        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)buffer.GetSamples(1, 1, 4));
     }
 
     static void TestGetSamplesThrowsOnInvalidChannelIndex()

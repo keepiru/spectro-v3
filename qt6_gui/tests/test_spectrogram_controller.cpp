@@ -164,8 +164,8 @@ class TestSpectrogramController : public QObject
     static void TestGetRows75PercentOverlap()
     {
         AudioBuffer buffer(1, 44100);
-        buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
-                            13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
+        buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
+                            14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 });
         auto controller = CreateControllerWithMockFFT(buffer);
         controller->SetWindowStride(2); // 75% overlap
 
@@ -180,34 +180,44 @@ class TestSpectrogramController : public QObject
         QCOMPARE(kGot, kWant);
     }
 
-    static void TestGetRowsWithNegativeStartSampleAndZeroPadding()
+    static void TestGetRowsWithStartSampleBeyondBufferEndReturnsZeroedRows()
     {
         AudioBuffer buffer(1, 44100);
-        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8 });
+        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
         auto controller = CreateControllerWithMockFFT(buffer);
-        controller->SetWindowStride(4);
 
+        auto kGot = controller->GetRows(0, 0, 2);
         const std::vector<std::vector<float>> kWant = {
-            { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f },
             { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
-            { 5.0f, 6.0f, 7.0f, 8.0f, 0.0f },
+            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
         };
-        const auto kGot = controller->GetRows(0, -4, 3);
         QCOMPARE(kGot, kWant);
     }
 
-    static void TestGetRowsWithStartSampleBeyondBufferEndAndZeroPadding()
+    static void TestGetRowsWithNegativeStartSampleReturnsZeroedRows()
+    {
+        AudioBuffer buffer(1, 44100);
+        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
+        auto controller = CreateControllerWithMockFFT(buffer);
+
+        auto kGot = controller->GetRows(0, -2, 2);
+        const std::vector<std::vector<float>> kWant = {
+            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+            { 7.0f, 8.0f, 9.0f, 10.0f, 11.0f },
+        };
+        QCOMPARE(kGot, kWant);
+    }
+
+    static void TestGetRowsThrowsOnOverflow()
     {
         AudioBuffer buffer(1, 44100);
         buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
         auto controller = CreateControllerWithMockFFT(buffer);
 
-        const std::vector<std::vector<float>> kWant = {
-            { 13.0f, 14.0f, 15.0f, 16.0f, 0.0f },
-            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-        };
-        const auto kGot = controller->GetRows(0, 12, 2);
-        QCOMPARE(kGot, kWant);
+        // Use a large aFirstSample to trigger overflow when computing row offsets
+        const int64_t kLargeFirstSample = std::numeric_limits<int64_t>::max() - 4;
+        QVERIFY_THROWS_EXCEPTION(std::out_of_range,
+                                 (void)controller->GetRows(0, kLargeFirstSample, 1));
     }
 
     static void TestGetRowsWithHannWindowIntegration()

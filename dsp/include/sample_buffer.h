@@ -42,11 +42,12 @@ class SampleBuffer
 
     /**
      * @brief Get samples from the buffer.
-     * @param aStartSample Starting sample index, possibly negative.
+     * @param aStartSample Starting sample index
      * @param aSampleCount Number of samples to retrieve.
-     * @return Vector of samples.  Invalid samples are filled with zeros.
+     * @return Vector of samples.
+     * @throws std::out_of_range if there aren't enough samples to fill the request.
      */
-    std::vector<float> GetSamples(int64_t aStartSample, size_t aSampleCount) const;
+    std::vector<float> GetSamples(size_t aStartSample, size_t aSampleCount) const;
 
   private:
     mutable std::mutex mMutex;

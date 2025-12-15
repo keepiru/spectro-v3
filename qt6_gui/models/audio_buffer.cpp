@@ -1,7 +1,6 @@
 #include "audio_buffer.h"
 #include <QObject>
 #include <cstddef>
-#include <cstdint>
 #include <memory>
 #include <sample_buffer.h>
 #include <stdexcept>
@@ -53,7 +52,7 @@ AudioBuffer::AddSamples(const std::vector<float>& aSamples)
 
 std::vector<float>
 AudioBuffer::GetSamples(const size_t aChannelIndex,
-                        const int64_t aStartSample,
+                        const size_t aStartSample,
                         const size_t aSampleCount) const
 {
     if (aChannelIndex >= mChannelCount) {

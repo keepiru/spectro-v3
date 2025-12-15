@@ -80,6 +80,21 @@ SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRo
 
     for (size_t row = 0; row < aRowCount; row++) {
         const int64_t kWindowFirstSample = aFirstSample + static_cast<int64_t>(row * mWindowStride);
+        const auto kAvailableSamples = GetAvailableSampleCount();
+        const auto kLastNeededSample = kWindowFirstSample + static_cast<int64_t>(kSampleCount);
+
+        if (kLastNeededSample < kWindowFirstSample) {
+            // Yikes, we overflowed an int64, something is very wrong
+            throw std::out_of_range("Requested sample range is invalid (overflow detected)");
+        }
+
+        // Check if the requested window is within available data, else return zeroed row
+        if (kWindowFirstSample < 0 ||
+            static_cast<uint64_t>(kLastNeededSample) > kAvailableSamples) {
+            spectrogram.emplace_back((kSampleCount / 2) + 1, 0.0f);
+            continue;
+        }
+
         // Future performance optimization: grab the entire needed range once
         // before the loop to minimize locking and copy overhead.
         const auto kSamples = mAudioBuffer.GetSamples(aChannel, kWindowFirstSample, kSampleCount);

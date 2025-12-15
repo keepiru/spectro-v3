@@ -8,7 +8,6 @@ add_library(spectro_dsp
     src/fft_processor.cpp
     src/fft_window.cpp
     src/sample_buffer.cpp
-    src/stft_processor.cpp
 )
 
 target_include_directories(spectro_dsp

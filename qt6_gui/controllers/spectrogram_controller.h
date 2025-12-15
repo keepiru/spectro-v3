@@ -7,14 +7,13 @@
 #include <functional>
 #include <ifft_processor.h>
 #include <memory>
-#include <stft_processor.h>
 #include <vector>
 
 /**
  * @brief Controller for spectrogram data flow and view state
  *
  * Coordinates the data flow between AudioBuffer (model) and SpectrogramView (view).
- * Owns FFT processing components (STFTProcessor, FFTProcessor, FFTWindow) per channel.
+ * Owns FFT processing components (FFTProcessor, FFTWindow) per channel.
  * Manages view state including live/historical mode and scroll position.
  */
 class SpectrogramController : public QObject
@@ -64,7 +63,6 @@ class SpectrogramController : public QObject
      * @return 2D vector [aRowCount][frequency_bins] containing frequency magnitudes
      * @throws std::out_of_range if aChannel is invalid
      *
-     * Calls STFTProcessor.ComputeSpectrogram() to compute frequency data on-demand.
      * Each row represents one time window in the spectrogram.
      */
     [[nodiscard]] std::vector<std::vector<float>> GetRows(size_t aChannel,
@@ -101,7 +99,7 @@ class SpectrogramController : public QObject
      * @param aWindowType New window function type
      * @throws std::invalid_argument if aTransformSize is zero
      *
-     * Recreates FFTProcessor, FFTWindow, and STFTProcessor for each channel.
+     * Recreates FFTProcessor and FFTWindow for each channel.
      */
     void SetFFTSettings(const size_t aTransformSize, const FFTWindow::Type aWindowType);
 
@@ -124,7 +122,6 @@ class SpectrogramController : public QObject
     // FFT processing components (per channel)
     std::vector<std::unique_ptr<IFFTProcessor>> mFFTProcessors;
     std::vector<std::unique_ptr<FFTWindow>> mFFTWindows;
-    std::vector<std::unique_ptr<STFTProcessor>> mSTFTProcessors;
 
     // FFT settings
     size_t mWindowStride;

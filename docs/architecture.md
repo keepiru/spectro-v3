@@ -34,7 +34,6 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - Uses Qt Multimedia's `QAudioSource`
   - Captures audio samples from microphone/line-in
   - Writes samples to `AudioBuffer`
-  - Runs in separate thread managed by Qt
   - Owns audio settings: input device, sample rate
   - `SetDevice()` → restarts capture with new device
 
@@ -135,8 +134,7 @@ SpectrogramView.paint()
 
 ## Threading Model
 
-1. **Qt Main Thread**: All views, controllers, models, event loop
-2. **Audio Capture Thread**: Qt Multimedia manages `QAudioSource` internally
+**Single-threaded**: All components (views, controllers, models, audio capture) run on Qt's main event loop thread.
 
 **Thread Safety**:
 - `AudioBuffer` uses mutex for thread-safe read/write

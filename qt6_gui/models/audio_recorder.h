@@ -13,9 +13,9 @@ class AudioBuffer;
 /// @brief Captures audio from an input device and writes to an AudioBuffer.
 ///
 /// Uses Qt Multimedia's QAudioSource to capture audio samples from
-/// microphone/line-in. Runs in a separate thread managed by Qt. Supports
-/// runtime device changes and dependency injection for testing.
-/// Audio format (sample rate, channels) is inferred from AudioBuffer at Start().
+/// microphone/line-in. Supports runtime device changes and dependency injection
+/// for testing. Audio format (sample rate, channels) is inferred from
+/// AudioBuffer at Start().
 class AudioRecorder : public QObject
 {
     Q_OBJECT

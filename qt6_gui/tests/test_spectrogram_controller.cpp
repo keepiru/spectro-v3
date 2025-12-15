@@ -99,44 +99,135 @@ class TestSpectrogramController : public QObject
                                  controller.SetFFTSettings(255, FFTWindow::Type::kHann));
     }
 
-    static void TestGetRows()
+    static std::unique_ptr<SpectrogramController> CreateControllerWithMockFFT(AudioBuffer& buffer)
     {
         // The mock FFT processor just returns input samples as magnitudes
         auto mockFFTProcessorFactory = [](size_t size) {
             return std::make_unique<MockFFTProcessor>(size);
         };
 
+        auto controller =
+          std::make_unique<SpectrogramController>(buffer, mockFFTProcessorFactory, nullptr);
+        controller->SetFFTSettings(8, FFTWindow::Type::kRectangular);
+        controller->SetWindowStride(8);
+
+        return controller;
+    }
+
+    static void TestGetRowsSingleWindowComputation()
+    {
         AudioBuffer buffer(1, 44100);
         buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
                             13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
+        auto controller = CreateControllerWithMockFFT(buffer);
 
-        SpectrogramController controller(buffer, mockFFTProcessorFactory);
-        controller.SetFFTSettings(8, FFTWindow::Type::kRectangular);
-        controller.SetWindowStride(8);
+        const std::vector<std::vector<float>> kWant = {
+            { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
+        };
+        const auto kGot = controller->GetRows(0, 0, 1);
+        QCOMPARE(kGot, kWant);
+    }
 
-        // First one - stride 8, 3 rows
-        std::vector<std::vector<float>> want = {
+    static void TestGetRowsMultipleNonoverlappingWindows()
+    {
+        AudioBuffer buffer(1, 44100);
+        buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
+                            13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
+        auto controller = CreateControllerWithMockFFT(buffer);
+
+        const std::vector<std::vector<float>> kWant = {
             { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
             { 9.0f, 10.0f, 11.0f, 12.0f, 13.0f },
             { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f },
         };
-        QCOMPARE(controller.GetRows(0, 0, 3), want);
+        const auto kGot = controller->GetRows(0, 0, 3);
+        QCOMPARE(kGot, kWant);
+    }
 
-        // Next with a sample offset
-        want = {
-            { 5.0f, 6.0f, 7.0f, 8.0f, 9.0f },
-            { 13.0f, 14.0f, 15.0f, 16.0f, 17.0f },
+    static void TestGetRows50PercentOverlap()
+    {
+        AudioBuffer buffer(1, 44100);
+        buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
+                            13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
+        auto controller = CreateControllerWithMockFFT(buffer);
+        controller->SetWindowStride(4); // 50% overlap
+
+        const std::vector<std::vector<float>> kWant = {
+            { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },      { 5.0f, 6.0f, 7.0f, 8.0f, 9.0f },
+            { 9.0f, 10.0f, 11.0f, 12.0f, 13.0f },  { 13.0f, 14.0f, 15.0f, 16.0f, 17.0f },
+            { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f },
         };
-        QCOMPARE(controller.GetRows(0, 4, 2), want);
+        const auto kGot = controller->GetRows(0, 0, 5);
+        QCOMPARE(kGot, kWant);
+    }
 
-        // Then with an overlapping stride
-        controller.SetWindowStride(2);
-        want = {
+    static void TestGetRows75PercentOverlap()
+    {
+        AudioBuffer buffer(1, 44100);
+        buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
+                            13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
+        auto controller = CreateControllerWithMockFFT(buffer);
+        controller->SetWindowStride(2); // 75% overlap
+
+        const std::vector<std::vector<float>> kWant = {
+            { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },      { 3.0f, 4.0f, 5.0f, 6.0f, 7.0f },
+            { 5.0f, 6.0f, 7.0f, 8.0f, 9.0f },      { 7.0f, 8.0f, 9.0f, 10.0f, 11.0f },
+            { 9.0f, 10.0f, 11.0f, 12.0f, 13.0f },  { 11.0f, 12.0f, 13.0f, 14.0f, 15.0f },
+            { 13.0f, 14.0f, 15.0f, 16.0f, 17.0f }, { 15.0f, 16.0f, 17.0f, 18.0f, 19.0f },
+            { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f }, { 19.0f, 20.0f, 21.0f, 22.0f, 23.0f },
+        };
+        const auto kGot = controller->GetRows(0, 0, 10);
+        QCOMPARE(kGot, kWant);
+    }
+
+    static void TestGetRowsWithNegativeStartSampleAndZeroPadding()
+    {
+        AudioBuffer buffer(1, 44100);
+        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8 });
+        auto controller = CreateControllerWithMockFFT(buffer);
+        controller->SetWindowStride(4);
+
+        const std::vector<std::vector<float>> kWant = {
+            { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f },
             { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
-            { 3.0f, 4.0f, 5.0f, 6.0f, 7.0f },
-            { 5.0f, 6.0f, 7.0f, 8.0f, 9.0f },
+            { 5.0f, 6.0f, 7.0f, 8.0f, 0.0f },
         };
-        QCOMPARE(controller.GetRows(0, 0, 3), want);
+        const auto kGot = controller->GetRows(0, -4, 3);
+        QCOMPARE(kGot, kWant);
+    }
+
+    static void TestGetRowsWithStartSampleBeyondBufferEndAndZeroPadding()
+    {
+        AudioBuffer buffer(1, 44100);
+        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+        auto controller = CreateControllerWithMockFFT(buffer);
+
+        const std::vector<std::vector<float>> kWant = {
+            { 13.0f, 14.0f, 15.0f, 16.0f, 0.0f },
+            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+        };
+        const auto kGot = controller->GetRows(0, 12, 2);
+        QCOMPARE(kGot, kWant);
+    }
+
+    static void TestGetRowsWithHannWindowIntegration()
+    {
+        AudioBuffer buffer(1, 44100);
+        buffer.AddSamples({ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
+        auto controller = CreateControllerWithMockFFT(buffer);
+        controller->SetFFTSettings(8, FFTWindow::Type::kHann);
+
+        // Hann window attenuates edges, so we'll see lower magnitudes at the
+        // edges.  Keep in mind our MockFFTProcessor just returns the input
+        // samples as magnitudes so the only transformation is from the
+        // windowing.
+        const std::vector<std::vector<float>> kWant = {
+            { 0.0f, 0.188255101f, 0.611260474f, 0.950484395f, 0.950484395f },
+            { 0.0f, 0.188255101f, 0.611260474f, 0.950484395f, 0.950484395f }
+        };
+
+        const auto kGot = controller->GetRows(0, 0, 2);
+        QCOMPARE(kGot, kWant);
     }
 
     static void TestGetRowsThrowsOnInvalidChannel()

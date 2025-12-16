@@ -92,7 +92,7 @@ class SpectrogramController : public QObject
      * @return Maximum decibel value for aperture mapping
      */
     [[nodiscard]] float GetApertureMaxDecibels() const { return mApertureMaxDecibels; }
-  public slots:
+
     /**
      * @brief Set FFT settings (transform size, window function)
      * @param aTransformSize New FFT transform size (must be power of 2)

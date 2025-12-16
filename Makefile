@@ -20,7 +20,7 @@ all: build
 # Configure CMake (run once or after CMakeLists.txt changes)
 configure:
 	@echo "Configuring CMake..."
-	cmake -B $(BUILD_DIR) -S . -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+	cmake --preset=default
 
 # Build the project (configures if needed)
 build: | $(BUILD_DIR)/Makefile

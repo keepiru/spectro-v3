@@ -14,12 +14,21 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - Emits `samplesAdded(count)` signal when new audio arrives
   - Source of truth for all audio data
 
+- **`Settings`**: Application configuration (QObject)
+  - Single source of truth for all settings
+  - FFT settings: transform size, window type, window stride
+  - Display settings: aperture (floor/ceiling dB), colormap
+  - Emits signals when settings change
+  - Validates settings in setters (e.g., stride > 0)
+  - Prevents redundant updates (only emit if value changed)
+  - Future: Serialization for save/load configuration
+
 ### Controllers (Coordination & Logic)
 
 - **`SpectrogramController`**: Coordinates data flow and view state
   - Owns `STFTProcessor`, `FFTProcessor`, `FFTWindow` per channel; recreates on settings change
   - Observes `AudioBuffer.samplesAdded()` → triggers view update for new rows
-  - Owns `window_stride` setting
+  - Observes `Settings` signals → recreates DSP objects or updates internal state
   - Tracks (in sample positions):
     - `live_mode`: whether view follows live edge
     - `live_edge_sample`: latest computed sample position
@@ -44,28 +53,27 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - `SetBottomSample(sample_position)` → stores position, triggers repaint
   - On paint:
     - Derives row count from widget height
+    - Queries `Settings` for aperture and colormap
     - Calls `SpectrogramController.GetRows(channel, bottom_sample, stride, row_count)`
     - Renders spectrogram
   - Forwards scroll events (as sample delta) to controller
-  - Owns display settings: colormap, aperture (floor/ceiling dB)
-  - `SetColormap()`, `SetAperture()` → triggers repaint
+  - Listens to `Settings.apertureChanged()`, `Settings.colormapChanged()` → triggers repaint
 
 - **`SpectrumPlot`**: Real-time frequency spectrum line plot
   - Displays most recent (or selected) frequency slice
   - Y-axis: amplitude in dB (configurable range)
   - X-axis: frequency (Hz)
-  - Owns display settings: aperture (floor/ceiling dB)
-  - `SetAperture()` → triggers repaint
+  - Queries `Settings` for aperture
+  - Listens to `Settings.apertureChanged()` → triggers repaint
 
-- **`ConfigPanel`**: Settings controls
+- **`ConfigPanel`**: Settings controls (UI for Settings model)
   - FFT settings: transform size, window stride, window function
   - Display settings: colormap, aperture (floor/ceiling dB)
   - Audio settings: input device selection
-  - Routes settings to appropriate owners:
-    - `SpectrogramController.SetFFTSettings()` for FFT parameters
-    - `SpectrogramView.SetColormap()`, `SetAperture()` for display
-    - `SpectrumPlot.SetAperture()` for spectrum display
-    - `AudioRecorder.SetDevice()` for audio input
+  - Initializes UI controls from `Settings` at construction
+  - UI changes → calls `Settings` setters (e.g., `Settings.setWindowStride()`)
+  - Listens to `Settings` signals → updates UI (bidirectional sync)
+  - Settings propagate automatically via `Settings` signals to all listeners
 
 - **`MainWindow`**: Top-level application window
   - QSplitter layout: left (views), right (config panel)
@@ -108,14 +116,18 @@ SpectrogramView.paint()
 
 ### Settings Change
 ```
-ConfigPanel → SpectrogramController.SetFFTSettings(new_settings)
+ConfigPanel UI change → Settings.setFFTSize(new_size)
     ↓
-Controller: recreates FFTProcessor, FFTWindow, STFTProcessor
+Settings emits fftSettingsChanged(size, type)
+    ↓
+SpectrogramController receives signal
+    → recreates FFTProcessor, FFTWindow, STFTProcessor
     → resets live_edge_sample tracking
     → snaps view_bottom_sample to new stride alignment
     → SpectrogramView.SetBottomSample(view_bottom_sample)
     ↓
 SpectrogramView.paint()
+    → queries Settings.aperture(), Settings.colormap()
     → Controller.GetRows()  // calls STFTProcessor.ComputeSpectrogram()
     → render spectrogram
 ```
@@ -146,33 +158,43 @@ SpectrogramView.paint()
 | Component                  | Responsibilities                                                             |
 |----------------------------|------------------------------------------------------------------------------|
 | **AudioBuffer**            | Store multi-channel samples (append-only), emit `samplesAdded()` signal      |
-| **SpectrogramController**  | Own DSP objects, mediate data access, coordinate modes, own stride           |
-| **SpectrogramView**        | Paint rows at given position, own display settings (colormap, aperture)      |
-| **SpectrumPlot**           | Paint frequency spectrum, own display settings (aperture)                    |
-| **ConfigPanel**            | UI for all settings, route to appropriate owners                             |
+| **Settings**               | Own all settings, validate and emit change signals, single source of truth   |
+| **SpectrogramController**  | Own DSP objects, mediate data access, coordinate modes                       |
+| **SpectrogramView**        | Paint rows at given position                                                 |
+| **SpectrumPlot**           | Paint frequency spectrum,                                                    |
+| **ConfigPanel**            | UI for Settings model, bidirectional sync                                    |
 | **AudioRecorder**          | Capture audio → `AudioBuffer`, own audio settings (device)                   |
 
-## Settings Distribution
+## Settings Management
 
-Settings live where they're consumed. `ConfigPanel` routes user input to appropriate owners.
+**Settings class is the single source of truth.** All components query Settings and listen to its signals.
 
-| Setting                    | Owner                             | Recreates DSP? |
-|----------------------------|-----------------------------------|----------------|
-| Transform size             | SpectrogramController             | Yes            |
-| Window function            | SpectrogramController             | Yes            |
-| Window stride              | SpectrogramController             | No             |
-| Colormap                   | SpectrogramView                   | No             |
-| Aperture (floor/ceiling dB)| SpectrogramView, SpectrumPlot     | No             |
-| Audio input device         | AudioRecorder                     | No             |
+| Setting                    | Stored In | Consumed By                       | Recreates DSP? |
+|----------------------------|-----------|-----------------------------------|----------------|
+| Transform size             | Settings  | SpectrogramController             | Yes            |
+| Window function            | Settings  | SpectrogramController             | Yes            |
+| Window stride              | Settings  | SpectrogramController             | No             |
+| Colormap                   | Settings  | SpectrogramView                   | No             |
+| Aperture (floor/ceiling dB)| Settings  | SpectrogramView, SpectrumPlot     | No             |
+| Audio input device         | AudioRecorder | AudioRecorder (not in Settings) | No             |
 
+**Settings Signal Flow:**
 ```
-ConfigPanel
-    ├→ SpectrogramController.SetFFTSettings(transform_size, window_function)  // Recreates DSP objects
-    ├→ SpectrogramController.SetStride(stride)
-    ├→ SpectrogramView.SetColormap(colormap)
-    ├→ SpectrogramView.SetAperture(floor, ceiling)
-    ├→ SpectrumPlot.SetAperture(floor, ceiling)
-    └→ AudioRecorder.SetDevice(device)
+ConfigPanel (UI)
+    ├→ Settings.setFFTSize(size)
+    ├→ Settings.setWindowType(type)
+    ├→ Settings.setWindowStride(stride)
+    ├→ Settings.setAperture(min, max)
+    └→ Settings.setColormap(type)
+        ↓ (Settings emits signals)
+    Settings.fftSettingsChanged(size, type)
+        → SpectrogramController (recreates DSP objects)
+    Settings.windowStrideChanged(stride)
+        → SpectrogramController (updates stride, snaps view)
+    Settings.apertureChanged(min, max)
+        → SpectrogramView, SpectrumPlot (triggers repaint)
+    Settings.colormapChanged(type)
+        → SpectrogramView (rebuilds LUT, triggers repaint)
 ```
 
 ## Key Design Decisions
@@ -181,6 +203,13 @@ ConfigPanel
 - **Separation of concerns**: Business logic (models) separate from UI (views)
 - **Testability**: Models and controllers can be unit tested without UI
 - **Flexibility**: Multiple views can share same data (e.g., Spectrogram and Spectrum use same FFT results)
+
+### Why Settings class as single source of truth?
+- **Centralized defaults**: All default values in one place, no scattered constants
+- **Automatic propagation**: Change Settings → all listeners notified automatically via signals
+- **Trivial testing**: Pass `new Settings()` to components, no mocking required
+- **Validation**: Settings setters validate inputs (stride > 0, etc.)
+- **Prevents redundant updates**: Setters check if value changed before emitting
 
 ### Why on-demand FFT computation (not pre-computed)?
 - **Unlimited scrollback**: Audio buffer grows indefinitely; can't pre-compute everything

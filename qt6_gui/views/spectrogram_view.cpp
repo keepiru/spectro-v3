@@ -50,10 +50,16 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
     const size_t kAvailableSampleCount = mController->GetAvailableSampleCount();
     const size_t kHeight = height();
     const size_t kWidth = width();
-    const float kMinDecibels = mController->GetApertureMinDecibels();
-    const float kMaxDecibels = mController->GetApertureMaxDecibels();
+    const float kMinDecibels = mController->GetSettings().GetApertureMinDecibels();
+    const float kMaxDecibels = mController->GetSettings().GetApertureMaxDecibels();
+    const float kDecibelRange = kMaxDecibels - kMinDecibels;
+    const float kImplausiblySmallDecibelRange = 1e-6f;
+    if (std::abs(kDecibelRange) < kImplausiblySmallDecibelRange) {
+        // Avoid division by zero.  We can't draw anything if the range is zero.
+        return;
+    }
     constexpr auto kColorMapMaxIndex = static_cast<float>(SpectrogramView::kColorMapLUTSize - 1);
-    const float kInverseDecibelRange = kColorMapMaxIndex / (kMaxDecibels - kMinDecibels);
+    const float kInverseDecibelRange = kColorMapMaxIndex / kDecibelRange;
 
     // Determine the top sample to start rendering from.
     // Go back kStride strides, then round down to nearest stride.

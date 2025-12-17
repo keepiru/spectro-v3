@@ -7,6 +7,7 @@
 #include <Qt>
 #include <QtTypes>
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <dsp_utils.h>
@@ -35,6 +36,15 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     // Round down to nearest stride
     const auto kTopSample = (((kAvailableSampleCount) / kStride) - 1) * kStride;
     const auto kChannels = mController->GetChannelCount();
+    const auto kApertureMinDecibels = mController->GetSettings().GetApertureMinDecibels();
+    const auto kApertureMaxDecibels = mController->GetSettings().GetApertureMaxDecibels();
+    const auto kDecibelRange = kApertureMaxDecibels - kApertureMinDecibels;
+    const auto kImplausiblySmallDecibelRange = 1e-6f;
+    if (std::abs(kDecibelRange) < kImplausiblySmallDecibelRange) {
+        // Avoid division by zero.  We can't draw anything if the range is zero.
+        return;
+    }
+    const auto kInverseDecibelRange = 1.0f / kDecibelRange;
 
     for (size_t ch = 0; ch < kChannels; ch++) {
         const auto kRows = mController->GetRows(ch, static_cast<int64_t>(kTopSample), 1);
@@ -65,8 +75,7 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
         for (size_t x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
             const float kDecibels = DSPUtils::MagnitudeToDecibels(kMagnitudes[x]);
             const float kNormalizedMagnitude =
-              (kDecibels - mController->GetApertureMinDecibels()) /
-              (mController->GetApertureMaxDecibels() - mController->GetApertureMinDecibels());
+              (kDecibels - kApertureMinDecibels) * kInverseDecibelRange;
             const float kYCoordinate =
               static_cast<float>(kHeight) - (kNormalizedMagnitude * static_cast<float>(kHeight));
             points.emplace_back(static_cast<float>(x), kYCoordinate);

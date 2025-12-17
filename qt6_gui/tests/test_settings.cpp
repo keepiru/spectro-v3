@@ -41,6 +41,13 @@ class TestSettings : public QObject
                                  settings.SetFFTSettings(0, settings.GetWindowType()));
     }
 
+    static void TestSetFFTSettingsThrowsOnNonPowerOfTwoSize()
+    {
+        Settings settings;
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
+                                 settings.SetFFTSettings(255, settings.GetWindowType()));
+    }
+
     static void TestSetWindowStrideEmitsSignal()
     {
         Settings settings;

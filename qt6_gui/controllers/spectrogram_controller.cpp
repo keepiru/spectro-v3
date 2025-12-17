@@ -35,13 +35,18 @@ SpectrogramController::SpectrogramController(const Settings& aSettings,
         };
     }
 
+    // Connect to settings change signals
+    connect(&mSettings,
+            &Settings::FFTSettingsChanged,
+            this,
+            &SpectrogramController::OnFFTSettingsChanged);
+
     // Initialize with default FFT settings
-    SetFFTSettings(kDefaultFFTSize, kDefaultWindowType);
+    OnFFTSettingsChanged();
 }
 
 void
-SpectrogramController::SetFFTSettings(const size_t aTransformSize,
-                                      const FFTWindow::Type aWindowType)
+SpectrogramController::OnFFTSettingsChanged()
 {
     // Clear out the old DSP objects
     mFFTProcessors.clear();
@@ -50,8 +55,8 @@ SpectrogramController::SetFFTSettings(const size_t aTransformSize,
 
     // Create FFT and window instances for each channel
     for (size_t i = 0; i < mAudioBuffer.GetChannelCount(); i++) {
-        auto fftProcessor = mFFTProcessorFactory(aTransformSize);
-        auto fftWindow = mFFTWindowFactory(aTransformSize, aWindowType);
+        auto fftProcessor = mFFTProcessorFactory(mSettings.GetFFTSize());
+        auto fftWindow = mFFTWindowFactory(mSettings.GetFFTSize(), mSettings.GetWindowType());
         const auto& sampleBuffer = mAudioBuffer.GetChannelBuffer(i);
 
         mFFTProcessors.emplace_back(std::move(fftProcessor));

@@ -39,9 +39,9 @@ class TestSpectrogramController : public QObject
               return std::make_unique<FFTWindow>(size, type);
           };
 
-        const Settings settings;
+        Settings settings;
         const AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(settings, audioBuffer, procSpy, windowSpy);
+        const SpectrogramController controller(settings, audioBuffer, procSpy, windowSpy);
 
         // Constructor calls with defaults
         QCOMPARE(procCalls,
@@ -55,7 +55,7 @@ class TestSpectrogramController : public QObject
                                   SpectrogramController::kDefaultWindowType),
                  }));
 
-        controller.SetFFTSettings(1024, FFTWindow::Type::kRectangular);
+        settings.SetFFTSettings(1024, FFTWindow::Type::kRectangular);
 
         // SetFFTSettings calls again with new settings
         QCOMPARE(procCalls,
@@ -73,17 +73,6 @@ class TestSpectrogramController : public QObject
                    std::make_pair(1024, FFTWindow::Type::kRectangular) }));
     }
 
-    static void TestSetFFTSettingsThrowsOnInvalidWindow()
-    {
-        const Settings settings;
-        AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(settings, audioBuffer);
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
-                                 controller.SetFFTSettings(0, FFTWindow::Type::kHann));
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
-                                 controller.SetFFTSettings(255, FFTWindow::Type::kHann));
-    }
-
     static std::unique_ptr<SpectrogramController> CreateControllerWithMockFFT(Settings& aSettings,
                                                                               AudioBuffer& aBuffer)
     {
@@ -92,9 +81,9 @@ class TestSpectrogramController : public QObject
             return std::make_unique<MockFFTProcessor>(size);
         };
 
+        aSettings.SetFFTSettings(8, FFTWindow::Type::kRectangular);
         auto controller = std::make_unique<SpectrogramController>(
           aSettings, aBuffer, mockFFTProcessorFactory, nullptr);
-        controller->SetFFTSettings(8, FFTWindow::Type::kRectangular);
         aSettings.SetWindowStride(8);
 
         return controller;
@@ -217,7 +206,7 @@ class TestSpectrogramController : public QObject
         AudioBuffer buffer(1, 44100);
         buffer.AddSamples({ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
         auto controller = CreateControllerWithMockFFT(settings, buffer);
-        controller->SetFFTSettings(8, FFTWindow::Type::kHann);
+        settings.SetFFTSettings(8, FFTWindow::Type::kHann);
 
         // Hann window attenuates edges, so we'll see lower magnitudes at the
         // edges.  Keep in mind our MockFFTProcessor just returns the input

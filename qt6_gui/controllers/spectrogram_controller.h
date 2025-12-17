@@ -41,7 +41,7 @@ class SpectrogramController : public QObject
      * for production use.
      *
      */
-    SpectrogramController(Settings& aSettings,
+    SpectrogramController(const Settings& aSettings,
                           AudioBuffer& aAudioBuffer,
                           FFTProcessorFactory aFFTProcessorFactory = nullptr,
                           FFTWindowFactory aFFTWindowFactory = nullptr,
@@ -107,28 +107,18 @@ class SpectrogramController : public QObject
     void SetFFTSettings(const size_t aTransformSize, const FFTWindow::Type aWindowType);
 
     /**
-     * @brief Set window stride
-     * @param aStride New window stride in samples (must be > 0)
-     * @throws std::invalid_argument if aStride is zero
+     * @brief Get reference to application settings
+     * @return Reference to Settings instance
      */
-    void SetWindowStride(const size_t aStride);
-
-    /**
-     * @brief Get current window stride
-     * @return Current window stride in samples
-     */
-    [[nodiscard]] size_t GetWindowStride() const { return mWindowStride; }
+    [[nodiscard]] const Settings& GetSettings() const { return mSettings; }
 
   private:
-    Settings& mSettings;       // Reference to application settings model
+    const Settings& mSettings; // Reference to application settings model
     AudioBuffer& mAudioBuffer; // Reference to audio buffer model
 
     // FFT processing components (per channel)
     std::vector<std::unique_ptr<IFFTProcessor>> mFFTProcessors;
     std::vector<std::unique_ptr<FFTWindow>> mFFTWindows;
-
-    // FFT settings
-    size_t mWindowStride;
 
     FFTProcessorFactory mFFTProcessorFactory;
     FFTWindowFactory mFFTWindowFactory;

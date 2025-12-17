@@ -42,7 +42,7 @@ class SpectrogramController : public QObject
      *
      */
     SpectrogramController(const Settings& aSettings,
-                          AudioBuffer& aAudioBuffer,
+                          const AudioBuffer& aAudioBuffer,
                           FFTProcessorFactory aFFTProcessorFactory = nullptr,
                           FFTWindowFactory aFFTWindowFactory = nullptr,
                           QObject* aParent = nullptr);
@@ -113,8 +113,8 @@ class SpectrogramController : public QObject
     [[nodiscard]] const Settings& GetSettings() const { return mSettings; }
 
   private:
-    const Settings& mSettings; // Reference to application settings model
-    AudioBuffer& mAudioBuffer; // Reference to audio buffer model
+    const Settings& mSettings;       // Reference to application settings model
+    const AudioBuffer& mAudioBuffer; // Reference to audio buffer model
 
     // FFT processing components (per channel)
     std::vector<std::unique_ptr<IFFTProcessor>> mFFTProcessors;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "include/global_constants.h"
 #include <QObject>
 #include <cstddef>
 #include <fft_window.h>
@@ -18,10 +19,38 @@ class Settings : public QObject
     Q_OBJECT
 
   public:
-    explicit Settings(QObject* aParent = nullptr)
-      : QObject(aParent)
+    static inline constexpr size_t kColorMapLUTSize = 256;
+
+    enum class ColorMapType
     {
-    }
+        kWhite,
+        kRed,
+        kGreen,
+        kBlue,
+        kCyan,
+        kMagenta,
+        kYellow,
+        kViridis,
+        kPlasma,
+        kInferno,
+        kMagma,
+    };
+
+    /**
+     * @brief Lightweight RGB color representation for LUT
+     *
+     * Used in the color map lookup table (LUT) to represent colors as raw 8-bit
+     * RGB values. This avoids repeated qRgb() calls in the hot path when
+     * rendering the spectrogram.
+     */
+    struct ColorMapEntry
+    {
+        uint8_t r;
+        uint8_t g;
+        uint8_t b;
+    };
+
+    explicit Settings(QObject* aParent = nullptr);
 
     // FFT Settings
     [[nodiscard]] size_t GetFFTSize() const { return mFFTSize; }
@@ -41,6 +70,33 @@ class Settings : public QObject
      */
     void SetFFTSettings(const size_t aTransformSize, const FFTWindow::Type aWindowType);
     void SetWindowStride(size_t aStride);
+
+    [[nodiscard]] const std::array<std::array<ColorMapEntry, kColorMapLUTSize>, gkMaxChannels>&
+    GetColorMapLUTs() const
+    {
+        return mColorMapLUTs;
+    }
+
+    /**
+     * @brief Get the color map LUT value at a specific index
+     * @param aChannel Channel index (0-based)
+     * @param aIndex Index into the LUT (0-255)
+     * @return RGB color value
+     *
+     * This is used to test LUT generation.  Prod code accesses the array
+     * directly for performance.
+     */
+    [[nodiscard]] ColorMapEntry GetColorMapValue(size_t aChannel, uint8_t aIndex) const
+    {
+        return mColorMapLUTs.at(aChannel).at(aIndex);
+    }
+
+    /**
+     * @brief Set the color map type
+     * @param aChannel Channel index (0-based)
+     * @param aType Color map type
+     */
+    void SetColorMap(size_t aChannel, ColorMapType aType);
 
   signals:
     /**
@@ -66,4 +122,14 @@ class Settings : public QObject
     // plot.
     float mApertureMinDecibels = -30.0f;
     float mApertureMaxDecibels = 30.0f;
+
+    // Default color maps for each channel.
+    static constexpr std::array<ColorMapType, gkMaxChannels> kDefaultColorMaps = {
+        ColorMapType::kCyan,  ColorMapType::kRed,   ColorMapType::kWhite,
+        ColorMapType::kWhite, ColorMapType::kWhite, ColorMapType::kWhite,
+    };
+
+    // Color map lookup tables (LUTs) for each channel.  The simple nested array
+    // structure provides fast access in the hot path.
+    std::array<std::array<ColorMapEntry, kColorMapLUTSize>, gkMaxChannels> mColorMapLUTs;
 };

@@ -19,7 +19,6 @@
 SpectrogramView::SpectrogramView(SpectrogramController* aController, QWidget* parent)
   : QWidget(parent)
   , mController(aController)
-  , mColorMapLUT()
 {
     if (!aController) {
         throw std::invalid_argument("SpectrogramView: aController must not be null");
@@ -27,10 +26,6 @@ SpectrogramView::SpectrogramView(SpectrogramController* aController, QWidget* pa
     constexpr int kMinWidth = 400;
     constexpr int kMinHeight = 300;
     setMinimumSize(kMinWidth, kMinHeight);
-
-    for (size_t ch = 0; ch < gkMaxChannels; ch++) {
-        SetColorMap(ch, kDefaultColorMaps.at(ch));
-    }
 }
 
 void
@@ -58,8 +53,9 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
         // Avoid division by zero.  We can't draw anything if the range is zero.
         return;
     }
-    constexpr auto kColorMapMaxIndex = static_cast<float>(SpectrogramView::kColorMapLUTSize - 1);
+    constexpr auto kColorMapMaxIndex = static_cast<float>(Settings::kColorMapLUTSize - 1);
     const float kInverseDecibelRange = kColorMapMaxIndex / kDecibelRange;
+    const auto& kColorMapLUT = mController->GetSettings().GetColorMapLUTs();
 
     // Determine the top sample to start rendering from.
     // Go back kStride strides, then round down to nearest stride.
@@ -114,7 +110,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
                 // colorMapIndex is clamped to 0-255 above, and the static_cast
                 // to uint8_t guarantees that as well.
                 // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-                const auto kColor = mColorMapLUT[ch][static_cast<uint8_t>(colorMapIndex)];
+                const auto kColor = kColorMapLUT[ch][static_cast<uint8_t>(colorMapIndex)];
                 r += kColor.r;
                 g += kColor.g;
                 b += kColor.b;
@@ -138,45 +134,4 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
 
     // blit the result
     painter.drawImage(0, 0, image);
-}
-
-void
-SpectrogramView::SetColorMap(size_t aChannel, ColorMapType aType)
-{
-    // Helper to set a gradient color map
-    auto setGradientColorMap = [this, aChannel](bool enableRed, bool enableGreen, bool enableBlue) {
-        for (size_t i = 0; i < kColorMapLUTSize; i++) {
-            const auto intensity = static_cast<uint8_t>(i);
-            mColorMapLUT.at(aChannel).at(i) =
-              ColorMapEntry{ .r = enableRed ? intensity : uint8_t{ 0 },
-                             .g = enableGreen ? intensity : uint8_t{ 0 },
-                             .b = enableBlue ? intensity : uint8_t{ 0 } };
-        }
-    };
-
-    switch (aType) {
-        case ColorMapType::kWhite:
-            setGradientColorMap(true, true, true);
-            break;
-        case ColorMapType::kRed:
-            setGradientColorMap(true, false, false);
-            break;
-        case ColorMapType::kGreen:
-            setGradientColorMap(false, true, false);
-            break;
-        case ColorMapType::kBlue:
-            setGradientColorMap(false, false, true);
-            break;
-        case ColorMapType::kCyan:
-            setGradientColorMap(false, true, true);
-            break;
-        case ColorMapType::kMagenta:
-            setGradientColorMap(true, false, true);
-            break;
-        case ColorMapType::kYellow:
-            setGradientColorMap(true, true, false);
-            break;
-        default:
-            throw std::invalid_argument("SpectrogramView::SetColorMap: Unsupported color map type");
-    }
 }

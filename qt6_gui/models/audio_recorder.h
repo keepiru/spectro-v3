@@ -23,8 +23,8 @@ class AudioRecorder : public QObject
   public:
     struct AudioSourceFactoryResult
     {
-        std::unique_ptr<QAudioSource> audioSource;
-        QIODevice* ioDevice = nullptr;
+        std::unique_ptr<QAudioSource> audio_source;
+        QIODevice* io_device = nullptr;
     };
 
     /// Factory function type for creating QAudioSource instances (for testing).
@@ -56,11 +56,11 @@ class AudioRecorder : public QObject
   signals:
     /// @brief Emitted when recording state changes.
     /// @param aIsRecording true if now recording, false if stopped.
-    void recordingStateChanged(bool aIsRecording);
+    void RecordingStateChanged(bool aIsRecording);
 
     /// @brief Emitted when an error occurs during capture.
     /// @param aErrorMessage Description of the error.
-    void errorOccurred(const QString& aErrorMessage);
+    void ErrorOccurred(const QString& aErrorMessage);
 
   private:
     std::unique_ptr<QAudioSource> mAudioSource;

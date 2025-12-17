@@ -97,14 +97,11 @@ class SpectrogramController : public QObject
     [[nodiscard]] float GetApertureMaxDecibels() const { return mApertureMaxDecibels; }
 
     /**
-     * @brief Set FFT settings (transform size, window function)
-     * @param aTransformSize New FFT transform size (must be power of 2)
-     * @param aWindowType New window function type
-     * @throws std::invalid_argument if aTransformSize is zero
+     * @brief Notify controller that FFT settings have changed
      *
      * Recreates FFTProcessor and FFTWindow for each channel.
      */
-    void SetFFTSettings(const size_t aTransformSize, const FFTWindow::Type aWindowType);
+    void OnFFTSettingsChanged();
 
     /**
      * @brief Get reference to application settings

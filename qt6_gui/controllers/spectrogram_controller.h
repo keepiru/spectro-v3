@@ -85,18 +85,6 @@ class SpectrogramController : public QObject
     [[nodiscard]] size_t GetChannelCount() const;
 
     /**
-     * @brief Get aperture minimum decibel setting
-     * @return Minimum decibel value for aperture mapping
-     */
-    [[nodiscard]] float GetApertureMinDecibels() const { return mApertureMinDecibels; }
-
-    /**
-     * @brief Get aperture maximum decibel setting
-     * @return Maximum decibel value for aperture mapping
-     */
-    [[nodiscard]] float GetApertureMaxDecibels() const { return mApertureMaxDecibels; }
-
-    /**
      * @brief Notify controller that FFT settings have changed
      *
      * Recreates FFTProcessor and FFTWindow for each channel.
@@ -119,11 +107,6 @@ class SpectrogramController : public QObject
 
     FFTProcessorFactory mFFTProcessorFactory;
     FFTWindowFactory mFFTWindowFactory;
-
-    // The aperture is the visible decibel range in the spectrogram and spectrum
-    // plot.
-    float mApertureMinDecibels = -30.0f;
-    float mApertureMaxDecibels = 30.0f;
 
     // Spectrogram row cache.  Key: (channel, first sample).  Stores a single row
     // of spectrogram data for reuse.

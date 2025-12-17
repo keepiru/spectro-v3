@@ -74,6 +74,18 @@ class TestSettings : public QObject
         Settings settings;
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, settings.SetWindowStride(0));
     }
+
+    static void GetApertureMinDecibels()
+    {
+        const Settings settings;
+        QCOMPARE(settings.GetApertureMinDecibels(), -30.0f);
+    }
+
+    static void GetApertureMaxDecibels()
+    {
+        const Settings settings;
+        QCOMPARE(settings.GetApertureMaxDecibels(), 30.0f);
+    }
 };
 
 QTEST_MAIN(TestSettings)

@@ -27,6 +27,8 @@ class Settings : public QObject
     [[nodiscard]] size_t GetFFTSize() const { return mFFTSize; }
     [[nodiscard]] FFTWindow::Type GetWindowType() const { return mWindowType; }
     [[nodiscard]] size_t GetWindowStride() const { return mWindowStride; }
+    [[nodiscard]] float GetApertureMinDecibels() const { return mApertureMinDecibels; }
+    [[nodiscard]] float GetApertureMaxDecibels() const { return mApertureMaxDecibels; }
 
     /**
      * @brief Set FFT settings
@@ -59,4 +61,9 @@ class Settings : public QObject
     size_t mFFTSize = 2048;
     FFTWindow::Type mWindowType = FFTWindow::Type::kHann;
     size_t mWindowStride = 1024;
+
+    // The aperture is the visible decibel range in the spectrogram and spectrum
+    // plot.
+    float mApertureMinDecibels = -30.0f;
+    float mApertureMaxDecibels = 30.0f;
 };

@@ -2,6 +2,7 @@
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
 #include "models/audio_recorder.h"
+#include "models/settings.h"
 #include "views/config_panel.h"
 #include "views/spectrogram_view.h"
 #include "views/spectrum_plot.h"
@@ -33,7 +34,9 @@ MainWindow::MainWindow(QWidget* parent)
     // For now we don't have a config UI, so just start recording with defaults
     mAudioRecorder->Start(mAudioBuffer, QMediaDevices::defaultAudioInput());
 
-    mSpectrogramController = new SpectrogramController(*mAudioBuffer, nullptr, nullptr, this);
+    mSettings = new Settings(this);
+    mSpectrogramController =
+      new SpectrogramController(*mSettings, *mAudioBuffer, nullptr, nullptr, this);
 
     // Set initial stride
     mSpectrogramController->SetWindowStride(kDefaultStride);

@@ -1,5 +1,6 @@
 #pragma once
 #include "models/audio_buffer.h"
+#include "models/settings.h"
 #include <QObject>
 #include <cstddef>
 #include <cstdint>
@@ -29,6 +30,7 @@ class SpectrogramController : public QObject
 
     /**
      * @brief Constructor
+     * @param aSettings Reference to application settings model
      * @param aAudioBuffer Reference to the audio buffer model
      * @param aFFTProcessorFactory Factory function to create FFTProcessor instances (optional)
      * @param aFFTWindowFactory Factory function to create FFTWindow instances (optional)
@@ -39,7 +41,8 @@ class SpectrogramController : public QObject
      * for production use.
      *
      */
-    SpectrogramController(AudioBuffer& aAudioBuffer,
+    SpectrogramController(Settings& aSettings,
+                          AudioBuffer& aAudioBuffer,
                           FFTProcessorFactory aFFTProcessorFactory = nullptr,
                           FFTWindowFactory aFFTWindowFactory = nullptr,
                           QObject* aParent = nullptr);
@@ -117,6 +120,7 @@ class SpectrogramController : public QObject
     [[nodiscard]] size_t GetWindowStride() const { return mWindowStride; }
 
   private:
+    Settings& mSettings;       // Reference to application settings model
     AudioBuffer& mAudioBuffer; // Reference to audio buffer model
 
     // FFT processing components (per channel)

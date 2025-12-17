@@ -1,5 +1,6 @@
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
+#include "models/settings.h"
 #include <QObject>
 #include <cstddef>
 #include <cstdint>
@@ -12,11 +13,13 @@
 #include <utility>
 #include <vector>
 
-SpectrogramController::SpectrogramController(AudioBuffer& aAudioBuffer,
+SpectrogramController::SpectrogramController(Settings& aSettings,
+                                             AudioBuffer& aAudioBuffer,
                                              FFTProcessorFactory aFFTProcessorFactory,
                                              FFTWindowFactory aFFTWindowFactory,
                                              QObject* aParent)
   : QObject(aParent)
+  , mSettings(aSettings)
   , mAudioBuffer(aAudioBuffer)
   , mFFTProcessorFactory(std::move(aFFTProcessorFactory))
   , mFFTWindowFactory(std::move(aFFTWindowFactory))

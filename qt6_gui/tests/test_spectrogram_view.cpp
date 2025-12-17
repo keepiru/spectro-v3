@@ -18,8 +18,9 @@ class TestSpectrogramView : public QObject
     static void TestConstructor()
     {
 
+        Settings settings;
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer);
+        SpectrogramController controller(settings, audioBuffer);
         const SpectrogramView view(&controller);
 
         QVERIFY(view.minimumWidth() > 0);
@@ -28,16 +29,18 @@ class TestSpectrogramView : public QObject
 
     static void TestIsWidget()
     {
+        Settings settings;
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer);
+        SpectrogramController controller(settings, audioBuffer);
         SpectrogramView view(&controller);
         QVERIFY(qobject_cast<QWidget*>(&view) != nullptr);
     }
 
     static void TestSetColorMapInvalid()
     {
+        Settings settings;
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer);
+        SpectrogramController controller(settings, audioBuffer);
         SpectrogramView view(&controller);
 
         // Invalid enum value (not in defined range)
@@ -51,8 +54,9 @@ class TestSpectrogramView : public QObject
     // NOLINTNEXTLINE(readability-function-cognitive-complexity)
     static void TestDefaultColorMaps()
     {
+        Settings settings;
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer);
+        SpectrogramController controller(settings, audioBuffer);
         const SpectrogramView view(&controller);
 
         for (size_t i = 0; i < 256; i++) {
@@ -76,8 +80,9 @@ class TestSpectrogramView : public QObject
 
     static void TestGetColorMapValueOutOfRange()
     {
+        Settings settings;
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer);
+        SpectrogramController controller(settings, audioBuffer);
         const SpectrogramView view(&controller);
 
         // Index out of range should throw

@@ -1,5 +1,6 @@
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
+#include "models/settings.h"
 #include <QObject>
 #include <QTest>
 #include <cstddef>
@@ -18,14 +19,16 @@ class TestSpectrogramController : public QObject
   private slots:
     static void TestConstructor()
     {
+        Settings settings;
         AudioBuffer audioBuffer(2, 44100);
-        const SpectrogramController controller(audioBuffer);
+        const SpectrogramController controller(settings, audioBuffer);
     }
 
     static void TestSetWindowStride()
     {
+        Settings settings;
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer);
+        SpectrogramController controller(settings, audioBuffer);
 
         QCOMPARE(controller.GetWindowStride(), 0);
 
@@ -35,8 +38,9 @@ class TestSpectrogramController : public QObject
 
     static void TestSetWindowStrideThorwsOnZeroStride()
     {
+        Settings settings;
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer);
+        SpectrogramController controller(settings, audioBuffer);
 
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, controller.SetWindowStride(0));
     }
@@ -56,8 +60,9 @@ class TestSpectrogramController : public QObject
               return std::make_unique<FFTWindow>(size, type);
           };
 
+        Settings settings;
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer, procSpy, windowSpy);
+        SpectrogramController controller(settings, audioBuffer, procSpy, windowSpy);
 
         // Constructor calls with defaults
         QCOMPARE(procCalls,
@@ -91,8 +96,9 @@ class TestSpectrogramController : public QObject
 
     static void TestSetFFTSettingsThrowsOnInvalidWindow()
     {
+        Settings settings;
         AudioBuffer audioBuffer(2, 44100);
-        SpectrogramController controller(audioBuffer);
+        SpectrogramController controller(settings, audioBuffer);
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
                                  controller.SetFFTSettings(0, FFTWindow::Type::kHann));
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
@@ -106,8 +112,9 @@ class TestSpectrogramController : public QObject
             return std::make_unique<MockFFTProcessor>(size);
         };
 
-        auto controller =
-          std::make_unique<SpectrogramController>(buffer, mockFFTProcessorFactory, nullptr);
+        Settings settings;
+        auto controller = std::make_unique<SpectrogramController>(
+          settings, buffer, mockFFTProcessorFactory, nullptr);
         controller->SetFFTSettings(8, FFTWindow::Type::kRectangular);
         controller->SetWindowStride(8);
 
@@ -242,26 +249,29 @@ class TestSpectrogramController : public QObject
 
     static void TestGetRowsThrowsOnInvalidChannel()
     {
+        Settings settings;
         AudioBuffer buffer(1, 44100);
-        const SpectrogramController controller(buffer);
+        const SpectrogramController controller(settings, buffer);
 
         QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.GetRows(1, 0, 1));
     }
 
     static void TestGetAvailableSampleCount()
     {
+        Settings settings;
         AudioBuffer buffer(2, 44100);
-        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+        const SpectrogramController controller(settings, buffer);
 
-        const SpectrogramController controller(buffer);
+        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
         const auto kExpectedSampleCount = 5; // 10 samples / 2 channels
         QCOMPARE(controller.GetAvailableSampleCount(), kExpectedSampleCount);
     }
 
     static void TestGetChannelCount()
     {
+        Settings settings;
         AudioBuffer buffer(3, 44100);
-        const SpectrogramController controller(buffer);
+        const SpectrogramController controller(settings, buffer);
         QCOMPARE(controller.GetChannelCount(), 3);
     }
 };

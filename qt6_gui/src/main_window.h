@@ -5,6 +5,7 @@
 class AudioBuffer;
 class AudioRecorder;
 class ConfigPanel;
+class Settings;
 class SpectrogramController;
 class SpectrogramView;
 class SpectrumPlot;
@@ -42,6 +43,7 @@ class MainWindow : public QMainWindow
     AudioBuffer* mAudioBuffer = nullptr;
     SpectrogramController* mSpectrogramController = nullptr;
     AudioRecorder* mAudioRecorder = nullptr;
+    Settings* mSettings = nullptr;
 
     // View widgets
     SpectrogramView* mSpectrogramView = nullptr;

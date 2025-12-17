@@ -14,7 +14,7 @@
 #include <vector>
 
 SpectrogramController::SpectrogramController(const Settings& aSettings,
-                                             AudioBuffer& aAudioBuffer,
+                                             const AudioBuffer& aAudioBuffer,
                                              FFTProcessorFactory aFFTProcessorFactory,
                                              FFTWindowFactory aFFTWindowFactory,
                                              QObject* aParent)

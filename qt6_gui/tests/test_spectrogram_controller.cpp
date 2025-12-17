@@ -20,7 +20,7 @@ class TestSpectrogramController : public QObject
     static void TestConstructor()
     {
         const Settings settings;
-        AudioBuffer audioBuffer(2, 44100);
+        const AudioBuffer audioBuffer(2, 44100);
         const SpectrogramController controller(settings, audioBuffer);
     }
 
@@ -40,7 +40,7 @@ class TestSpectrogramController : public QObject
           };
 
         const Settings settings;
-        AudioBuffer audioBuffer(2, 44100);
+        const AudioBuffer audioBuffer(2, 44100);
         SpectrogramController controller(settings, audioBuffer, procSpy, windowSpy);
 
         // Constructor calls with defaults
@@ -235,7 +235,7 @@ class TestSpectrogramController : public QObject
     static void TestGetRowsThrowsOnInvalidChannel()
     {
         const Settings settings;
-        AudioBuffer buffer(1, 44100);
+        const AudioBuffer buffer(1, 44100);
         const SpectrogramController controller(settings, buffer);
 
         QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.GetRows(1, 0, 1));
@@ -255,7 +255,7 @@ class TestSpectrogramController : public QObject
     static void TestGetChannelCount()
     {
         const Settings settings;
-        AudioBuffer buffer(3, 44100);
+        const AudioBuffer buffer(3, 44100);
         const SpectrogramController controller(settings, buffer);
         QCOMPARE(controller.GetChannelCount(), 3);
     }

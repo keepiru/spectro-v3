@@ -83,7 +83,7 @@ class TestAudioRecorder : public QObject
     static void TestStopWhenNotRecordingIsNoOp()
     {
         AudioRecorder recorder;
-        const QSignalSpy spy(&recorder, &AudioRecorder::recordingStateChanged);
+        const QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
         recorder.Stop();          // Should not crash
         QCOMPARE(spy.count(), 0); // No events should be emitted
     }
@@ -94,7 +94,7 @@ class TestAudioRecorder : public QObject
         AudioRecorder recorder;
         MockQIODevice ioDevice;
         recorder.Start(&buffer, QAudioDevice(), &ioDevice);
-        QSignalSpy spy(&recorder, &AudioRecorder::recordingStateChanged);
+        QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
 
         recorder.Stop(); // Should not crash
         QCOMPARE(spy.count(), 1);
@@ -110,7 +110,7 @@ class TestAudioRecorder : public QObject
         AudioBuffer buffer(1, 48000);
         MockQIODevice ioDevice;
         AudioRecorder recorder;
-        QSignalSpy spy(&recorder, &AudioRecorder::recordingStateChanged);
+        QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
 
         recorder.Start(&buffer, QAudioDevice(), &ioDevice);
 

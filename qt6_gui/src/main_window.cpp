@@ -18,6 +18,7 @@
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
   , mAudioRecorder(new AudioRecorder(this))
+  , mSettings(new Settings(this))
 {
     constexpr int kDefaultWindowWidth = 1400;
     constexpr int kDefaultWindowHeight = 800;
@@ -34,12 +35,8 @@ MainWindow::MainWindow(QWidget* parent)
     // For now we don't have a config UI, so just start recording with defaults
     mAudioRecorder->Start(mAudioBuffer, QMediaDevices::defaultAudioInput());
 
-    mSettings = new Settings(this);
     mSpectrogramController =
       new SpectrogramController(*mSettings, *mAudioBuffer, nullptr, nullptr, this);
-
-    // Set initial stride
-    mSpectrogramController->SetWindowStride(kDefaultStride);
 
     createLayout();
     setupConnections();

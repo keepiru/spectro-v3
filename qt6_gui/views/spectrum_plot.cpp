@@ -31,7 +31,7 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     painter.fillRect(event->rect(), Qt::black);
 
     const auto kAvailableSampleCount = mController->GetAvailableSampleCount();
-    const auto kStride = mController->GetWindowStride();
+    const auto kStride = mController->GetSettings().GetWindowStride();
     // Round down to nearest stride
     const auto kTopSample = (((kAvailableSampleCount) / kStride) - 1) * kStride;
     const auto kChannels = mController->GetChannelCount();

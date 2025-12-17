@@ -13,7 +13,7 @@
 #include <utility>
 #include <vector>
 
-SpectrogramController::SpectrogramController(Settings& aSettings,
+SpectrogramController::SpectrogramController(const Settings& aSettings,
                                              AudioBuffer& aAudioBuffer,
                                              FFTProcessorFactory aFFTProcessorFactory,
                                              FFTWindowFactory aFFTWindowFactory,
@@ -23,8 +23,6 @@ SpectrogramController::SpectrogramController(Settings& aSettings,
   , mAudioBuffer(aAudioBuffer)
   , mFFTProcessorFactory(std::move(aFFTProcessorFactory))
   , mFFTWindowFactory(std::move(aFFTWindowFactory))
-  , mWindowStride(0)
-
 {
     // Provide default factories if none supplied
     if (!mFFTProcessorFactory) {
@@ -39,15 +37,6 @@ SpectrogramController::SpectrogramController(Settings& aSettings,
 
     // Initialize with default FFT settings
     SetFFTSettings(kDefaultFFTSize, kDefaultWindowType);
-}
-
-void
-SpectrogramController::SetWindowStride(size_t aStride)
-{
-    if (aStride == 0) {
-        throw std::invalid_argument("Window stride must be greater than zero");
-    }
-    mWindowStride = aStride;
 }
 
 void
@@ -81,9 +70,10 @@ SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRo
     spectrogram.reserve(aRowCount);
 
     const auto kSampleCount = mFFTWindows[aChannel]->GetSize();
+    const auto kWindowStride = mSettings.GetWindowStride();
 
     for (size_t row = 0; row < aRowCount; row++) {
-        const int64_t kWindowFirstSample = aFirstSample + static_cast<int64_t>(row * mWindowStride);
+        const int64_t kWindowFirstSample = aFirstSample + static_cast<int64_t>(row * kWindowStride);
         const auto kAvailableSamples = GetAvailableSampleCount();
         const auto kLastNeededSample = kWindowFirstSample + static_cast<int64_t>(kSampleCount);
 
@@ -101,7 +91,7 @@ SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRo
 
         // Check cache first
         const std::pair<size_t, int64_t> cacheKey = {
-            aChannel, aFirstSample + static_cast<int64_t>(row * mWindowStride)
+            aChannel, aFirstSample + static_cast<int64_t>(row * kWindowStride)
         };
 
         const auto cacheIt = mSpectrogramRowCache.find(cacheKey);

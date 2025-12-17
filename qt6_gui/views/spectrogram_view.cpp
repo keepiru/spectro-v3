@@ -46,7 +46,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
                       kChannels,
                       gkMaxChannels));
     }
-    const size_t kStride = mController->GetWindowStride();
+    const size_t kStride = mController->GetSettings().GetWindowStride();
     const size_t kAvailableSampleCount = mController->GetAvailableSampleCount();
     const size_t kHeight = height();
     const size_t kWidth = width();

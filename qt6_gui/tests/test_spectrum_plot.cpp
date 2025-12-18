@@ -12,8 +12,8 @@ class TestSpectrumPlot : public QObject
     static void TestConstructor()
     {
 
-        Settings settings;
-        AudioBuffer audioBuffer(2, 44100);
+        const Settings settings;
+        const AudioBuffer audioBuffer(2, 44100);
         SpectrogramController controller(settings, audioBuffer);
         const SpectrumPlot plot(&controller);
         QVERIFY(plot.minimumWidth() > 0);
@@ -28,8 +28,8 @@ class TestSpectrumPlot : public QObject
 
     static void TestIsWidget()
     {
-        Settings settings;
-        AudioBuffer audioBuffer(2, 44100);
+        const Settings settings;
+        const AudioBuffer audioBuffer(2, 44100);
         SpectrogramController controller(settings, audioBuffer);
         SpectrumPlot plot(&controller);
         QVERIFY(qobject_cast<QWidget*>(&plot) != nullptr);

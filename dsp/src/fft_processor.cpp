@@ -50,13 +50,13 @@ FFTProcessor::Compute(const std::span<float>& aSamples) const
     fftwf_execute(mFFTPlan.get());
 }
 
-std::vector<fftwf_complex>
+std::vector<FftwfComplex>
 FFTProcessor::ComputeComplex(const std::span<float>& aSamples) const
 {
     Compute(aSamples);
 
-    std::vector<fftwf_complex> outputPtr((mTransformSize / 2) + 1);
-    std::memcpy(outputPtr.data(), mFFTOutput.get(), outputPtr.size() * sizeof(fftwf_complex));
+    std::vector<FftwfComplex> outputPtr((mTransformSize / 2) + 1);
+    std::memcpy(outputPtr.data(), mFFTOutput.get(), outputPtr.size() * sizeof(FftwfComplex));
     return outputPtr;
 }
 
@@ -75,7 +75,7 @@ FFTProcessor::ComputeMagnitudes(const std::span<float>& aSamples) const
 }
 
 void
-FFTProcessor::FFTWDeleter::operator()(fftwf_plan aPlan) const
+FFTProcessor::FFTWDeleter::operator()(FftwfPlan aPlan) const
 {
     if (aPlan) {
         fftwf_destroy_plan(aPlan);
@@ -91,7 +91,7 @@ FFTProcessor::FFTWDeleter::operator()(float* aPtr) const
 }
 
 void
-FFTProcessor::FFTWDeleter::operator()(fftwf_complex* aPtr) const
+FFTProcessor::FFTWDeleter::operator()(FftwfComplex* aPtr) const
 {
     if (aPtr) {
         fftwf_free(aPtr);

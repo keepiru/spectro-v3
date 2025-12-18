@@ -6,11 +6,10 @@
 #include <vector>
 
 struct fftwf_plan_s;
-using fftwf_plan = fftwf_plan_s*;
+using FftwfPlan = fftwf_plan_s*;
 
 // We have to match the FFTW complex type definition
-using fftwf_complex =
-  float[2]; // NOLINT (cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+using FftwfComplex = float[2]; // NOLINT (cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 
 /**
  * @brief Processes audio samples using FFT to produce frequency spectrum
@@ -50,7 +49,7 @@ class FFTProcessor : public IFFTProcessor
      *         Where Fs is the sampling frequency and N is transform_size
      * @throws std::invalid_argument if aSamples.size() != transform_size
      */
-    [[nodiscard]] std::vector<fftwf_complex> ComputeComplex(
+    [[nodiscard]] std::vector<FftwfComplex> ComputeComplex(
       const std::span<float>& aSamples) const override;
 
     /**
@@ -68,15 +67,15 @@ class FFTProcessor : public IFFTProcessor
     // Custom deleter for FFTW resources (implementation in .cpp)
     struct FFTWDeleter
     {
-        void operator()(fftwf_plan plan) const;
+        void operator()(FftwfPlan plan) const;
         void operator()(float* ptr) const;
-        void operator()(fftwf_complex* ptr) const;
+        void operator()(FftwfComplex* ptr) const;
     };
 
     int32_t mTransformSize;
-    using FFTWPlanPtr = std::unique_ptr<std::remove_pointer_t<fftwf_plan>, FFTWDeleter>;
+    using FFTWPlanPtr = std::unique_ptr<std::remove_pointer_t<FftwfPlan>, FFTWDeleter>;
     using FFTWRealPtr = std::unique_ptr<float, FFTWDeleter>;
-    using FFTWComplexPtr = std::unique_ptr<fftwf_complex, FFTWDeleter>;
+    using FFTWComplexPtr = std::unique_ptr<FftwfComplex, FFTWDeleter>;
     FFTWPlanPtr mFFTPlan;
     FFTWRealPtr mFFTInput;
     FFTWComplexPtr mFFTOutput;

@@ -5,8 +5,7 @@
 
 // Forward declaration for FFTW complex type
 // We have to match the FFTW complex type definition
-using fftwf_complex =
-  float[2]; // NOLINT (cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+using FftwfComplex = float[2]; // NOLINT (cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 
 /**
  * @brief Interface for FFT processors
@@ -33,7 +32,7 @@ class IFFTProcessor
      *         Where Fs is the sampling frequency and N is transform_size
      * @throws std::invalid_argument if aSamples.size() != transform_size
      */
-    [[nodiscard]] virtual std::vector<fftwf_complex> ComputeComplex(
+    [[nodiscard]] virtual std::vector<FftwfComplex> ComputeComplex(
       const std::span<float>& aSamples) const = 0;
 
     /**

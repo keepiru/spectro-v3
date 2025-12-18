@@ -19,21 +19,21 @@ class Settings : public QObject
     Q_OBJECT
 
   public:
-    static inline constexpr size_t kColorMapLUTSize = 256;
+    static constexpr size_t KColorMapLUTSize = 256;
 
-    enum class ColorMapType
+    enum class ColorMapType : uint8_t
     {
-        kWhite,
-        kRed,
-        kGreen,
-        kBlue,
-        kCyan,
-        kMagenta,
-        kYellow,
-        kViridis,
-        kPlasma,
-        kInferno,
-        kMagma,
+        White,
+        Red,
+        Green,
+        Blue,
+        Cyan,
+        Magenta,
+        Yellow,
+        Viridis,
+        Plasma,
+        Inferno,
+        Magma,
     };
 
     /**
@@ -68,10 +68,10 @@ class Settings : public QObject
      * These are set together because changing either requires recreating
      * FFT and window objects.
      */
-    void SetFFTSettings(const size_t aTransformSize, const FFTWindow::Type aWindowType);
+    void SetFFTSettings(size_t aTransformSize, FFTWindow::Type aWindowType);
     void SetWindowStride(size_t aStride);
 
-    [[nodiscard]] const std::array<std::array<ColorMapEntry, kColorMapLUTSize>, gkMaxChannels>&
+    [[nodiscard]] const std::array<std::array<ColorMapEntry, KColorMapLUTSize>, gkMaxChannels>&
     GetColorMapLUTs() const
     {
         return mColorMapLUTs;
@@ -114,22 +114,26 @@ class Settings : public QObject
     void WindowStrideChanged();
 
   private:
-    size_t mFFTSize = 2048;
-    FFTWindow::Type mWindowType = FFTWindow::Type::kHann;
-    size_t mWindowStride = 1024;
+    static constexpr size_t KDefaultFFTSize = 2048;
+    size_t mFFTSize = KDefaultFFTSize;
+    FFTWindow::Type mWindowType = FFTWindow::Type::Hann;
+    static constexpr size_t KDefaultWindowStride = 1024;
+    size_t mWindowStride = KDefaultWindowStride;
 
     // The aperture is the visible decibel range in the spectrogram and spectrum
     // plot.
-    float mApertureMinDecibels = -30.0f;
-    float mApertureMaxDecibels = 30.0f;
+    static constexpr float KDefaultApertureMinDecibels = -30.0f;
+    static constexpr float KDefaultApertureMaxDecibels = 30.0f;
+    float mApertureMinDecibels = KDefaultApertureMinDecibels;
+    float mApertureMaxDecibels = KDefaultApertureMaxDecibels;
 
     // Default color maps for each channel.
-    static constexpr std::array<ColorMapType, gkMaxChannels> kDefaultColorMaps = {
-        ColorMapType::kCyan,  ColorMapType::kRed,   ColorMapType::kWhite,
-        ColorMapType::kWhite, ColorMapType::kWhite, ColorMapType::kWhite,
+    static constexpr std::array<ColorMapType, gkMaxChannels> KDefaultColorMaps = {
+        ColorMapType::Cyan,  ColorMapType::Red,   ColorMapType::White,
+        ColorMapType::White, ColorMapType::White, ColorMapType::White,
     };
 
     // Color map lookup tables (LUTs) for each channel.  The simple nested array
     // structure provides fast access in the hot path.
-    std::array<std::array<ColorMapEntry, kColorMapLUTSize>, gkMaxChannels> mColorMapLUTs;
+    std::array<std::array<ColorMapEntry, KColorMapLUTSize>, gkMaxChannels> mColorMapLUTs;
 };

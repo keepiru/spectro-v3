@@ -8,7 +8,6 @@
 #include <ifft_processor.h>
 #include <memory>
 #include <mock_fft_processor.h>
-#include <span>
 #include <stdexcept>
 #include <vector>
 
@@ -45,32 +44,32 @@ class TestSpectrogramController : public QObject
 
         // Constructor calls with defaults
         QCOMPARE(procCalls,
-                 (std::vector<size_t>{ SpectrogramController::kDefaultFFTSize,
-                                       SpectrogramController::kDefaultFFTSize }));
+                 (std::vector<size_t>{ SpectrogramController::KDefaultFftSize,
+                                       SpectrogramController::KDefaultFftSize }));
         QCOMPARE(windowCalls,
                  (std::vector<std::pair<size_t, FFTWindow::Type>>{
-                   std::make_pair(SpectrogramController::kDefaultFFTSize,
-                                  SpectrogramController::kDefaultWindowType),
-                   std::make_pair(SpectrogramController::kDefaultFFTSize,
-                                  SpectrogramController::kDefaultWindowType),
+                   std::make_pair(SpectrogramController::KDefaultFftSize,
+                                  SpectrogramController::KDefaultWindowType),
+                   std::make_pair(SpectrogramController::KDefaultFftSize,
+                                  SpectrogramController::KDefaultWindowType),
                  }));
 
-        settings.SetFFTSettings(1024, FFTWindow::Type::kRectangular);
+        settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
 
         // SetFFTSettings calls again with new settings
         QCOMPARE(procCalls,
-                 (std::vector<size_t>{ SpectrogramController::kDefaultFFTSize,
-                                       SpectrogramController::kDefaultFFTSize,
+                 (std::vector<size_t>{ SpectrogramController::KDefaultFftSize,
+                                       SpectrogramController::KDefaultFftSize,
                                        1024,
                                        1024 }));
         QCOMPARE(windowCalls,
                  (std::vector<std::pair<size_t, FFTWindow::Type>>{
-                   std::make_pair(SpectrogramController::kDefaultFFTSize,
-                                  SpectrogramController::kDefaultWindowType),
-                   std::make_pair(SpectrogramController::kDefaultFFTSize,
-                                  SpectrogramController::kDefaultWindowType),
-                   std::make_pair(1024, FFTWindow::Type::kRectangular),
-                   std::make_pair(1024, FFTWindow::Type::kRectangular) }));
+                   std::make_pair(SpectrogramController::KDefaultFftSize,
+                                  SpectrogramController::KDefaultWindowType),
+                   std::make_pair(SpectrogramController::KDefaultFftSize,
+                                  SpectrogramController::KDefaultWindowType),
+                   std::make_pair(1024, FFTWindow::Type::Rectangular),
+                   std::make_pair(1024, FFTWindow::Type::Rectangular) }));
     }
 
     static std::unique_ptr<SpectrogramController> CreateControllerWithMockFFT(Settings& aSettings,
@@ -81,7 +80,7 @@ class TestSpectrogramController : public QObject
             return std::make_unique<MockFFTProcessor>(size);
         };
 
-        aSettings.SetFFTSettings(8, FFTWindow::Type::kRectangular);
+        aSettings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
         auto controller = std::make_unique<SpectrogramController>(
           aSettings, aBuffer, mockFFTProcessorFactory, nullptr);
         aSettings.SetWindowStride(8);
@@ -206,7 +205,7 @@ class TestSpectrogramController : public QObject
         AudioBuffer buffer(1, 44100);
         buffer.AddSamples({ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
         auto controller = CreateControllerWithMockFFT(settings, buffer);
-        settings.SetFFTSettings(8, FFTWindow::Type::kHann);
+        settings.SetFFTSettings(8, FFTWindow::Type::Hann);
 
         // Hann window attenuates edges, so we'll see lower magnitudes at the
         // edges.  Keep in mind our MockFFTProcessor just returns the input

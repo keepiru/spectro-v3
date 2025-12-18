@@ -54,7 +54,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
         // Avoid division by zero.  We can't draw anything if the range is zero.
         return;
     }
-    constexpr auto kColorMapMaxIndex = static_cast<float>(Settings::kColorMapLUTSize - 1);
+    constexpr auto kColorMapMaxIndex = static_cast<float>(Settings::KColorMapLUTSize - 1);
     const float kInverseDecibelRange = kColorMapMaxIndex / kDecibelRange;
     const auto& kColorMapLUT = kSettings.GetColorMapLUTs();
 

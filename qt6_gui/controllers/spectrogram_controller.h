@@ -22,8 +22,8 @@ class SpectrogramController : public QObject
     Q_OBJECT
 
   public:
-    static constexpr size_t kDefaultFFTSize = 2048;
-    static constexpr auto kDefaultWindowType = FFTWindow::Type::kHann;
+    static constexpr size_t KDefaultFftSize = 2048;
+    static constexpr auto KDefaultWindowType = FFTWindow::Type::Hann;
 
     using FFTProcessorFactory = std::function<std::unique_ptr<IFFTProcessor>(size_t)>;
     using FFTWindowFactory = std::function<std::unique_ptr<FFTWindow>(size_t, FFTWindow::Type)>;

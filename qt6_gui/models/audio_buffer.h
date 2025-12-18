@@ -57,9 +57,9 @@ class AudioBuffer : public QObject
      * @throws std::out_of_range if aChannelIndex >= channel count, or if there
      * aren't enough samples to fill the request.
      */
-    [[nodiscard]] std::vector<float> GetSamples(const size_t aChannelIndex,
-                                                const size_t aStartSample,
-                                                const size_t aSampleCount) const;
+    [[nodiscard]] std::vector<float> GetSamples(size_t aChannelIndex,
+                                                size_t aStartSample,
+                                                size_t aSampleCount) const;
 
     /**
      * @brief Get the underlying SampleBuffer for a specific channel
@@ -77,7 +77,7 @@ class AudioBuffer : public QObject
      * @brief Emitted when new audio samples are added
      * @param aSampleCount Number of samples added per channel
      */
-    void dataAvailable(size_t aSampleCount);
+    void DataAvailable(size_t aSampleCount);
 
   private:
     size_t mChannelCount;

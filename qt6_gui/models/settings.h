@@ -106,6 +106,20 @@ class Settings : public QObject
      ** Display settings - Aperture (decibel range)
      **/
 
+    /**
+     * @brief Set the aperture minimum decibel value
+     * @param aMinDecibels New minimum decibel value
+     * @throws std::invalid_argument if aMinDecibels >= mApertureMaxDecibels
+     */
+    void SetApertureMinDecibels(float aMinDecibels);
+
+    /**
+     * @brief Set the aperture maximum decibel value
+     * @param aMaxDecibels New maximum decibel value
+     * @throws std::invalid_argument if aMaxDecibels <= mApertureMinDecibels
+     */
+    void SetApertureMaxDecibels(float aMaxDecibels);
+
     /*
      * @brief Get the minimum decibel value of the aperture
      * @return Minimum decibel value
@@ -167,6 +181,13 @@ class Settings : public QObject
      * Listeners (SpectrogramController) should update stride and snap view position.
      */
     void WindowScaleChanged();
+
+    /**
+     * @brief Emitted when aperture min or max decibel values change
+     *
+     * Listeners (SpectrogramView, SpectrumPlot) should redraw
+     */
+    void ApertureSettingsChanged();
 
   private:
     static constexpr size_t KDefaultFFTSize = 2048;

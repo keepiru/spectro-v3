@@ -55,7 +55,6 @@ class Settings : public QObject
     // FFT Settings
     [[nodiscard]] size_t GetFFTSize() const { return mFFTSize; }
     [[nodiscard]] FFTWindow::Type GetWindowType() const { return mWindowType; }
-    [[nodiscard]] size_t GetWindowStride() const { return mWindowStride; }
     [[nodiscard]] float GetApertureMinDecibels() const { return mApertureMinDecibels; }
     [[nodiscard]] float GetApertureMaxDecibels() const { return mApertureMaxDecibels; }
 
@@ -69,7 +68,27 @@ class Settings : public QObject
      * FFT and window objects.
      */
     void SetFFTSettings(size_t aTransformSize, FFTWindow::Type aWindowType);
-    void SetWindowStride(size_t aStride);
+
+    // Window scale and stride
+
+    /**
+     * @brief Set the window scale
+     * @param aScale New window scale (1, 2, 4, 8, or 16)
+     * @throws std::invalid_argument if aScale is not valid
+     */
+    void SetWindowScale(size_t aScale);
+
+    /**
+     * @brief Get the window scale
+     * @return Current window scale
+     */
+    [[nodiscard]] size_t GetWindowScale() const { return mWindowScale; }
+
+    /**
+     * @brief Get the window stride based on current FFT size and window scale
+     * @return Current window stride (FFT size / window scale)
+     */
+    [[nodiscard]] size_t GetWindowStride() const { return mFFTSize / mWindowScale; }
 
     [[nodiscard]] const std::array<std::array<ColorMapEntry, KColorMapLUTSize>, gkMaxChannels>&
     GetColorMapLUTs() const
@@ -107,18 +126,21 @@ class Settings : public QObject
     void FFTSettingsChanged();
 
     /**
-     * @brief Emitted when window stride changes
+     * @brief Emitted when window scale changes
      *
      * Listeners (SpectrogramController) should update stride and snap view position.
      */
-    void WindowStrideChanged();
+    void WindowScaleChanged();
 
   private:
     static constexpr size_t KDefaultFFTSize = 2048;
     size_t mFFTSize = KDefaultFFTSize;
     FFTWindow::Type mWindowType = FFTWindow::Type::Hann;
-    static constexpr size_t KDefaultWindowStride = 1024;
-    size_t mWindowStride = KDefaultWindowStride;
+
+    // The window scale is the divisor applied to the FFT size to determine
+    // the hop size (stride) between successive FFT windows.
+    static constexpr size_t KDefaultWindowScale = 2;
+    size_t mWindowScale = KDefaultWindowScale;
 
     // The aperture is the visible decibel range in the spectrogram and spectrum
     // plot.

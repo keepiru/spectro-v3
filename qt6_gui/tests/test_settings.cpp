@@ -52,28 +52,41 @@ class TestSettings : public QObject
     static void TestSetWindowStrideEmitsSignal()
     {
         Settings settings;
-        const QSignalSpy spy(&settings, &Settings::WindowStrideChanged);
+        const QSignalSpy spy(&settings, &Settings::WindowScaleChanged);
 
-        settings.SetWindowStride(512);
+        settings.SetWindowScale(2);
 
         QCOMPARE(spy.count(), 1);
-        QCOMPARE(settings.GetWindowStride(), 512);
+        QCOMPARE(settings.GetWindowScale(), 2);
     }
 
-    static void TestSetWindowStrideNoSignalIfSameValue()
+    // NOLINTNEXTLINE(readability-function-cognitive-complexity)
+    static void TestSetWindowScaleThrowsOnInvalidValues()
     {
         Settings settings;
-        const QSignalSpy spy(&settings, &Settings::WindowStrideChanged);
-
-        settings.SetWindowStride(settings.GetWindowStride()); // Set to same value again
-
-        QCOMPARE(spy.count(), 0);
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, settings.SetWindowScale(0));
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, settings.SetWindowScale(3));
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, settings.SetWindowScale(5));
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, settings.SetWindowScale(32));
     }
 
-    static void TestSetWindowStrideThrowsOnZero()
+    static void TestGetStrideComputesStride()
     {
         Settings settings;
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, settings.SetWindowStride(0));
+
+        settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
+        settings.SetWindowScale(4);
+        QCOMPARE(settings.GetWindowStride(), static_cast<size_t>(512));
+
+        settings.SetWindowScale(8);
+        QCOMPARE(settings.GetWindowStride(), static_cast<size_t>(256));
+
+        settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
+        settings.SetWindowScale(1);
+        QCOMPARE(settings.GetWindowStride(), static_cast<size_t>(1024));
+
+        settings.SetWindowScale(2);
+        QCOMPARE(settings.GetWindowStride(), static_cast<size_t>(512));
     }
 
     static void GetApertureMinDecibels()

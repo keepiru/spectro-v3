@@ -13,14 +13,14 @@ class TestSettings : public QObject
     static void TestSetFFTSettingsEmitsSignal()
     {
         Settings settings;
-        settings.SetFFTSettings(2048, FFTWindow::Type::kHann);
+        settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
         const QSignalSpy spy(&settings, &Settings::FFTSettingsChanged);
 
-        settings.SetFFTSettings(4096, FFTWindow::Type::kRectangular);
+        settings.SetFFTSettings(4096, FFTWindow::Type::Rectangular);
 
         QCOMPARE(spy.count(), 1);
         QCOMPARE(settings.GetFFTSize(), 4096);
-        QCOMPARE(settings.GetWindowType(), FFTWindow::Type::kRectangular);
+        QCOMPARE(settings.GetWindowType(), FFTWindow::Type::Rectangular);
     }
 
     static void TestSetFFTSettingsNoSignalIfSameValues()

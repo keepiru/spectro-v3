@@ -38,12 +38,12 @@ MainWindow::MainWindow(QWidget* parent)
     mSpectrogramController =
       new SpectrogramController(*mSettings, *mAudioBuffer, nullptr, nullptr, this);
 
-    createLayout();
-    setupConnections();
+    CreateLayout();
+    SetupConnections();
 }
 
 void
-MainWindow::createLayout()
+MainWindow::CreateLayout()
 {
     /**
      * ┌─────────────────────────────────────────────────────────┐
@@ -87,20 +87,20 @@ MainWindow::createLayout()
 }
 
 void
-MainWindow::setupConnections()
+MainWindow::SetupConnections()
 {
     // Future: Connect signals/slots between AudioBuffer, SpectrogramController,
     // and view widgets
 
     // Update SpectrogramView when new audio data is available
     connect(mAudioBuffer,
-            &AudioBuffer::dataAvailable,
+            &AudioBuffer::DataAvailable,
             mSpectrogramView,
             QOverload<>::of(&SpectrogramView::update));
 
     // Also update SpectrumPlot
     connect(mAudioBuffer,
-            &AudioBuffer::dataAvailable,
+            &AudioBuffer::DataAvailable,
             mSpectrumPlot,
             QOverload<>::of(&SpectrumPlot::update));
 }

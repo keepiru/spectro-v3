@@ -12,7 +12,7 @@ Settings::Settings(QObject* aParent)
 {
     // Initialize default color maps
     for (size_t ch = 0; ch < gkMaxChannels; ch++) {
-        SetColorMap(ch, kDefaultColorMaps.at(ch));
+        SetColorMap(ch, KDefaultColorMaps.at(ch));
     }
 }
 
@@ -48,7 +48,7 @@ Settings::SetColorMap(size_t aChannel, ColorMapType aType)
 {
     // Helper to set a gradient color map
     auto setGradientColorMap = [this, aChannel](bool enableRed, bool enableGreen, bool enableBlue) {
-        for (size_t i = 0; i < kColorMapLUTSize; i++) {
+        for (size_t i = 0; i < KColorMapLUTSize; i++) {
             const auto intensity = static_cast<uint8_t>(i);
             mColorMapLUTs.at(aChannel).at(i) =
               ColorMapEntry{ .r = enableRed ? intensity : uint8_t{ 0 },
@@ -58,25 +58,25 @@ Settings::SetColorMap(size_t aChannel, ColorMapType aType)
     };
 
     switch (aType) {
-        case ColorMapType::kWhite:
+        case ColorMapType::White:
             setGradientColorMap(true, true, true);
             break;
-        case ColorMapType::kRed:
+        case ColorMapType::Red:
             setGradientColorMap(true, false, false);
             break;
-        case ColorMapType::kGreen:
+        case ColorMapType::Green:
             setGradientColorMap(false, true, false);
             break;
-        case ColorMapType::kBlue:
+        case ColorMapType::Blue:
             setGradientColorMap(false, false, true);
             break;
-        case ColorMapType::kCyan:
+        case ColorMapType::Cyan:
             setGradientColorMap(false, true, true);
             break;
-        case ColorMapType::kMagenta:
+        case ColorMapType::Magenta:
             setGradientColorMap(true, false, true);
             break;
-        case ColorMapType::kYellow:
+        case ColorMapType::Yellow:
             setGradientColorMap(true, true, false);
             break;
         default:

@@ -32,12 +32,12 @@ class MainWindow : public QMainWindow
     /**
      * @brief Sets up the main layout of the application window
      */
-    void createLayout();
+    void CreateLayout();
 
     /**
      * @brief Sets up signal-slot connections between components
      */
-    void setupConnections();
+    void SetupConnections();
 
     // Models and controllers
     AudioBuffer* mAudioBuffer = nullptr;

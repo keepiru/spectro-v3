@@ -8,8 +8,8 @@ class FFTWindow
   public:
     enum class Type : uint8_t
     {
-        kRectangular,
-        kHann,
+        Rectangular,
+        Hann,
     };
 
     /**

@@ -14,28 +14,28 @@ TEST_CASE("FFTWindow Constructor", "[fft_window]")
 {
     SECTION("Valid sizes and types")
     {
-        REQUIRE_NOTHROW(FFTWindow(256, FFTWindow::Type::kRectangular));
-        REQUIRE_NOTHROW(FFTWindow(1024, FFTWindow::Type::kHann));
+        REQUIRE_NOTHROW(FFTWindow(256, FFTWindow::Type::Rectangular));
+        REQUIRE_NOTHROW(FFTWindow(1024, FFTWindow::Type::Hann));
     }
 
     SECTION("Invalid size (zero)")
     {
-        REQUIRE_THROWS_AS(FFTWindow(0, FFTWindow::Type::kHann), std::invalid_argument);
+        REQUIRE_THROWS_AS(FFTWindow(0, FFTWindow::Type::Hann), std::invalid_argument);
     }
 }
 
 TEST_CASE("FFTWindow#GetSize and GetType", "[fft_window]")
 {
-    FFTWindow const kWindow(1024, FFTWindow::Type::kHann);
+    FFTWindow const kWindow(1024, FFTWindow::Type::Hann);
     REQUIRE(kWindow.GetSize() == 1024);
-    REQUIRE(kWindow.GetType() == FFTWindow::Type::kHann);
+    REQUIRE(kWindow.GetType() == FFTWindow::Type::Hann);
 }
 
 TEST_CASE("FFTWindow#Apply", "[fft_window]")
 {
     SECTION("Input size mismatch throws")
     {
-        FFTWindow const kWindow(4, FFTWindow::Type::kHann);
+        FFTWindow const kWindow(4, FFTWindow::Type::Hann);
         std::vector<float> input = { 1.0f, 2.0f }; // Incorrect size
 
         REQUIRE_THROWS_AS(kWindow.Apply(input), std::invalid_argument);
@@ -43,7 +43,7 @@ TEST_CASE("FFTWindow#Apply", "[fft_window]")
 
     SECTION("kRectangular window is identity")
     {
-        FFTWindow const kWindow(4, FFTWindow::Type::kRectangular);
+        FFTWindow const kWindow(4, FFTWindow::Type::Rectangular);
 
         std::vector<float> input = { 1.0f, 2.0f, 3.0f, 4.0f };
         auto output = kWindow.Apply(input);
@@ -53,7 +53,7 @@ TEST_CASE("FFTWindow#Apply", "[fft_window]")
 
     SECTION("kHann window coefficients")
     {
-        FFTWindow const kWindow(8, FFTWindow::Type::kHann);
+        FFTWindow const kWindow(8, FFTWindow::Type::Hann);
         std::vector<float> input = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
         auto output = kWindow.Apply(input);
         std::vector<float> expected = { 0.0f,       0.1882551f, 0.6112605f, 0.9504844f,
@@ -68,7 +68,7 @@ TEST_CASE("FFTWindow#Apply", "[fft_window]")
     SECTION("Big kHann Window")
     {
         const uint32_t kSize = 1024;
-        FFTWindow const window(kSize, FFTWindow::Type::kHann);
+        FFTWindow const window(kSize, FFTWindow::Type::Hann);
         std::vector<float> input(kSize, 1.0f); // All ones
         auto output = window.Apply(input);
 
@@ -109,7 +109,7 @@ TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
     auto spectrumNoWindow = kProcessor.ComputeMagnitudes(samples);
 
     // Apply kHann window and compute spectrum
-    FFTWindow const kHannWindow(kTransformSize, FFTWindow::Type::kHann);
+    FFTWindow const kHannWindow(kTransformSize, FFTWindow::Type::Hann);
     auto windowedSamples = kHannWindow.Apply(samples);
     auto const kSpectrumWithWindow = kProcessor.ComputeMagnitudes(windowedSamples);
 

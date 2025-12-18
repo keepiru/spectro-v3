@@ -47,10 +47,10 @@ void
 FFTWindow::ComputeWindowCoefficients()
 {
     switch (mType) {
-        case Type::kRectangular:
+        case Type::Rectangular:
             std::ranges::fill(mWindowCoefficients, 1.0f);
             break;
-        case Type::kHann:
+        case Type::Hann:
             for (size_t i = 0; i < mSize; ++i) {
                 auto const kPi = std::numbers::pi_v<float>;
                 mWindowCoefficients[i] =

@@ -12,7 +12,7 @@ class DSPUtils
      * Returns a large negative value (-1000.0f) for zero or negative input
      * to avoid undefined behavior.
      */
-    [[nodiscard]] inline static float MagnitudeToDecibels(float aMagnitude) noexcept
+    [[nodiscard]] static float MagnitudeToDecibels(float aMagnitude) noexcept
     {
         // Handle zero and negative values to avoid log of non-positive numbers
         if (aMagnitude <= 0.0F) {

@@ -66,7 +66,7 @@ class TestAudioBuffer : public QObject
     static void TestAddSamplesEmitsSignal()
     {
         AudioBuffer buffer(2, 44100);
-        QSignalSpy spy(&buffer, &AudioBuffer::dataAvailable);
+        QSignalSpy spy(&buffer, &AudioBuffer::DataAvailable);
         buffer.AddSamples({ 1, 2, 3, 4 });
 
         QCOMPARE(spy.count(), 1);

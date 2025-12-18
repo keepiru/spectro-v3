@@ -22,8 +22,8 @@ add_library(spectro_qt6_gui
     views/spectrogram_view.h
     views/spectrum_plot.cpp
     views/spectrum_plot.h
-    views/config_panel.cpp
-    views/config_panel.h
+    views/settings_panel.cpp
+    views/settings_panel.h
 )
 
 target_link_libraries(spectro_qt6_gui

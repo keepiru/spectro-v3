@@ -3,7 +3,7 @@
 #include "models/audio_buffer.h"
 #include "models/audio_recorder.h"
 #include "models/settings.h"
-#include "views/config_panel.h"
+#include "views/settings_panel.h"
 #include "views/spectrogram_view.h"
 #include "views/spectrum_plot.h"
 #include <QHBoxLayout>
@@ -49,7 +49,7 @@ MainWindow::CreateLayout()
      * ┌─────────────────────────────────────────────────────────┐
      * │ QHBoxLayout (main)                                      │
      * │ ┌──────────────────────────────┬────────────────────┐   │
-     * │ │ QVBoxLayout (left)           │ ConfigPanel        │   │
+     * │ │ QVBoxLayout (left)           │ SettingsPanel      │   │
      * │ │ ┌──────────────────────────┐ │ (~300px)           │   │
      * │ │ │ SpectrogramView          │ │                    │   │
      * │ │ │ (stretch 7)              │ │                    │   │
@@ -65,7 +65,7 @@ MainWindow::CreateLayout()
     // Create view widgets
     mSpectrogramView = new SpectrogramView(mSpectrogramController, this);
     mSpectrumPlot = new SpectrumPlot(mSpectrogramController, this);
-    mConfigPanel = new ConfigPanel(this);
+    mSettingsPanel = new SettingsPanel(this);
 
     // Create left container with vertical layout for the two plots
     auto* leftContainer = new QWidget(this);
@@ -81,7 +81,7 @@ MainWindow::CreateLayout()
     auto* mainLayout = new QHBoxLayout(mainWidget);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->addWidget(leftContainer, 1); // Takes remaining space
-    mainLayout->addWidget(mConfigPanel, 0);  // Fixed width (no stretch)
+    mainLayout->addWidget(mSettingsPanel, 0);  // Fixed width (no stretch)
 
     setCentralWidget(mainWidget);
 }

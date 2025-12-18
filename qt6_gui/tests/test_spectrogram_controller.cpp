@@ -83,7 +83,7 @@ class TestSpectrogramController : public QObject
         aSettings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
         auto controller = std::make_unique<SpectrogramController>(
           aSettings, aBuffer, mockFFTProcessorFactory, nullptr);
-        aSettings.SetWindowStride(8);
+        aSettings.SetWindowScale(1);
 
         return controller;
     }
@@ -126,7 +126,7 @@ class TestSpectrogramController : public QObject
         buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
                             13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
         auto controller = CreateControllerWithMockFFT(settings, buffer);
-        settings.SetWindowStride(4); // 50% overlap
+        settings.SetWindowScale(2); // 50% overlap
 
         const std::vector<std::vector<float>> kWant = {
             { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },      { 5.0f, 6.0f, 7.0f, 8.0f, 9.0f },
@@ -144,7 +144,7 @@ class TestSpectrogramController : public QObject
         buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
                             14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 });
         auto controller = CreateControllerWithMockFFT(settings, buffer);
-        settings.SetWindowStride(2); // 75% overlap
+        settings.SetWindowScale(4); // 75% overlap
 
         const std::vector<std::vector<float>> kWant = {
             { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },      { 3.0f, 4.0f, 5.0f, 6.0f, 7.0f },

@@ -52,11 +52,9 @@ class Settings : public QObject
 
     explicit Settings(QObject* aParent = nullptr);
 
-    // FFT Settings
-    [[nodiscard]] size_t GetFFTSize() const { return mFFTSize; }
-    [[nodiscard]] FFTWindow::Type GetWindowType() const { return mWindowType; }
-    [[nodiscard]] float GetApertureMinDecibels() const { return mApertureMinDecibels; }
-    [[nodiscard]] float GetApertureMaxDecibels() const { return mApertureMaxDecibels; }
+    /**
+     ** FFT Settings
+     **/
 
     /**
      * @brief Set FFT settings
@@ -69,7 +67,21 @@ class Settings : public QObject
      */
     void SetFFTSettings(size_t aTransformSize, FFTWindow::Type aWindowType);
 
-    // Window scale and stride
+    /**
+     * @brief Get the FFT size
+     * @return Current FFT size
+     */
+    [[nodiscard]] size_t GetFFTSize() const { return mFFTSize; }
+
+    /**
+     * @brief Get the window function type
+     * @return Current window function type
+     */
+    [[nodiscard]] FFTWindow::Type GetWindowType() const { return mWindowType; }
+
+    /**
+     ** Window scale and stride
+     **/
 
     /**
      * @brief Set the window scale
@@ -90,6 +102,30 @@ class Settings : public QObject
      */
     [[nodiscard]] size_t GetWindowStride() const { return mFFTSize / mWindowScale; }
 
+    /**
+     ** Display settings - Aperture (decibel range)
+     **/
+
+    /*
+     * @brief Get the minimum decibel value of the aperture
+     * @return Minimum decibel value
+     */
+    [[nodiscard]] float GetApertureMinDecibels() const { return mApertureMinDecibels; }
+
+    /**
+     * @brief Get the maximum decibel value of the aperture
+     * @return Maximum decibel value
+     */
+    [[nodiscard]] float GetApertureMaxDecibels() const { return mApertureMaxDecibels; }
+
+    /**
+     ** Color map settings
+     **/
+
+    /**
+     * @brief Get the color map LUTs for all channels
+     * @return Reference to the array of color map LUTs
+     */
     [[nodiscard]] const std::array<std::array<ColorMapEntry, KColorMapLUTSize>, gkMaxChannels>&
     GetColorMapLUTs() const
     {

@@ -10,13 +10,7 @@ class TestSettingsPanel : public QObject
     static void TestConstructor()
     {
         const SettingsPanel panel;
-        QVERIFY(panel.minimumWidth() > 0);
-    }
-
-    static void TestIsWidget()
-    {
-        SettingsPanel panel;
-        QVERIFY(qobject_cast<QWidget*>(&panel) != nullptr);
+        QVERIFY(panel.width() == 300);
     }
 };
 

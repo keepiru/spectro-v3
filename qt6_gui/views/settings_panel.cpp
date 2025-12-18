@@ -1,10 +1,10 @@
-#include "config_panel.h"
+#include "settings_panel.h"
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <Qt>
 
-ConfigPanel::ConfigPanel(QWidget* parent)
+SettingsPanel::SettingsPanel(QWidget* parent)
   : QWidget(parent)
 {
     constexpr int kPanelWidth = 300;

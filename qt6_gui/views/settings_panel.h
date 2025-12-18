@@ -17,13 +17,13 @@
  * - Sample rate display
  * - Display range controls (min/max dB)
  */
-class ConfigPanel : public QWidget
+class SettingsPanel : public QWidget
 {
     Q_OBJECT
 
   public:
-    explicit ConfigPanel(QWidget* parent = nullptr);
-    ~ConfigPanel() override = default;
+    explicit SettingsPanel(QWidget* parent = nullptr);
+    ~SettingsPanel() override = default;
 
   private:
     // Future: Control widgets (combo boxes, sliders, etc.)

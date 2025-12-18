@@ -66,7 +66,7 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - Queries `Settings` for aperture
   - Listens to `Settings.apertureChanged()` → triggers repaint
 
-- **`ConfigPanel`**: Settings controls (UI for Settings model)
+- **`SettingsPanel`**: Settings controls (UI for Settings model)
   - FFT settings: transform size, window stride, window function
   - Display settings: colormap, aperture (floor/ceiling dB)
   - Audio settings: input device selection
@@ -116,7 +116,7 @@ SpectrogramView.paint()
 
 ### Settings Change
 ```
-ConfigPanel UI change → Settings.setFFTSize(new_size)
+SettingsPanel UI change → Settings.setFFTSize(new_size)
     ↓
 Settings emits fftSettingsChanged(size, type)
     ↓
@@ -162,7 +162,7 @@ SpectrogramView.paint()
 | **SpectrogramController**  | Own DSP objects, mediate data access, coordinate modes                       |
 | **SpectrogramView**        | Paint rows at given position                                                 |
 | **SpectrumPlot**           | Paint frequency spectrum,                                                    |
-| **ConfigPanel**            | UI for Settings model, bidirectional sync                                    |
+| **SettingsPanel**          | UI for Settings model, bidirectional sync                                    |
 | **AudioRecorder**          | Capture audio → `AudioBuffer`, own audio settings (device)                   |
 
 ## Settings Management
@@ -180,7 +180,7 @@ SpectrogramView.paint()
 
 **Settings Signal Flow:**
 ```
-ConfigPanel (UI)
+SettingsPanel (UI)
     ├→ Settings.setFFTSize(size)
     ├→ Settings.setWindowType(type)
     ├→ Settings.setWindowStride(stride)

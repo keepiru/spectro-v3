@@ -1,0 +1,7 @@
+Diagnostics:
+  Suppress:
+    - "*.moc"
+    - "moc_*.cpp"
+  
+  # Maybe enable this later if it gets annoying
+  # UnusedIncludes: None

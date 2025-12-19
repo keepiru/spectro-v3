@@ -65,7 +65,7 @@ MainWindow::CreateLayout()
     // Create view widgets
     mSpectrogramView = new SpectrogramView(mSpectrogramController, this);
     mSpectrumPlot = new SpectrumPlot(mSpectrogramController, this);
-    mSettingsPanel = new SettingsPanel(this);
+    mSettingsPanel = new SettingsPanel(*mSettings, this);
 
     // Create left container with vertical layout for the two plots
     auto* leftContainer = new QWidget(this);
@@ -80,8 +80,8 @@ MainWindow::CreateLayout()
     auto* mainWidget = new QWidget(this);
     auto* mainLayout = new QHBoxLayout(mainWidget);
     mainLayout->setContentsMargins(0, 0, 0, 0);
-    mainLayout->addWidget(leftContainer, 1); // Takes remaining space
-    mainLayout->addWidget(mSettingsPanel, 0);  // Fixed width (no stretch)
+    mainLayout->addWidget(leftContainer, 1);  // Takes remaining space
+    mainLayout->addWidget(mSettingsPanel, 0); // Fixed width (no stretch)
 
     setCentralWidget(mainWidget);
 }

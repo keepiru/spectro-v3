@@ -72,7 +72,6 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - Audio settings: input device selection
   - Initializes UI controls from `Settings` at construction
   - UI changes → calls `Settings` setters (e.g., `Settings.setWindowStride()`)
-  - Listens to `Settings` signals → updates UI (bidirectional sync)
   - Settings propagate automatically via `Settings` signals to all listeners
 
 - **`MainWindow`**: Top-level application window

@@ -7,6 +7,7 @@
 #include "views/spectrogram_view.h"
 #include "views/spectrum_plot.h"
 #include <QHBoxLayout>
+#include <QLoggingCategory>
 #include <QMainWindow>
 #include <QMediaDevices>
 #include <QOverload>
@@ -31,6 +32,9 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Create models and controllers
     mAudioBuffer = new AudioBuffer(kDefaultChannelCount, kDefaultSampleRate, this);
+
+    // Suppress Qt multimedia FFmpeg logging noise
+    QLoggingCategory::setFilterRules("qt.multimedia.ffmpeg=false");
 
     // For now we don't have a config UI, so just start recording with defaults
     mAudioRecorder->Start(mAudioBuffer, QMediaDevices::defaultAudioInput());

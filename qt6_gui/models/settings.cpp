@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <fft_window.h>
-#include <format>
 #include <stdexcept>
 
 Settings::Settings(QObject* aParent)

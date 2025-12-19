@@ -84,6 +84,8 @@ Settings::SetColorMap(size_t aChannel, ColorMapType aType)
         default:
             throw std::invalid_argument("Settings::SetColorMap: Unsupported color map type");
     }
+
+    mSelectedColorMaps.at(aChannel) = aType;
 }
 
 void

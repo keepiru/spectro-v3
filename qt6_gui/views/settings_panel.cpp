@@ -1,11 +1,13 @@
 #include "settings_panel.h"
+#include "models/settings.h"
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <Qt>
 
-SettingsPanel::SettingsPanel(QWidget* parent)
+SettingsPanel::SettingsPanel(Settings& aSettings, QWidget* parent)
   : QWidget(parent)
+  , mSettings(&aSettings)
 {
     constexpr int kPanelWidth = 300;
     setFixedWidth(kPanelWidth);

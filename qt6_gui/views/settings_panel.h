@@ -1,5 +1,6 @@
 #pragma once
 
+#include "models/settings.h"
 #include <QWidget>
 
 /**
@@ -22,9 +23,10 @@ class SettingsPanel : public QWidget
     Q_OBJECT
 
   public:
-    explicit SettingsPanel(QWidget* parent = nullptr);
+    explicit SettingsPanel(Settings& aSettings, QWidget* parent = nullptr);
     ~SettingsPanel() override = default;
 
   private:
+    Settings* mSettings = nullptr;
     // Future: Control widgets (combo boxes, sliders, etc.)
 };

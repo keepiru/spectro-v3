@@ -1,3 +1,4 @@
+#include "models/settings.h"
 #include "views/settings_panel.h"
 
 #include <QTest>
@@ -9,7 +10,8 @@ class TestSettingsPanel : public QObject
   private slots:
     static void TestConstructor()
     {
-        const SettingsPanel panel;
+        Settings settings;
+        const SettingsPanel panel(settings);
         QVERIFY(panel.width() == 300);
     }
 };

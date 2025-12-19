@@ -141,6 +141,22 @@ class TestSettings : public QObject
         }
     }
 
+    static void TestGetColorMap()
+    {
+        Settings settings;
+
+        // Confirm default color maps
+        QCOMPARE(settings.GetColorMap(0), Settings::ColorMapType::Cyan);
+        QCOMPARE(settings.GetColorMap(1), Settings::ColorMapType::Red);
+        for (size_t ch = 2; ch < gkMaxChannels; ch++) {
+            QCOMPARE(settings.GetColorMap(ch), Settings::ColorMapType::White);
+        }
+
+        // Then change and confirm
+        settings.SetColorMap(0, Settings::ColorMapType::Blue);
+        QCOMPARE(settings.GetColorMap(0), Settings::ColorMapType::Blue);
+    }
+
     static void TestGetColorMapValueOutOfRange()
     {
         const Settings settings;

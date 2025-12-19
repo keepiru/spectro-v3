@@ -190,6 +190,16 @@ class Settings : public QObject
      */
     void SetColorMap(size_t aChannel, ColorMapType aType);
 
+    /**
+     * @brief Get the color map type for a channel
+     * @param aChannel Channel index (0-based)
+     * @return Current color map type
+     */
+    [[nodiscard]] ColorMapType GetColorMap(size_t aChannel) const
+    {
+        return mSelectedColorMaps.at(aChannel);
+    }
+
   signals:
     /**
      * @brief Emitted when FFT size or window type changes
@@ -238,4 +248,7 @@ class Settings : public QObject
     // Color map lookup tables (LUTs) for each channel.  The simple nested array
     // structure provides fast access in the hot path.
     std::array<std::array<ColorMapEntry, KColorMapLUTSize>, gkMaxChannels> mColorMapLUTs;
+
+    // Selected color maps for each channel.
+    std::array<ColorMapType, gkMaxChannels> mSelectedColorMaps = KDefaultColorMaps;
 };

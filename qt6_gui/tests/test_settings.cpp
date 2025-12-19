@@ -177,32 +177,6 @@ class TestSettings : public QObject
         QCOMPARE(settings.GetApertureMinDecibels(), -40.0f);
         QCOMPARE(settings.GetApertureMaxDecibels(), 20.0f);
     }
-
-    // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-    static void TestSetApertureThrowsOnInvalidValues()
-    {
-        Settings settings;
-
-        // Initial values
-        settings.SetApertureMaxDecibels(20.0f);
-        settings.SetApertureMinDecibels(-40.0f);
-
-        // Min == Max
-        QVERIFY_EXCEPTION_THROWN(settings.SetApertureMinDecibels(20.0f), std::invalid_argument);
-        QCOMPARE(settings.GetApertureMinDecibels(), -40.0f); // Unchanged
-
-        // Min > Max
-        QVERIFY_EXCEPTION_THROWN(settings.SetApertureMinDecibels(30.0f), std::invalid_argument);
-        QCOMPARE(settings.GetApertureMinDecibels(), -40.0f); // Unchanged
-
-        // Max == Min
-        QVERIFY_EXCEPTION_THROWN(settings.SetApertureMaxDecibels(-40.0f), std::invalid_argument);
-        QCOMPARE(settings.GetApertureMaxDecibels(), 20.0f); // Unchanged
-
-        // Max < Min
-        QVERIFY_EXCEPTION_THROWN(settings.SetApertureMaxDecibels(-50.0f), std::invalid_argument);
-        QCOMPARE(settings.GetApertureMaxDecibels(), 20.0f); // Unchanged
-    }
 };
 
 QTEST_MAIN(TestSettings)

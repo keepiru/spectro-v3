@@ -132,14 +132,12 @@ class Settings : public QObject
     /**
      * @brief Set the aperture minimum decibel value
      * @param aMinDecibels New minimum decibel value
-     * @throws std::invalid_argument if aMinDecibels >= mApertureMaxDecibels
      */
     void SetApertureMinDecibels(float aMinDecibels);
 
     /**
      * @brief Set the aperture maximum decibel value
      * @param aMaxDecibels New maximum decibel value
-     * @throws std::invalid_argument if aMaxDecibels <= mApertureMinDecibels
      */
     void SetApertureMaxDecibels(float aMaxDecibels);
 

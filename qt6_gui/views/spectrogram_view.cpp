@@ -98,7 +98,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
             int g = 0;
             int b = 0;
             // NOLINTEND(readability-identifier-length)
-            // First sum RGB values for each channel
+            // Sum RGB values for each channel
             for (size_t ch = 0; ch < kChannels; ch++) {
                 const float kMagnitude = magnitudesChannelRowBin[ch][y][x];
                 const float kDecibels = DSPUtils::MagnitudeToDecibels(kMagnitude);
@@ -116,10 +116,6 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
                 g += kColor.g;
                 b += kColor.b;
             }
-            // Then normalize by channel count
-            r /= static_cast<int>(kChannels);
-            g /= static_cast<int>(kChannels);
-            b /= static_cast<int>(kChannels);
 
             // As above, we're accessing the framebuffer directly for performance
             // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)

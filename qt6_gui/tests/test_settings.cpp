@@ -109,6 +109,10 @@ class TestSettings : public QObject
         // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
         const auto invalidValue = static_cast<Settings::ColorMapType>(999);
         QVERIFY_EXCEPTION_THROWN(settings.SetColorMap(0, invalidValue), std::invalid_argument);
+
+        // Also verify the Count sentinel is not accepted
+        QVERIFY_EXCEPTION_THROWN(settings.SetColorMap(0, Settings::ColorMapType::Count),
+                                 std::invalid_argument);
     }
 
     // The linter complains about cognitive complexity because it's looking at

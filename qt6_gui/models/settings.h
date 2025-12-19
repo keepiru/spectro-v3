@@ -2,8 +2,10 @@
 
 #include "include/global_constants.h"
 #include <QObject>
+#include <array>
 #include <cstddef>
 #include <fft_window.h>
+#include <string_view>
 
 // Forward declarations
 class SpectrogramView;
@@ -21,6 +23,8 @@ class Settings : public QObject
   public:
     static constexpr size_t KColorMapLUTSize = 256;
 
+    // Linter complains because of the Last sentinel.  Ignore that.
+    // NOLINTNEXTLINE(readability-enum-initial-value)
     enum class ColorMapType : uint8_t
     {
         White,
@@ -34,7 +38,26 @@ class Settings : public QObject
         Plasma,
         Inferno,
         Magma,
+        Count,
     };
+
+    /**
+     *  @brief Mapping of ColorMapType to string names
+     *  Used for the UI pulldown to select color maps.
+     */
+    static constexpr std::array<std::pair<ColorMapType, std::string_view>,
+                                static_cast<size_t>(ColorMapType::Count)>
+      KColorMapTypeNames = { { { ColorMapType::White, "White" },
+                               { ColorMapType::Red, "Red" },
+                               { ColorMapType::Green, "Green" },
+                               { ColorMapType::Blue, "Blue" },
+                               { ColorMapType::Cyan, "Cyan" },
+                               { ColorMapType::Magenta, "Magenta" },
+                               { ColorMapType::Yellow, "Yellow" },
+                               { ColorMapType::Viridis, "Viridis" },
+                               { ColorMapType::Plasma, "Plasma" },
+                               { ColorMapType::Inferno, "Inferno" },
+                               { ColorMapType::Magma, "Magma" } } };
 
     /**
      * @brief Lightweight RGB color representation for LUT

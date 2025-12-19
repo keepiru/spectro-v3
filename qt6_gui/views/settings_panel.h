@@ -1,22 +1,18 @@
 #pragma once
 
 #include "models/settings.h"
+#include <QComboBox>
+#include <QSlider>
 #include <QWidget>
+#include <array>
+
+// Forward declarations
+class QLabel;
 
 /**
  * @brief Configuration panel widget
  *
- * Provides controls for adjusting FFT parameters, display settings, and audio
- * device selection.
- *
- * Future controls:
- * - FFT size selector
- * - Window type selector
- * - Hop size/overlap controls
- * - Color map selector
- * - Audio device selector
- * - Sample rate display
- * - Display range controls (min/max dB)
+ * Provides controls for adjusting FFT parameters, display settings, and color maps.
  */
 class SettingsPanel : public QWidget
 {
@@ -28,5 +24,28 @@ class SettingsPanel : public QWidget
 
   private:
     Settings* mSettings = nullptr;
-    // Future: Control widgets (combo boxes, sliders, etc.)
+
+    // Control widgets
+    QComboBox* mWindowTypeCombo = nullptr;
+    QComboBox* mFFTSizeCombo = nullptr;
+    QSlider* mWindowScaleSlider = nullptr;
+    QLabel* mWindowScaleLabel = nullptr;
+    QSlider* mApertureMinSlider = nullptr;
+    QLabel* mApertureMinLabel = nullptr;
+    QSlider* mApertureMaxSlider = nullptr;
+    QLabel* mApertureMaxLabel = nullptr;
+
+    static constexpr size_t KNumColorMapSelectors = 6;
+    std::array<QComboBox*, KNumColorMapSelectors> mColorMapCombos = {};
+
+    // Helper methods
+    void CreateLayout();
+    void CreateWindowTypeControl(class QFormLayout* aLayout);
+    void CreateFFTSizeControl(class QFormLayout* aLayout);
+    void CreateWindowScaleControl(class QFormLayout* aLayout);
+    void CreateApertureControls(class QFormLayout* aLayout);
+    void CreateColorMapControls(class QFormLayout* aLayout);
+    void UpdateWindowScaleLabel();
+    void UpdateApertureMinLabel();
+    void UpdateApertureMaxLabel();
 };

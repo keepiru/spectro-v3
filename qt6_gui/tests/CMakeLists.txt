@@ -33,3 +33,4 @@ add_qt_test(test_spectrogram_controller INCLUDE_DIR ${CMAKE_SOURCE_DIR}/dsp/test
 add_qt_test(test_spectrogram_view)
 add_qt_test(test_spectrum_plot)
 add_qt_test(test_settings_panel)
+add_qt_test(test_settings_controller)

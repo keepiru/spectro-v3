@@ -145,6 +145,21 @@ class TestAudioRecorder : public QObject
         QCOMPARE(buffer.GetSamples(0, 0, 5), std::vector<float>({ 0.1, 0.3, 0.5, 0.7, 0.9 }));
         QCOMPARE(buffer.GetSamples(1, 0, 5), std::vector<float>({ 0.2, 0.4, 0.6, 0.8, 1.0 }));
     }
+
+    static void TestIsRecording()
+    {
+        AudioBuffer buffer(1, 48000);
+        MockQIODevice ioDevice;
+        AudioRecorder recorder;
+
+        QCOMPARE(recorder.IsRecording(), false);
+
+        recorder.Start(&buffer, QAudioDevice(), &ioDevice);
+        QCOMPARE(recorder.IsRecording(), true);
+
+        recorder.Stop();
+        QCOMPARE(recorder.IsRecording(), false);
+    }
 };
 
 QTEST_MAIN(TestAudioRecorder)

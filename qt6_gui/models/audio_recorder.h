@@ -53,6 +53,10 @@ class AudioRecorder : public QObject
     /// @note no-op unless a capture is in progress.
     void Stop();
 
+    /// @brief Returns whether audio capture is currently active.
+    /// @return true if recording, false otherwise.
+    [[nodiscard]] bool IsRecording() const;
+
   signals:
     /// @brief Emitted when recording state changes.
     /// @param aIsRecording true if now recording, false if stopped.

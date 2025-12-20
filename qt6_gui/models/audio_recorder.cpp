@@ -123,3 +123,27 @@ AudioRecorder::ReadAudioData()
     // Then send it to the AudioBuffer.
     mAudioBuffer->AddSamples(samples);
 }
+
+bool
+AudioRecorder::IsRecording() const
+{
+    if (!mAudioSource) {
+        return false;
+    }
+
+    // TODO: Revisit whether "IdleState" should count as recording.  It's the
+    // best we can do with the current mocks.  We don't otherwise use this
+    // state, so it should be fine for now.
+    switch (mAudioSource->state()) {
+        case QAudio::ActiveState:
+        case QAudio::IdleState:
+            return true;
+        case QAudio::StoppedState:
+        case QAudio::SuspendedState:
+            return false;
+        default:
+            throw std::runtime_error(
+              std::format("AudioRecorder::IsRecording: Unknown QAudio state {}",
+                          static_cast<int>(mAudioSource->state())));
+    }
+}

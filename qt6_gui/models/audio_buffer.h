@@ -21,8 +21,18 @@ class AudioBuffer : public QObject
      * @param aChannelCount Number of audio channels (1=mono, 2=stereo, etc.)
      * @param aSampleRate Sample rate in Hz
      * @param aParent Qt parent object (optional)
+     * @throws std::invalid_argument if aChannelCount or aSampleRate is invalid
      */
     explicit AudioBuffer(size_t aChannelCount, size_t aSampleRate, QObject* aParent = nullptr);
+
+    /**
+     * @brief Reset the audio buffer, clearing all samples
+     * @param aChannelCount New channel count
+     * @param aSampleRate New sample rate in Hz
+     * @throws std::invalid_argument if aChannelCount or aSampleRate is invalid
+     * @note Intended to be used when starting recording or loading a file.
+     */
+    void Reset(size_t aChannelCount, size_t aSampleRate);
 
     /**
      * @brief Get the number of channels
@@ -80,6 +90,15 @@ class AudioBuffer : public QObject
     void DataAvailable(size_t aSampleCount);
 
   private:
+    /**
+     * @brief Initialize empty mChannelBuffers with given channel count and sample rate
+     * @param aChannelCount Number of audio channels
+     * @param aSampleRate Sample rate in Hz
+     * @throws std::invalid_argument if aChannelCount or aSampleRate is invalid
+     * @note This is a helper function used by the constructor and Reset() method.
+     */
+    void InitializeChannelBuffers(size_t aChannelCount, size_t aSampleRate);
+
     size_t mChannelCount;
     size_t mSampleRate;
     std::vector<std::unique_ptr<SampleBuffer>> mChannelBuffers;

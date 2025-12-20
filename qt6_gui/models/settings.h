@@ -1,6 +1,7 @@
 #pragma once
 
 #include "include/global_constants.h"
+#include <QAudioDevice>
 #include <QObject>
 #include <array>
 #include <cstddef>
@@ -198,6 +199,37 @@ class Settings : public QObject
         return mSelectedColorMaps.at(aChannel);
     }
 
+    /**
+     ** Audio device settings
+     **/
+
+    /**
+     * @brief Set audio input device settings
+     * @param aDevice Audio device to use for recording
+     * @param aSampleRate Sample rate in Hz (e.g., 44100, 48000)
+     * @param aChannelCount Number of audio channels (e.g., 1 for mono, 2 for stereo)
+     * @throws std::invalid_argument if the sample rate or channel count is invalid
+     */
+    void SetAudioInputSettings(const QAudioDevice& aDevice, int aSampleRate, int aChannelCount);
+
+    /**
+     * @brief Get the audio input device
+     * @return Current audio input device
+     */
+    [[nodiscard]] const QAudioDevice& GetInputDevice() const { return mInputDevice; }
+
+    /**
+     * @brief Get the audio sample rate
+     * @return Current audio sample rate
+     */
+    [[nodiscard]] int GetSampleRate() const { return mSampleRate; }
+
+    /**
+     * @brief Get the audio channel count
+     * @return Current audio channel count
+     */
+    [[nodiscard]] int GetChannelCount() const { return mChannelCount; }
+
   signals:
     /**
      * @brief Emitted when FFT size or window type changes
@@ -249,4 +281,11 @@ class Settings : public QObject
 
     // Selected color maps for each channel.
     std::array<ColorMapType, gkMaxChannels> mSelectedColorMaps = KDefaultColorMaps;
+
+    // Audio input device settings
+    QAudioDevice mInputDevice;
+    static constexpr int KDefaultSampleRate = 44100;
+    int mSampleRate = KDefaultSampleRate;
+    static constexpr int KDefaultChannelCount = 2;
+    int mChannelCount = KDefaultChannelCount;
 };

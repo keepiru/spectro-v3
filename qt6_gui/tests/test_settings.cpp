@@ -177,6 +177,41 @@ class TestSettings : public QObject
         QCOMPARE(settings.GetApertureMinDecibels(), -40.0f);
         QCOMPARE(settings.GetApertureMaxDecibels(), 20.0f);
     }
+
+    static void TestSetAudioInputSettings()
+    {
+        Settings settings;
+        QAudioDevice device; // Default constructed device
+
+        QCOMPARE(settings.GetInputDevice(), QAudioDevice());
+        QCOMPARE(settings.GetSampleRate(), 44100);
+        QCOMPARE(settings.GetChannelCount(), 2);
+
+        settings.SetAudioInputSettings(device, 48000, 1);
+
+        QCOMPARE(settings.GetInputDevice(), device);
+        QCOMPARE(settings.GetSampleRate(), 48000);
+        QCOMPARE(settings.GetChannelCount(), 1);
+    }
+
+    // Warning is due to assertion macro expansion
+    // NOLINTNEXTLINE(readability-function-cognitive-complexity)
+    static void TestSetAudioInputSettingsThrowsOnInvalidValues()
+    {
+        Settings settings;
+        QAudioDevice device; // Default constructed device
+
+        QVERIFY_EXCEPTION_THROWN(settings.SetAudioInputSettings(device, 0, 2),
+                                 std::invalid_argument);
+        QVERIFY_EXCEPTION_THROWN(settings.SetAudioInputSettings(device, -44100, 2),
+                                 std::invalid_argument);
+        QVERIFY_EXCEPTION_THROWN(settings.SetAudioInputSettings(device, 44100, 0),
+                                 std::invalid_argument);
+        QVERIFY_EXCEPTION_THROWN(settings.SetAudioInputSettings(device, 44100, -2),
+                                 std::invalid_argument);
+        QVERIFY_EXCEPTION_THROWN(settings.SetAudioInputSettings(device, 44100, gkMaxChannels + 1),
+                                 std::invalid_argument);
+    }
 };
 
 QTEST_MAIN(TestSettings)

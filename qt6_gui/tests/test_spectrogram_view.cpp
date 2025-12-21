@@ -1,5 +1,4 @@
 #include "controllers/spectrogram_controller.h"
-#include "include/global_constants.h"
 #include "models/audio_buffer.h"
 #include "views/spectrogram_view.h"
 
@@ -19,7 +18,7 @@ class TestSpectrogramView : public QObject
     {
 
         const Settings settings;
-        const AudioBuffer audioBuffer(2, 44100);
+        const AudioBuffer audioBuffer;
         SpectrogramController controller(settings, audioBuffer);
         const SpectrogramView view(&controller);
 
@@ -30,7 +29,7 @@ class TestSpectrogramView : public QObject
     static void TestIsWidget()
     {
         const Settings settings;
-        const AudioBuffer audioBuffer(2, 44100);
+        const AudioBuffer audioBuffer;
         SpectrogramController controller(settings, audioBuffer);
         SpectrogramView view(&controller);
         QVERIFY(qobject_cast<QWidget*>(&view) != nullptr);

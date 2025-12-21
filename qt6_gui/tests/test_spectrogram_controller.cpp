@@ -19,7 +19,7 @@ class TestSpectrogramController : public QObject
     static void TestConstructor()
     {
         const Settings settings;
-        const AudioBuffer audioBuffer(2, 44100);
+        const AudioBuffer audioBuffer;
         const SpectrogramController controller(settings, audioBuffer);
     }
 
@@ -39,7 +39,7 @@ class TestSpectrogramController : public QObject
           };
 
         Settings settings;
-        const AudioBuffer audioBuffer(2, 44100);
+        const AudioBuffer audioBuffer;
         const SpectrogramController controller(settings, audioBuffer, procSpy, windowSpy);
 
         // Constructor calls with defaults
@@ -90,7 +90,8 @@ class TestSpectrogramController : public QObject
 
     static void TestGetRowsSingleWindowComputation()
     {
-        AudioBuffer buffer(1, 44100);
+        AudioBuffer buffer;
+        buffer.Reset(1, 44100);
         buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
                             13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
         Settings settings;
@@ -105,7 +106,8 @@ class TestSpectrogramController : public QObject
 
     static void TestGetRowsMultipleNonoverlappingWindows()
     {
-        AudioBuffer buffer(1, 44100);
+        AudioBuffer buffer;
+        buffer.Reset(1, 44100);
         buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
                             13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
         Settings settings;
@@ -122,7 +124,8 @@ class TestSpectrogramController : public QObject
     static void TestGetRows50PercentOverlap()
     {
         Settings settings;
-        AudioBuffer buffer(1, 44100);
+        AudioBuffer buffer;
+        buffer.Reset(1, 44100);
         buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
                             13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
         auto controller = CreateControllerWithMockFFT(settings, buffer);
@@ -140,7 +143,8 @@ class TestSpectrogramController : public QObject
     static void TestGetRows75PercentOverlap()
     {
         Settings settings;
-        AudioBuffer buffer(1, 44100);
+        AudioBuffer buffer;
+        buffer.Reset(1, 44100);
         buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
                             14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 });
         auto controller = CreateControllerWithMockFFT(settings, buffer);
@@ -160,7 +164,8 @@ class TestSpectrogramController : public QObject
     static void TestGetRowsWithStartSampleBeyondBufferEndReturnsZeroedRows()
     {
         Settings settings;
-        AudioBuffer buffer(1, 44100);
+        AudioBuffer buffer;
+        buffer.Reset(1, 44100);
         buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
         auto controller = CreateControllerWithMockFFT(settings, buffer);
 
@@ -175,7 +180,8 @@ class TestSpectrogramController : public QObject
     static void TestGetRowsWithNegativeStartSampleReturnsZeroedRows()
     {
         Settings settings;
-        AudioBuffer buffer(1, 44100);
+        AudioBuffer buffer;
+        buffer.Reset(1, 44100);
         buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
         auto controller = CreateControllerWithMockFFT(settings, buffer);
         auto kGot = controller->GetRows(0, -2, 2);
@@ -189,7 +195,8 @@ class TestSpectrogramController : public QObject
     static void TestGetRowsThrowsOnOverflow()
     {
         Settings settings;
-        AudioBuffer buffer(1, 44100);
+        AudioBuffer buffer;
+        buffer.Reset(1, 44100);
         buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
         auto controller = CreateControllerWithMockFFT(settings, buffer);
 
@@ -202,7 +209,8 @@ class TestSpectrogramController : public QObject
     static void TestGetRowsWithHannWindowIntegration()
     {
         Settings settings;
-        AudioBuffer buffer(1, 44100);
+        AudioBuffer buffer;
+        buffer.Reset(1, 44100);
         buffer.AddSamples({ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
         auto controller = CreateControllerWithMockFFT(settings, buffer);
         settings.SetFFTSettings(8, FFTWindow::Type::Hann);
@@ -223,7 +231,8 @@ class TestSpectrogramController : public QObject
     static void TestGetRowsThrowsOnInvalidChannel()
     {
         const Settings settings;
-        const AudioBuffer buffer(1, 44100);
+        AudioBuffer buffer;
+        buffer.Reset(1, 44100);
         const SpectrogramController controller(settings, buffer);
 
         QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.GetRows(1, 0, 1));
@@ -232,7 +241,7 @@ class TestSpectrogramController : public QObject
     static void TestGetAvailableSampleCount()
     {
         const Settings settings;
-        AudioBuffer buffer(2, 44100);
+        AudioBuffer buffer;
         const SpectrogramController controller(settings, buffer);
 
         buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
@@ -243,7 +252,8 @@ class TestSpectrogramController : public QObject
     static void TestGetChannelCount()
     {
         const Settings settings;
-        const AudioBuffer buffer(3, 44100);
+        AudioBuffer buffer;
+        buffer.Reset(3, 44100);
         const SpectrogramController controller(settings, buffer);
         QCOMPARE(controller.GetChannelCount(), 3);
     }

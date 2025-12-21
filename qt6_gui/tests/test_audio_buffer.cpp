@@ -14,58 +14,51 @@ class TestAudioBuffer : public QObject
   private slots:
     static void TestConstructor()
     {
-        AudioBuffer const buffer(2, 44100);
+        AudioBuffer const buffer;
         QCOMPARE(buffer.GetChannelCount(), 2);
         QCOMPARE(buffer.GetSampleRate(), 44100);
     }
 
-    static void TestConstructorThrowsOnZeroChannels()
+    // NOLINTNEXTLINE(readability-function-cognitive-complexity) -- QVERIFY macro expansion
+    static void TestResetThrowsOnInvalidArguments()
     {
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, AudioBuffer(0, 44100));
-    }
+        AudioBuffer buffer;
 
-    static void TestConstructorThrowsOnExcessiveChannels()
-    {
-        const AudioBuffer buffer(gkMaxChannels, 44100); // Should be OK
-        QCOMPARE(buffer.GetChannelCount(), gkMaxChannels);
-
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, AudioBuffer(gkMaxChannels + 1, 44100));
-    }
-
-    static void TestConstructorThrowsOnZeroSampleRate()
-    {
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, AudioBuffer(2, 0));
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, buffer.Reset(-1, 44100));
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, buffer.Reset(0, 44100));
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, buffer.Reset(gkMaxChannels + 1, 44100));
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, buffer.Reset(2, 0));
     }
 
     static void TestAddSamplesSucceedsWithValidSize()
     {
-        AudioBuffer buffer(2, 44100);
+        AudioBuffer buffer;
         buffer.AddSamples({ 1, 2, 3, 4 });
     }
 
     static void TestAddSamplesThrowsOnInvalidSize()
     {
-        AudioBuffer buffer(2, 44100);
+        AudioBuffer buffer;
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, buffer.AddSamples({ 1, 2, 3, 4, 5 }));
     }
 
     static void TestGetSamplesThrowsIfInsufficientSamples()
     {
-        AudioBuffer buffer(2, 44100);
+        AudioBuffer buffer;
         buffer.AddSamples({ 1, 2, 3, 4 });
         QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)buffer.GetSamples(1, 1, 4));
     }
 
     static void TestGetSamplesThrowsOnInvalidChannelIndex()
     {
-        AudioBuffer const buffer(2, 44100);
+        AudioBuffer const buffer;
         (void)buffer.GetSamples(1, 0, 0); // No exception
         QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)buffer.GetSamples(2, 0, 0));
     }
 
     static void TestAddSamplesDeinterleavesToChannelBuffers()
     {
-        AudioBuffer buffer(2, 44100);
+        AudioBuffer buffer;
         buffer.AddSamples({ 1, 2, 3, 4 });
 
         QCOMPARE(buffer.GetSamples(0, 0, 2), std::vector<float>({ 1, 3 }));
@@ -74,7 +67,7 @@ class TestAudioBuffer : public QObject
 
     static void TestAddSamplesEmitsSignal()
     {
-        AudioBuffer buffer(2, 44100);
+        AudioBuffer buffer;
         QSignalSpy spy(&buffer, &AudioBuffer::DataAvailable);
         buffer.AddSamples({ 1, 2, 3, 4 });
 
@@ -86,7 +79,7 @@ class TestAudioBuffer : public QObject
 
     static void TestResetClearsSamples()
     {
-        AudioBuffer buffer(2, 44100);
+        AudioBuffer buffer;
         buffer.AddSamples({ 1, 2, 3, 4 });
 
         QCOMPARE(buffer.NumSamples(), 2);
@@ -104,7 +97,7 @@ class TestAudioBuffer : public QObject
 
     static void TestResetChangesChannelCountAndSampleRate()
     {
-        AudioBuffer buffer(2, 44100);
+        AudioBuffer buffer;
 
         QCOMPARE(buffer.GetChannelCount(), 2);
         QCOMPARE(buffer.GetSampleRate(), 44100);
@@ -117,7 +110,7 @@ class TestAudioBuffer : public QObject
 
     static void TestResetEmitsSignal()
     {
-        AudioBuffer buffer(2, 44100);
+        AudioBuffer buffer;
         const QSignalSpy spy(&buffer, &AudioBuffer::DataAvailable);
 
         QCOMPARE(spy.count(), 0);

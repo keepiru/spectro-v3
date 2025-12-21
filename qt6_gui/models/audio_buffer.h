@@ -18,12 +18,9 @@ class AudioBuffer : public QObject
   public:
     /**
      * @brief Constructor
-     * @param aChannelCount Number of audio channels (1=mono, 2=stereo, etc.)
-     * @param aSampleRate Sample rate in Hz
      * @param aParent Qt parent object (optional)
-     * @throws std::invalid_argument if aChannelCount or aSampleRate is invalid
      */
-    explicit AudioBuffer(size_t aChannelCount, size_t aSampleRate, QObject* aParent = nullptr);
+    explicit AudioBuffer(QObject* aParent = nullptr);
 
     /**
      * @brief Reset the audio buffer, clearing all samples

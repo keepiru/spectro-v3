@@ -8,13 +8,15 @@
 #include <stdexcept>
 #include <vector>
 
-AudioBuffer::AudioBuffer(size_t aChannelCount, size_t aSampleRate, QObject* aParent)
+AudioBuffer::AudioBuffer(QObject* aParent)
   : QObject(aParent)
   , mChannelCount()
   , mSampleRate()
 
 {
-    InitializeChannelBuffers(aChannelCount, aSampleRate);
+    constexpr size_t kDefaultChannelCount = 2;
+    constexpr size_t kDefaultSampleRate = 44100;
+    InitializeChannelBuffers(kDefaultChannelCount, kDefaultSampleRate);
 }
 
 void

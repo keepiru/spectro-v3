@@ -23,7 +23,7 @@ constexpr size_t KDefaultSampleRate = 44100;
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
-  , mAudioBuffer(new AudioBuffer(KDefaultChannelCount, KDefaultSampleRate, this))
+  , mAudioBuffer(new AudioBuffer(this))
   , mAudioRecorder(new AudioRecorder(*mAudioBuffer, this))
   , mSettings(new Settings(this))
 {

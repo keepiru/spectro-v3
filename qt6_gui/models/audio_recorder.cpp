@@ -1,5 +1,6 @@
 #include "audio_recorder.h"
 #include "audio_buffer.h"
+#include "include/global_constants.h"
 #include <QAudio>
 #include <QAudioDevice>
 #include <QAudioFormat>
@@ -26,9 +27,27 @@ AudioRecorder::~AudioRecorder()
 }
 
 bool
-AudioRecorder::Start(const QAudioDevice& aQAudioDevice, QIODevice* aMockQIODevice)
+AudioRecorder::Start(const QAudioDevice& aQAudioDevice,
+                     int aChannelCount,
+                     int aSampleRate,
+                     QIODevice* aMockQIODevice)
 {
-    const auto format = CreateFormatFromBuffer(mAudioBuffer);
+    if (aChannelCount <= 0 || aChannelCount > gkMaxChannels) {
+        throw std::invalid_argument(
+          std::format("{}: Invalid channel count {}", __PRETTY_FUNCTION__, aChannelCount));
+    }
+
+    if (aSampleRate <= 0) {
+        throw std::invalid_argument(
+          std::format("{}: Invalid sample rate {}", __PRETTY_FUNCTION__, aSampleRate));
+    }
+
+    QAudioFormat format;
+    format.setSampleRate(aSampleRate);
+    format.setChannelCount(aChannelCount);
+    format.setSampleFormat(QAudioFormat::Float);
+
+    mAudioBuffer.Reset(aChannelCount, aSampleRate);
 
     mAudioSource = std::make_unique<QAudioSource>(aQAudioDevice, format);
 
@@ -79,16 +98,6 @@ AudioRecorder::Stop()
         emit RecordingStateChanged(false);
     }
     mAudioIODevice = nullptr;
-}
-
-QAudioFormat
-AudioRecorder::CreateFormatFromBuffer(const AudioBuffer& aBuffer)
-{
-    QAudioFormat format;
-    format.setSampleRate(static_cast<int>(aBuffer.GetSampleRate()));
-    format.setChannelCount(static_cast<int>(aBuffer.GetChannelCount()));
-    format.setSampleFormat(QAudioFormat::Float);
-    return format;
 }
 
 void

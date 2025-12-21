@@ -1,3 +1,4 @@
+#include "include/global_constants.h"
 #include "models/audio_buffer.h"
 #include "models/audio_recorder.h"
 #include <QAudioDevice>
@@ -63,6 +64,43 @@ class TestAudioRecorder : public QObject
         // Constructor should not crash
     }
 
+    // NOLINTNEXTLINE(readability-function-cognitive-complexity) -- QVERIFY macro expansion
+    static void TestStartWithInvalidArgsThrows()
+    {
+        AudioBuffer buffer(1, 48000);
+        AudioRecorder recorder(buffer);
+
+        // Invalid channel count
+        QVERIFY_EXCEPTION_THROWN(recorder.Start(QAudioDevice(), -1, 48000), std::invalid_argument);
+        QVERIFY_EXCEPTION_THROWN(recorder.Start(QAudioDevice(), 0, 48000), std::invalid_argument);
+        recorder.Start(QAudioDevice(), 1, 48000);             // Does not throw
+        recorder.Start(QAudioDevice(), gkMaxChannels, 48000); // Does not throw
+        QVERIFY_EXCEPTION_THROWN(recorder.Start(QAudioDevice(), gkMaxChannels + 1, 48000),
+                                 std::invalid_argument);
+
+        // Invalid sample rate
+        QVERIFY_EXCEPTION_THROWN(recorder.Start(QAudioDevice(), 1, 0), std::invalid_argument);
+        QVERIFY_EXCEPTION_THROWN(recorder.Start(QAudioDevice(), 1, -44100), std::invalid_argument);
+    }
+
+    static void TestStartResetsAudioBuffer()
+    {
+        AudioBuffer buffer(2, 44100);
+        AudioRecorder recorder(buffer);
+        MockQIODevice ioDevice;
+
+        // Add some samples to the buffer first
+        buffer.AddSamples({ 0.1f, 0.2f, 0.3f, 0.4f });
+        QCOMPARE(buffer.NumSamples(), 2);
+        QCOMPARE(buffer.GetSampleRate(), 44100);
+
+        recorder.Start(QAudioDevice(), 2, 48000, &ioDevice);
+
+        // Buffer should be reset
+        QCOMPARE(buffer.NumSamples(), 0);
+        QCOMPARE(buffer.GetSampleRate(), 48000);
+    }
+
     static void TestStopWhenNotRecordingIsNoOp()
     {
         AudioBuffer buffer(1, 48000);
@@ -77,7 +115,7 @@ class TestAudioRecorder : public QObject
         AudioBuffer buffer(1, 48000);
         AudioRecorder recorder(buffer);
         MockQIODevice ioDevice;
-        recorder.Start(QAudioDevice(), &ioDevice);
+        recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
         QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
 
         recorder.Stop(); // Should not crash
@@ -96,7 +134,7 @@ class TestAudioRecorder : public QObject
         AudioRecorder recorder(buffer);
         QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
 
-        recorder.Start(QAudioDevice(), &ioDevice);
+        recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
 
         // Verify the signal is emitted
         QCOMPARE(spy.count(), 1);
@@ -111,7 +149,7 @@ class TestAudioRecorder : public QObject
         AudioBuffer buffer(2, 48000);
         MockQIODevice ioDevice;
         AudioRecorder recorder(buffer);
-        recorder.Start(QAudioDevice(), &ioDevice);
+        recorder.Start(QAudioDevice(), 2, 48000, &ioDevice);
 
         // Feed in some mock audio data...
         ioDevice.SimulateAudioData({ 0.1, 0.2, 0.3, 0.4 });
@@ -138,7 +176,7 @@ class TestAudioRecorder : public QObject
 
         QCOMPARE(recorder.IsRecording(), false);
 
-        recorder.Start(QAudioDevice(), &ioDevice);
+        recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
         QCOMPARE(recorder.IsRecording(), true);
 
         recorder.Stop();

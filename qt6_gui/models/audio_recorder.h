@@ -42,10 +42,14 @@ class AudioRecorder : public QObject
 
     /// @brief Starts audio capture, writing samples to the specified buffer.
     /// @param aQAudioDevice The audio input device to capture from.
+    /// @param aChannelCount Number of audio channels (e.g., 1 for mono, 2 for stereo).
+    /// @param aSampleRate Sample rate in Hz (e.g., 44100, 48000).
     /// @param aMockQIODevice Mock audio IO device for testing.  (optional)
     /// @return true if capture started successfully, false otherwise.
-    /// @note Audio format (sample rate, channels) is inferred from aAudioBuffer.
-    bool Start(const QAudioDevice& aQAudioDevice, QIODevice* aMockQIODevice = nullptr);
+    bool Start(const QAudioDevice& aQAudioDevice,
+               int aChannelCount,
+               int aSampleRate,
+               QIODevice* aMockQIODevice = nullptr);
 
     /// @brief Stops audio capture.
     /// @note no-op unless a capture is in progress.
@@ -68,9 +72,6 @@ class AudioRecorder : public QObject
     std::unique_ptr<QAudioSource> mAudioSource;
     QIODevice* mAudioIODevice = nullptr;
     AudioBuffer& mAudioBuffer;
-
-    /// @brief Creates a QAudioFormat from AudioBuffer settings.
-    static QAudioFormat CreateFormatFromBuffer(const AudioBuffer& aBuffer);
 
     /// @brief Reads available audio data and writes to the aBuffer.
     void ReadAudioData();

@@ -38,7 +38,8 @@ MainWindow::MainWindow(QWidget* parent)
     QLoggingCategory::setFilterRules("qt.multimedia.ffmpeg=false");
 
     // For now we don't have a config UI, so just start recording with defaults
-    mAudioRecorder->Start(QMediaDevices::defaultAudioInput());
+    mAudioRecorder->Start(
+      QMediaDevices::defaultAudioInput(), KDefaultChannelCount, KDefaultSampleRate);
 
     mSpectrogramController =
       new SpectrogramController(*mSettings, *mAudioBuffer, nullptr, nullptr, this);

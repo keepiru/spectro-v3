@@ -59,7 +59,7 @@ class TestAudioRecorder : public QObject
   private slots:
     static void TestConstructorSucceeds()
     {
-        AudioBuffer buffer(1, 48000);
+        AudioBuffer buffer;
         const AudioRecorder recorder(buffer);
         // Constructor should not crash
     }
@@ -67,7 +67,7 @@ class TestAudioRecorder : public QObject
     // NOLINTNEXTLINE(readability-function-cognitive-complexity) -- QVERIFY macro expansion
     static void TestStartWithInvalidArgsThrows()
     {
-        AudioBuffer buffer(1, 48000);
+        AudioBuffer buffer;
         AudioRecorder recorder(buffer);
 
         // Invalid channel count
@@ -85,7 +85,7 @@ class TestAudioRecorder : public QObject
 
     static void TestStartResetsAudioBuffer()
     {
-        AudioBuffer buffer(2, 44100);
+        AudioBuffer buffer;
         AudioRecorder recorder(buffer);
         MockQIODevice ioDevice;
 
@@ -103,7 +103,7 @@ class TestAudioRecorder : public QObject
 
     static void TestStopWhenNotRecordingIsNoOp()
     {
-        AudioBuffer buffer(1, 48000);
+        AudioBuffer buffer;
         AudioRecorder recorder(buffer);
         const QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
         recorder.Stop();          // Should not crash
@@ -112,7 +112,7 @@ class TestAudioRecorder : public QObject
 
     static void TestStopAfterStartSucceeds()
     {
-        AudioBuffer buffer(1, 48000);
+        AudioBuffer buffer;
         AudioRecorder recorder(buffer);
         MockQIODevice ioDevice;
         recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
@@ -129,7 +129,7 @@ class TestAudioRecorder : public QObject
 
     static void TestRecordingStateChangedSignalEmitted()
     {
-        AudioBuffer buffer(1, 48000);
+        AudioBuffer buffer;
         MockQIODevice ioDevice;
         AudioRecorder recorder(buffer);
         QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
@@ -146,7 +146,7 @@ class TestAudioRecorder : public QObject
 
     static void TestAudioDataWrittenToBuffer()
     {
-        AudioBuffer buffer(2, 48000);
+        AudioBuffer buffer;
         MockQIODevice ioDevice;
         AudioRecorder recorder(buffer);
         recorder.Start(QAudioDevice(), 2, 48000, &ioDevice);
@@ -170,7 +170,7 @@ class TestAudioRecorder : public QObject
 
     static void TestIsRecording()
     {
-        AudioBuffer buffer(1, 48000);
+        AudioBuffer buffer;
         MockQIODevice ioDevice;
         AudioRecorder recorder(buffer);
 

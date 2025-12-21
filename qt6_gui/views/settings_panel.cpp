@@ -1,14 +1,19 @@
 #include "settings_panel.h"
 #include "include/global_constants.h"
 #include "models/settings.h"
+#include <QAudioDevice>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QImage>
 #include <QLabel>
+#include <QMediaDevices>
+#include <QPushButton>
 #include <QSlider>
+#include <QSpinBox>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <Qt>
+#include <algorithm>
 #include <cstdint>
 #include <format>
 #include <string>
@@ -22,6 +27,15 @@ SettingsPanel::SettingsPanel(Settings& aSettings, AudioRecorder& aAudioRecorder,
     setFixedWidth(kPanelWidth);
 
     CreateLayout();
+
+    // Connect to audio recorder state changes
+    connect(mAudioRecorder,
+            &AudioRecorder::RecordingStateChanged,
+            this,
+            &SettingsPanel::OnRecordingStateChanged);
+
+    // Set initial state based on current recording status
+    OnRecordingStateChanged(mAudioRecorder->IsRecording());
 }
 
 void
@@ -34,6 +48,7 @@ SettingsPanel::CreateLayout()
     auto* formLayout = new QFormLayout();
     formLayout->setSpacing(8);
 
+    CreateAudioControls(formLayout);
     CreateWindowTypeControl(formLayout);
     CreateFFTSizeControl(formLayout);
     CreateWindowScaleControl(formLayout);
@@ -272,4 +287,143 @@ SettingsPanel::UpdateApertureMaxLabel()
 {
     const float value = mSettings->GetApertureMaxDecibels();
     mApertureMaxLabel->setText(QString::fromStdString(std::format("{:.0f} dB", value)));
+}
+
+void
+SettingsPanel::CreateAudioControls(QFormLayout* aLayout)
+{
+    // Audio Device selection
+    mAudioDeviceCombo = new QComboBox(this);
+    mAudioDeviceCombo->setObjectName("audioDeviceCombo");
+
+    const auto audioInputs = QMediaDevices::audioInputs();
+    const auto defaultDevice = QMediaDevices::defaultAudioInput();
+    int defaultIndex = 0;
+
+    for (int i = 0; i < audioInputs.size(); ++i) {
+        const auto& device = audioInputs.at(i);
+        mAudioDeviceCombo->addItem(device.description(), QVariant::fromValue(device));
+        if (device == defaultDevice) {
+            defaultIndex = i;
+        }
+    }
+    mAudioDeviceCombo->setCurrentIndex(defaultIndex);
+
+    // Update sample rates and channel range when device changes
+    connect(mAudioDeviceCombo, &QComboBox::currentIndexChanged, this, [this](int /*aIndex*/) {
+        const auto device = mAudioDeviceCombo->currentData().value<QAudioDevice>();
+        UpdateSampleRatesForDevice(device);
+        UpdateChannelRangeForDevice(device);
+    });
+
+    aLayout->addRow("Audio Device:", mAudioDeviceCombo);
+
+    // Sample Rate selection
+    mSampleRateCombo = new QComboBox(this);
+    mSampleRateCombo->setObjectName("sampleRateCombo");
+
+    // Populate with rates from default device initially
+    UpdateSampleRatesForDevice(defaultDevice);
+
+    aLayout->addRow("Sample Rate:", mSampleRateCombo);
+
+    // Channel Count selection
+    mChannelCountSpinBox = new QSpinBox(this);
+    mChannelCountSpinBox->setObjectName("channelCountSpinBox");
+    mChannelCountSpinBox->setRange(1, static_cast<int>(gkMaxChannels));
+    mChannelCountSpinBox->setValue(2); // Default to stereo
+
+    // Update range based on default device capabilities
+    UpdateChannelRangeForDevice(defaultDevice);
+
+    aLayout->addRow("Channels:", mChannelCountSpinBox);
+
+    // Start/Stop Recording button
+    mRecordingButton = new QPushButton("Start Recording", this);
+    mRecordingButton->setObjectName("recordingButton");
+
+    connect(
+      mRecordingButton, &QPushButton::clicked, this, &SettingsPanel::OnRecordingButtonClicked);
+
+    aLayout->addRow("", mRecordingButton);
+}
+
+void
+SettingsPanel::UpdateSampleRatesForDevice(const QAudioDevice& aDevice)
+{
+    mSampleRateCombo->clear();
+
+    // Common sample rates to offer
+    static const std::array<int, 5> commonRates = { 22050, 44100, 48000, 88200, 96000 };
+
+    const int minRate = aDevice.minimumSampleRate();
+    const int maxRate = aDevice.maximumSampleRate();
+
+    int defaultIndex = 0;
+    for (size_t i = 0; i < commonRates.size(); ++i) {
+        const int rate = commonRates.at(i);
+        if (rate >= minRate && rate <= maxRate) {
+            mSampleRateCombo->addItem(QString::number(rate) + " Hz", rate);
+            if (rate == 44100) {
+                defaultIndex = mSampleRateCombo->count() - 1;
+            }
+        }
+    }
+
+    mSampleRateCombo->setCurrentIndex(defaultIndex);
+}
+
+void
+SettingsPanel::UpdateChannelRangeForDevice(const QAudioDevice& aDevice)
+{
+    // Use the device's preferred format to get the actual channel count
+    // maximumChannelCount() returns theoretical max, not hardware reality
+    const auto preferredFormat = aDevice.preferredFormat();
+    const int actualChannels = preferredFormat.channelCount();
+    
+    // Allow from 1 up to the device's actual channel count, clamped to our app max
+    const int effectiveMax = std::min(actualChannels, static_cast<int>(gkMaxChannels));
+    
+    // Preserve current value if possible, otherwise clamp it
+    const int currentValue = mChannelCountSpinBox->value();
+    mChannelCountSpinBox->setRange(1, effectiveMax);
+
+    // Restore value or clamp to new range
+    if (currentValue > effectiveMax) {
+        mChannelCountSpinBox->setValue(effectiveMax);
+    } else if (currentValue < 1) {
+        mChannelCountSpinBox->setValue(1);
+    } else {
+        mChannelCountSpinBox->setValue(currentValue);
+    }
+}
+
+void
+SettingsPanel::UpdateRecordingControlsEnabled(bool aIsRecording)
+{
+    // Disable device/rate/channels controls while recording
+    mAudioDeviceCombo->setEnabled(!aIsRecording);
+    mSampleRateCombo->setEnabled(!aIsRecording);
+    mChannelCountSpinBox->setEnabled(!aIsRecording);
+}
+
+void
+SettingsPanel::OnRecordingButtonClicked()
+{
+    if (mAudioRecorder->IsRecording()) {
+        mAudioRecorder->Stop();
+    } else {
+        const auto device = mAudioDeviceCombo->currentData().value<QAudioDevice>();
+        const int sampleRate = mSampleRateCombo->currentData().toInt();
+        const int channelCount = mChannelCountSpinBox->value();
+
+        mAudioRecorder->Start(device, channelCount, sampleRate);
+    }
+}
+
+void
+SettingsPanel::OnRecordingStateChanged(bool aIsRecording)
+{
+    mRecordingButton->setText(aIsRecording ? "Stop Recording" : "Start Recording");
+    UpdateRecordingControlsEnabled(aIsRecording);
 }

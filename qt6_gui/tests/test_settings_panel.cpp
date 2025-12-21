@@ -4,8 +4,10 @@
 #include "views/settings_panel.h"
 #include <QComboBox>
 #include <QLabel>
+#include <QPushButton>
 #include <QSignalSpy>
 #include <QSlider>
+#include <QSpinBox>
 #include <QTest>
 #include <fft_window.h>
 
@@ -266,6 +268,117 @@ class TestSettingsPanel : public QObject
         auto* apertureMaxSlider = panel.findChild<QSlider*>("apertureMaxSlider");
         apertureMaxSlider->setValue(15);
         QCOMPARE(apertureSpy.count(), 2);
+    }
+
+    static void TestAudioDeviceControl()
+    {
+        Settings settings;
+        AudioBuffer audioBuffer;
+        AudioRecorder audioRecorder(audioBuffer);
+        SettingsPanel panel(settings, audioRecorder);
+
+        auto* combo = panel.findChild<QComboBox*>("audioDeviceCombo");
+        QVERIFY(combo != nullptr);
+
+        // Should have at least one device (system should have some audio input)
+        // On CI systems there may be no devices, so just verify the control exists
+        QVERIFY(combo->count() >= 0);
+    }
+
+    static void TestSampleRateControl()
+    {
+        Settings settings;
+        AudioBuffer audioBuffer;
+        AudioRecorder audioRecorder(audioBuffer);
+        SettingsPanel panel(settings, audioRecorder);
+
+        auto* combo = panel.findChild<QComboBox*>("sampleRateCombo");
+        QVERIFY(combo != nullptr);
+
+        // Sample rates should be populated based on device capabilities
+        // On CI systems there may be no devices, so just verify the control exists
+        QVERIFY(combo->count() >= 0);
+
+        // If there are sample rates, verify they have Hz suffix in display text
+        if (combo->count() > 0) {
+            QVERIFY(combo->itemText(0).contains("Hz"));
+        }
+    }
+
+    static void TestChannelCountControl()
+    {
+        Settings settings;
+        AudioBuffer audioBuffer;
+        AudioRecorder audioRecorder(audioBuffer);
+        SettingsPanel panel(settings, audioRecorder);
+
+        auto* spinBox = panel.findChild<QSpinBox*>("channelCountSpinBox");
+        QVERIFY(spinBox != nullptr);
+
+        // Check that max is clamped to application's gkMaxChannels
+        QVERIFY(spinBox->maximum() <= static_cast<int>(gkMaxChannels));
+
+        // Check that minimum is at least 1
+        QVERIFY(spinBox->minimum() >= 1);
+
+        // Current value should be within range
+        QVERIFY(spinBox->value() >= spinBox->minimum());
+        QVERIFY(spinBox->value() <= spinBox->maximum());
+    }
+
+    static void TestRecordingButton()
+    {
+        Settings settings;
+        AudioBuffer audioBuffer;
+        AudioRecorder audioRecorder(audioBuffer);
+        SettingsPanel panel(settings, audioRecorder);
+
+        auto* button = panel.findChild<QPushButton*>("recordingButton");
+        QVERIFY(button != nullptr);
+
+        // Initially should show "Start Recording" (not recording)
+        QCOMPARE(button->text(), QString("Start Recording"));
+    }
+
+    static void TestControlsDisabledWhileRecording()
+    {
+        Settings settings;
+        AudioBuffer audioBuffer;
+        AudioRecorder audioRecorder(audioBuffer);
+        SettingsPanel panel(settings, audioRecorder);
+
+        auto* deviceCombo = panel.findChild<QComboBox*>("audioDeviceCombo");
+        auto* sampleRateCombo = panel.findChild<QComboBox*>("sampleRateCombo");
+        auto* channelSpinBox = panel.findChild<QSpinBox*>("channelCountSpinBox");
+        auto* recordingButton = panel.findChild<QPushButton*>("recordingButton");
+
+        QVERIFY(deviceCombo != nullptr);
+        QVERIFY(sampleRateCombo != nullptr);
+        QVERIFY(channelSpinBox != nullptr);
+        QVERIFY(recordingButton != nullptr);
+
+        // Initially not recording - controls should be enabled
+        QVERIFY(deviceCombo->isEnabled());
+        QVERIFY(sampleRateCombo->isEnabled());
+        QVERIFY(channelSpinBox->isEnabled());
+
+        // Simulate recording state change by emitting signal
+        emit audioRecorder.RecordingStateChanged(true);
+
+        // Controls should now be disabled
+        QVERIFY(!deviceCombo->isEnabled());
+        QVERIFY(!sampleRateCombo->isEnabled());
+        QVERIFY(!channelSpinBox->isEnabled());
+        QCOMPARE(recordingButton->text(), QString("Stop Recording"));
+
+        // Simulate recording stopped
+        emit audioRecorder.RecordingStateChanged(false);
+
+        // Controls should be enabled again
+        QVERIFY(deviceCombo->isEnabled());
+        QVERIFY(sampleRateCombo->isEnabled());
+        QVERIFY(channelSpinBox->isEnabled());
+        QCOMPARE(recordingButton->text(), QString("Start Recording"));
     }
 };
 

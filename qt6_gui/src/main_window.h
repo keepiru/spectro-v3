@@ -1,14 +1,14 @@
 #pragma once
 
+#include "controllers/spectrogram_controller.h"
+#include "models/audio_buffer.h"
+#include "models/audio_recorder.h"
+#include "views/settings_panel.h"
+#include "views/spectrogram_view.h"
+#include "views/spectrum_plot.h"
 #include <QMainWindow>
 
-class AudioBuffer;
-class AudioRecorder;
-class SettingsPanel;
 class Settings;
-class SpectrogramController;
-class SpectrogramView;
-class SpectrumPlot;
 
 /**
  * @brief Main application window for Spectro-v3 spectrum analyzer
@@ -40,13 +40,13 @@ class MainWindow : public QMainWindow
     void SetupConnections();
 
     // Models and controllers
-    AudioBuffer* mAudioBuffer = nullptr;
-    SpectrogramController* mSpectrogramController = nullptr;
-    AudioRecorder* mAudioRecorder = nullptr;
-    Settings* mSettings = nullptr;
+    Settings mSettings;
+    AudioBuffer mAudioBuffer;
+    AudioRecorder mAudioRecorder;
+    SpectrogramController mSpectrogramController;
 
     // View widgets
-    SpectrogramView* mSpectrogramView = nullptr;
-    SpectrumPlot* mSpectrumPlot = nullptr;
-    SettingsPanel* mSettingsPanel = nullptr;
+    SpectrogramView mSpectrogramView;
+    SpectrumPlot mSpectrumPlot;
+    SettingsPanel mSettingsPanel;
 };

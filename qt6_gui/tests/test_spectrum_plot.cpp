@@ -15,15 +15,9 @@ class TestSpectrumPlot : public QObject
         const Settings settings;
         const AudioBuffer audioBuffer;
         SpectrogramController controller(settings, audioBuffer);
-        const SpectrumPlot plot(&controller);
+        const SpectrumPlot plot(controller);
         QVERIFY(plot.minimumWidth() > 0);
         QVERIFY(plot.minimumHeight() > 0);
-    }
-
-    static void TestConstructorThrowsOnNullController()
-    {
-        // NOLINTNEXTLINE(misc-const-correctness) - Object is being constructed in exception test
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, SpectrumPlot plot(nullptr));
     }
 
     static void TestIsWidget()
@@ -31,7 +25,7 @@ class TestSpectrumPlot : public QObject
         const Settings settings;
         const AudioBuffer audioBuffer;
         SpectrogramController controller(settings, audioBuffer);
-        SpectrumPlot plot(&controller);
+        SpectrumPlot plot(controller);
         QVERIFY(qobject_cast<QWidget*>(&plot) != nullptr);
     }
 };

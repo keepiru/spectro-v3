@@ -23,7 +23,7 @@ class SettingsPanel : public QWidget
 
   public:
     explicit SettingsPanel(Settings& aSettings,
-                           AudioRecorder& aAudioRecoder,
+                           AudioRecorder& aAudioRecorder,
                            QWidget* parent = nullptr);
     ~SettingsPanel() override = default;
 

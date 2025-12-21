@@ -37,8 +37,11 @@ class SettingsController : public QObject
 
     /**
      * @brief Notify AudioRecorder to start audio recording with current settings
+     * @param aDevice Audio device to use for recording
+     * @param aChannelCount Number of audio channels
+     * @param aSampleRate Sample rate in Hz
      */
-    void StartAudioRecording();
+    void StartAudioRecording(const QAudioDevice& aDevice, int aChannelCount, int aSampleRate);
 
   private:
     Settings* mSettings;

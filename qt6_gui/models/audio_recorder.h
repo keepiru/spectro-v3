@@ -34,20 +34,18 @@ class AudioRecorder : public QObject
       std::function<AudioSourceFactoryResult(const QAudioDevice&, const QAudioFormat&)>;
 
     /// @brief Constructs an AudioRecorder.
+    /// @param aAudioBuffer The AudioBuffer to write captured samples to.
     /// @param aParent Qt parent object for memory management.
-    explicit AudioRecorder(QObject* aParent = nullptr);
+    explicit AudioRecorder(AudioBuffer& aAudioBuffer, QObject* aParent = nullptr);
 
     ~AudioRecorder() override;
 
     /// @brief Starts audio capture, writing samples to the specified buffer.
-    /// @param aAudioBuffer The AudioBuffer to write captured samples to.
     /// @param aQAudioDevice The audio input device to capture from.
     /// @param aMockQIODevice Mock audio IO device for testing.  (optional)
     /// @return true if capture started successfully, false otherwise.
     /// @note Audio format (sample rate, channels) is inferred from aAudioBuffer.
-    bool Start(AudioBuffer* aAudioBuffer,
-               const QAudioDevice& aQAudioDevice,
-               QIODevice* aMockQIODevice = nullptr);
+    bool Start(const QAudioDevice& aQAudioDevice, QIODevice* aMockQIODevice = nullptr);
 
     /// @brief Stops audio capture.
     /// @note no-op unless a capture is in progress.
@@ -69,10 +67,10 @@ class AudioRecorder : public QObject
   private:
     std::unique_ptr<QAudioSource> mAudioSource;
     QIODevice* mAudioIODevice = nullptr;
-    AudioBuffer* mAudioBuffer = nullptr;
+    AudioBuffer& mAudioBuffer;
 
     /// @brief Creates a QAudioFormat from AudioBuffer settings.
-    static QAudioFormat CreateFormatFromBuffer(const AudioBuffer* aBuffer);
+    static QAudioFormat CreateFormatFromBuffer(const AudioBuffer& aBuffer);
 
     /// @brief Reads available audio data and writes to the aBuffer.
     void ReadAudioData();

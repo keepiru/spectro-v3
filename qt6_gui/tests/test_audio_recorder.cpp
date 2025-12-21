@@ -58,31 +58,15 @@ class TestAudioRecorder : public QObject
   private slots:
     static void TestConstructorSucceeds()
     {
-        const AudioRecorder recorder;
-        // Constructor should not crash
-    }
-
-    static void TestStartWithNullBufferThrows()
-    {
-        AudioRecorder recorder;
-        const QAudioDevice device = QMediaDevices::defaultAudioInput();
-        QVERIFY_EXCEPTION_THROWN(recorder.Start(nullptr, device), std::invalid_argument);
-    }
-
-    static void TestStartWithValidBufferSucceeds()
-    {
-        // This tests without a MockQIODevice, so it will use the default
-        // device.  This ensures the default AudioSourceFactory works, but it
-        // might break if we run tests on a system with no devices.  We'll cross
-        // that bridge when we get there.
         AudioBuffer buffer(1, 48000);
-        AudioRecorder recorder;
-        recorder.Start(&buffer, QAudioDevice());
+        const AudioRecorder recorder(buffer);
+        // Constructor should not crash
     }
 
     static void TestStopWhenNotRecordingIsNoOp()
     {
-        AudioRecorder recorder;
+        AudioBuffer buffer(1, 48000);
+        AudioRecorder recorder(buffer);
         const QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
         recorder.Stop();          // Should not crash
         QCOMPARE(spy.count(), 0); // No events should be emitted
@@ -91,9 +75,9 @@ class TestAudioRecorder : public QObject
     static void TestStopAfterStartSucceeds()
     {
         AudioBuffer buffer(1, 48000);
-        AudioRecorder recorder;
+        AudioRecorder recorder(buffer);
         MockQIODevice ioDevice;
-        recorder.Start(&buffer, QAudioDevice(), &ioDevice);
+        recorder.Start(QAudioDevice(), &ioDevice);
         QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
 
         recorder.Stop(); // Should not crash
@@ -109,10 +93,10 @@ class TestAudioRecorder : public QObject
     {
         AudioBuffer buffer(1, 48000);
         MockQIODevice ioDevice;
-        AudioRecorder recorder;
+        AudioRecorder recorder(buffer);
         QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
 
-        recorder.Start(&buffer, QAudioDevice(), &ioDevice);
+        recorder.Start(QAudioDevice(), &ioDevice);
 
         // Verify the signal is emitted
         QCOMPARE(spy.count(), 1);
@@ -126,8 +110,8 @@ class TestAudioRecorder : public QObject
     {
         AudioBuffer buffer(2, 48000);
         MockQIODevice ioDevice;
-        AudioRecorder recorder;
-        recorder.Start(&buffer, QAudioDevice(), &ioDevice);
+        AudioRecorder recorder(buffer);
+        recorder.Start(QAudioDevice(), &ioDevice);
 
         // Feed in some mock audio data...
         ioDevice.SimulateAudioData({ 0.1, 0.2, 0.3, 0.4 });
@@ -150,11 +134,11 @@ class TestAudioRecorder : public QObject
     {
         AudioBuffer buffer(1, 48000);
         MockQIODevice ioDevice;
-        AudioRecorder recorder;
+        AudioRecorder recorder(buffer);
 
         QCOMPARE(recorder.IsRecording(), false);
 
-        recorder.Start(&buffer, QAudioDevice(), &ioDevice);
+        recorder.Start(QAudioDevice(), &ioDevice);
         QCOMPARE(recorder.IsRecording(), true);
 
         recorder.Stop();

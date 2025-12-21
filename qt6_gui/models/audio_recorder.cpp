@@ -9,12 +9,14 @@
 #include <QObject>
 #include <QtTypes>
 #include <cstddef>
+#include <format>
 #include <memory>
 #include <stdexcept>
 #include <vector>
 
-AudioRecorder::AudioRecorder(QObject* aParent)
+AudioRecorder::AudioRecorder(AudioBuffer& aAudioBuffer, QObject* aParent)
   : QObject(aParent)
+  , mAudioBuffer(aAudioBuffer)
 {
 }
 
@@ -24,16 +26,9 @@ AudioRecorder::~AudioRecorder()
 }
 
 bool
-AudioRecorder::Start(AudioBuffer* aAudioBuffer,
-                     const QAudioDevice& aQAudioDevice,
-                     QIODevice* aMockQIODevice)
+AudioRecorder::Start(const QAudioDevice& aQAudioDevice, QIODevice* aMockQIODevice)
 {
-    if (!aAudioBuffer) {
-        throw std::invalid_argument("AudioBuffer pointer cannot be null");
-    }
-
-    mAudioBuffer = aAudioBuffer;
-    const auto format = CreateFormatFromBuffer(aAudioBuffer);
+    const auto format = CreateFormatFromBuffer(mAudioBuffer);
 
     mAudioSource = std::make_unique<QAudioSource>(aQAudioDevice, format);
 
@@ -87,11 +82,11 @@ AudioRecorder::Stop()
 }
 
 QAudioFormat
-AudioRecorder::CreateFormatFromBuffer(const AudioBuffer* aBuffer)
+AudioRecorder::CreateFormatFromBuffer(const AudioBuffer& aBuffer)
 {
     QAudioFormat format;
-    format.setSampleRate(static_cast<int>(aBuffer->GetSampleRate()));
-    format.setChannelCount(static_cast<int>(aBuffer->GetChannelCount()));
+    format.setSampleRate(static_cast<int>(aBuffer.GetSampleRate()));
+    format.setChannelCount(static_cast<int>(aBuffer.GetChannelCount()));
     format.setSampleFormat(QAudioFormat::Float);
     return format;
 }
@@ -99,8 +94,8 @@ AudioRecorder::CreateFormatFromBuffer(const AudioBuffer* aBuffer)
 void
 AudioRecorder::ReadAudioData()
 {
-    if (!mAudioBuffer || !mAudioIODevice) {
-        // These should be set during Start(), and this callback shouldn't
+    if (!mAudioIODevice) {
+        // This should be set during Start(), and this callback shouldn't
         // happen unless we're started and recording.
         throw std::runtime_error("AudioRecorder::ReadAudioData called when not recording");
     }
@@ -121,7 +116,7 @@ AudioRecorder::ReadAudioData()
     const std::vector<float> samples(sampleData, sampleData + sampleCount);
 
     // Then send it to the AudioBuffer.
-    mAudioBuffer->AddSamples(samples);
+    mAudioBuffer.AddSamples(samples);
 }
 
 bool

@@ -16,28 +16,29 @@
 #include <cmath>
 #include <cstddef>
 
+namespace {
+constexpr size_t KDefaultChannelCount = 2;
+constexpr size_t KDefaultSampleRate = 44100;
+}
+
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
-  , mAudioRecorder(new AudioRecorder(this))
+  , mAudioBuffer(new AudioBuffer(KDefaultChannelCount, KDefaultSampleRate, this))
+  , mAudioRecorder(new AudioRecorder(*mAudioBuffer, this))
   , mSettings(new Settings(this))
 {
     constexpr int kDefaultWindowWidth = 1400;
     constexpr int kDefaultWindowHeight = 800;
-    constexpr size_t kDefaultChannelCount = 2;
-    constexpr size_t kDefaultSampleRate = 44100;
     constexpr size_t kDefaultStride = 1024;
 
     setWindowTitle("Spectro-v3 - Real-time Spectrum Analyzer");
     resize(kDefaultWindowWidth, kDefaultWindowHeight);
 
-    // Create models and controllers
-    mAudioBuffer = new AudioBuffer(kDefaultChannelCount, kDefaultSampleRate, this);
-
     // Suppress Qt multimedia FFmpeg logging noise
     QLoggingCategory::setFilterRules("qt.multimedia.ffmpeg=false");
 
     // For now we don't have a config UI, so just start recording with defaults
-    mAudioRecorder->Start(mAudioBuffer, QMediaDevices::defaultAudioInput());
+    mAudioRecorder->Start(QMediaDevices::defaultAudioInput());
 
     mSpectrogramController =
       new SpectrogramController(*mSettings, *mAudioBuffer, nullptr, nullptr, this);

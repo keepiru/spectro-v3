@@ -13,9 +13,10 @@
 #include <format>
 #include <string>
 
-SettingsPanel::SettingsPanel(Settings& aSettings, QWidget* parent)
+SettingsPanel::SettingsPanel(Settings& aSettings, AudioRecorder& aAudioRecorder, QWidget* parent)
   : QWidget(parent)
   , mSettings(&aSettings)
+  , mAudioRecorder(&aAudioRecorder)
 {
     constexpr int kPanelWidth = 300;
     setFixedWidth(kPanelWidth);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "models/audio_recorder.h"
 #include "models/settings.h"
 #include <QComboBox>
 #include <QSlider>
@@ -19,11 +20,14 @@ class SettingsPanel : public QWidget
     Q_OBJECT
 
   public:
-    explicit SettingsPanel(Settings& aSettings, QWidget* parent = nullptr);
+    explicit SettingsPanel(Settings& aSettings,
+                           AudioRecorder& aAudioRecoder,
+                           QWidget* parent = nullptr);
     ~SettingsPanel() override = default;
 
   private:
     Settings* mSettings = nullptr;
+    AudioRecorder* mAudioRecorder = nullptr;
 
     // Control widgets
     QComboBox* mWindowTypeCombo = nullptr;

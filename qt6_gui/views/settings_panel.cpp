@@ -1,5 +1,7 @@
 #include "settings_panel.h"
+#include "fft_window.h"
 #include "include/global_constants.h"
+#include "models/audio_recorder.h"
 #include "models/settings.h"
 #include <QAudioDevice>
 #include <QComboBox>
@@ -14,9 +16,14 @@
 #include <QWidget>
 #include <Qt>
 #include <algorithm>
+#include <array>
+#include <cstddef>
 #include <cstdint>
 #include <format>
+#include <qrgb.h>
 #include <string>
+#include <string_view>
+#include <utility>
 
 SettingsPanel::SettingsPanel(Settings& aSettings, AudioRecorder& aAudioRecorder, QWidget* parent)
   : QWidget(parent)
@@ -41,12 +48,16 @@ SettingsPanel::SettingsPanel(Settings& aSettings, AudioRecorder& aAudioRecorder,
 void
 SettingsPanel::CreateLayout()
 {
+    constexpr int kPanelMargin = 10;
+    constexpr int kPanelSpacing = 10;
+    constexpr int kFormSpacing = 8;
+
     auto* layout = new QVBoxLayout(this);
-    layout->setContentsMargins(10, 10, 10, 10);
-    layout->setSpacing(10);
+    layout->setContentsMargins(kPanelMargin, kPanelMargin, kPanelMargin, kPanelMargin);
+    layout->setSpacing(kPanelSpacing);
 
     auto* formLayout = new QFormLayout();
-    formLayout->setSpacing(8);
+    formLayout->setSpacing(kFormSpacing);
 
     CreateAudioControls(formLayout);
     CreateWindowTypeControl(formLayout);
@@ -151,13 +162,17 @@ SettingsPanel::CreateWindowScaleControl(QFormLayout* aLayout)
 void
 SettingsPanel::CreateApertureControls(QFormLayout* aLayout)
 {
+    constexpr int kApertureMinValue = -80;
+    constexpr int kApertureMaxValue = 30;
+    constexpr int kApertureTickInterval = 10;
+
     // Aperture Min
     mApertureMinSlider = new QSlider(Qt::Horizontal, this);
     mApertureMinSlider->setObjectName("apertureMinSlider");
-    mApertureMinSlider->setRange(-80, 30); // -80 to +30 dB
+    mApertureMinSlider->setRange(kApertureMinValue, kApertureMaxValue); // -80 to +30 dB
     mApertureMinSlider->setValue(static_cast<int>(mSettings->GetApertureMinDecibels()));
     mApertureMinSlider->setTickPosition(QSlider::TicksBelow);
-    mApertureMinSlider->setTickInterval(10);
+    mApertureMinSlider->setTickInterval(kApertureTickInterval);
 
     mApertureMinLabel = new QLabel(this);
     mApertureMinLabel->setObjectName("apertureMinLabel");
@@ -177,10 +192,10 @@ SettingsPanel::CreateApertureControls(QFormLayout* aLayout)
     // Aperture Max
     mApertureMaxSlider = new QSlider(Qt::Horizontal, this);
     mApertureMaxSlider->setObjectName("apertureMaxSlider");
-    mApertureMaxSlider->setRange(-80, 30); // -80 to +30 dB
+    mApertureMaxSlider->setRange(kApertureMinValue, kApertureMaxValue); // -80 to +30 dB
     mApertureMaxSlider->setValue(static_cast<int>(mSettings->GetApertureMaxDecibels()));
     mApertureMaxSlider->setTickPosition(QSlider::TicksBelow);
-    mApertureMaxSlider->setTickInterval(10);
+    mApertureMaxSlider->setTickInterval(kApertureTickInterval);
 
     mApertureMaxLabel = new QLabel(this);
     mApertureMaxLabel->setObjectName("apertureMaxLabel");
@@ -203,7 +218,7 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
 {
     // Only include implemented color maps (not Viridis, Plasma, Inferno, Magma yet)
     static const std::array<std::pair<Settings::ColorMapType, std::string_view>, 7>
-      implementedColorMaps = { { { Settings::ColorMapType::White, "White" },
+      ImplementedColorMaps = { { { Settings::ColorMapType::White, "White" },
                                  { Settings::ColorMapType::Red, "Red" },
                                  { Settings::ColorMapType::Green, "Green" },
                                  { Settings::ColorMapType::Blue, "Blue" },
@@ -211,17 +226,18 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
                                  { Settings::ColorMapType::Magenta, "Magenta" },
                                  { Settings::ColorMapType::Yellow, "Yellow" } } };
 
+    constexpr int kPreviewIconWidth = 128;
+    constexpr int kPreviewIconHeight = 16;
+
     for (size_t i = 0; i < KNumColorMapSelectors; i++) {
         auto* combo = new QComboBox(this);
         combo->setObjectName(QString("colorMapCombo%1").arg(i));
-        combo->setIconSize(QSize(128, 16));
+        combo->setIconSize(QSize(kPreviewIconWidth, kPreviewIconHeight));
 
         // Add only implemented color map types with preview icons
-        for (const auto& [type, name] : implementedColorMaps) {
+        for (const auto& [type, name] : ImplementedColorMaps) {
             // Create a preview image for this color map
-            constexpr int previewWidth = 128;
-            constexpr int previewHeight = 16;
-            QImage preview(previewWidth, previewHeight, QImage::Format_RGB888);
+            QImage preview(kPreviewIconWidth, kPreviewIconHeight, QImage::Format_RGB888);
 
             // Get a temporary copy of the color map LUT
             Settings tempSettings;
@@ -229,14 +245,14 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
             const auto& lut = tempSettings.GetColorMapLUTs().at(0);
 
             // Fill the preview image
-            for (int x = 0; x < previewWidth; x++) {
+            for (int pixelX = 0; pixelX < kPreviewIconWidth; pixelX++) {
                 // Map x to LUT index (0-255)
                 const auto lutIndex =
-                  static_cast<uint8_t>((x * Settings::KColorMapLUTSize) / previewWidth);
+                  static_cast<uint8_t>((pixelX * Settings::KColorMapLUTSize) / kPreviewIconWidth);
                 const auto& color = lut.at(lutIndex);
 
-                for (int y = 0; y < previewHeight; y++) {
-                    preview.setPixel(x, y, qRgb(color.r, color.g, color.b));
+                for (int pixelY = 0; pixelY < kPreviewIconHeight; pixelY++) {
+                    preview.setPixel(pixelX, pixelY, qRgb(color.r, color.g, color.b));
                 }
             }
 
@@ -354,17 +370,17 @@ SettingsPanel::UpdateSampleRatesForDevice(const QAudioDevice& aDevice)
     mSampleRateCombo->clear();
 
     // Common sample rates to offer
-    static const std::array<int, 5> commonRates = { 22050, 44100, 48000, 88200, 96000 };
+    constexpr int kDefaultSampleRate = 44100;
+    static const std::array<int, 5> CommonRates = { 22050, 44100, 48000, 88200, 96000 };
 
     const int minRate = aDevice.minimumSampleRate();
     const int maxRate = aDevice.maximumSampleRate();
 
     int defaultIndex = 0;
-    for (size_t i = 0; i < commonRates.size(); ++i) {
-        const int rate = commonRates.at(i);
+    for (const int rate : CommonRates) {
         if (rate >= minRate && rate <= maxRate) {
             mSampleRateCombo->addItem(QString::number(rate) + " Hz", rate);
-            if (rate == 44100) {
+            if (rate == kDefaultSampleRate) {
                 defaultIndex = mSampleRateCombo->count() - 1;
             }
         }
@@ -380,10 +396,10 @@ SettingsPanel::UpdateChannelRangeForDevice(const QAudioDevice& aDevice)
     // maximumChannelCount() returns theoretical max, not hardware reality
     const auto preferredFormat = aDevice.preferredFormat();
     const int actualChannels = preferredFormat.channelCount();
-    
+
     // Allow from 1 up to the device's actual channel count, clamped to our app max
     const int effectiveMax = std::min(actualChannels, static_cast<int>(gkMaxChannels));
-    
+
     // Preserve current value if possible, otherwise clamp it
     const int currentValue = mChannelCountSpinBox->value();
     mChannelCountSpinBox->setRange(1, effectiveMax);

@@ -30,7 +30,7 @@ class TestSettingsPanel : public QObject
         Settings settings;
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         auto* combo = panel.findChild<QComboBox*>("windowTypeCombo");
         QVERIFY(combo != nullptr);
@@ -48,12 +48,13 @@ class TestSettingsPanel : public QObject
         QCOMPARE(settings.GetWindowType(), FFTWindow::Type::Hann);
     }
 
+    // NOLINTNEXTLINE(readability-function-cognitive-complexity) - QCOMPARE macro expansion
     static void TestFFTSizeControl()
     {
         Settings settings;
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         auto* combo = panel.findChild<QComboBox*>("fftSizeCombo");
         QVERIFY(combo != nullptr);
@@ -74,12 +75,13 @@ class TestSettingsPanel : public QObject
         QCOMPARE(settings.GetFFTSize(), 8192);
     }
 
+    // NOLINTNEXTLINE(readability-function-cognitive-complexity) - QCOMPARE macro expansion
     static void TestWindowScaleControl()
     {
         Settings settings;
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         auto* slider = panel.findChild<QSlider*>("windowScaleSlider");
         auto* label = panel.findChild<QLabel*>("windowScaleLabel");
@@ -117,7 +119,7 @@ class TestSettingsPanel : public QObject
         Settings settings;
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         auto* slider = panel.findChild<QSlider*>("apertureMinSlider");
         auto* label = panel.findChild<QLabel*>("apertureMinLabel");
@@ -143,7 +145,7 @@ class TestSettingsPanel : public QObject
         Settings settings;
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         auto* slider = panel.findChild<QSlider*>("apertureMaxSlider");
         auto* label = panel.findChild<QLabel*>("apertureMaxLabel");
@@ -164,12 +166,13 @@ class TestSettingsPanel : public QObject
         QCOMPARE(label->text(), "20 dB");
     }
 
+    // NOLINTNEXTLINE(readability-function-cognitive-complexity) - QCOMPARE macro expansion
     static void TestColorMapControls()
     {
         Settings settings;
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         // Test all 6 color map combos
         for (size_t i = 0; i < 6; i++) {
@@ -214,7 +217,7 @@ class TestSettingsPanel : public QObject
         // Create panel and verify controls reflect the settings
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         auto* windowTypeCombo = panel.findChild<QComboBox*>("windowTypeCombo");
         QCOMPARE(windowTypeCombo->currentData().toInt(),
@@ -242,12 +245,12 @@ class TestSettingsPanel : public QObject
         Settings settings;
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         // Test that signals are emitted when controls change
-        QSignalSpy fftSpy(&settings, &Settings::FFTSettingsChanged);
-        QSignalSpy windowScaleSpy(&settings, &Settings::WindowScaleChanged);
-        QSignalSpy apertureSpy(&settings, &Settings::ApertureSettingsChanged);
+        QSignalSpy const fftSpy(&settings, &Settings::FFTSettingsChanged);
+        QSignalSpy const windowScaleSpy(&settings, &Settings::WindowScaleChanged);
+        QSignalSpy const apertureSpy(&settings, &Settings::ApertureSettingsChanged);
 
         auto* fftSizeCombo = panel.findChild<QComboBox*>("fftSizeCombo");
         fftSizeCombo->setCurrentIndex(0);
@@ -275,7 +278,7 @@ class TestSettingsPanel : public QObject
         Settings settings;
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         auto* combo = panel.findChild<QComboBox*>("audioDeviceCombo");
         QVERIFY(combo != nullptr);
@@ -290,7 +293,7 @@ class TestSettingsPanel : public QObject
         Settings settings;
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         auto* combo = panel.findChild<QComboBox*>("sampleRateCombo");
         QVERIFY(combo != nullptr);
@@ -310,7 +313,7 @@ class TestSettingsPanel : public QObject
         Settings settings;
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         auto* spinBox = panel.findChild<QSpinBox*>("channelCountSpinBox");
         QVERIFY(spinBox != nullptr);
@@ -331,7 +334,7 @@ class TestSettingsPanel : public QObject
         Settings settings;
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         auto* button = panel.findChild<QPushButton*>("recordingButton");
         QVERIFY(button != nullptr);
@@ -340,12 +343,13 @@ class TestSettingsPanel : public QObject
         QCOMPARE(button->text(), QString("Start Recording"));
     }
 
+    // NOLINTNEXTLINE(readability-function-cognitive-complexity) - QCOMPARE macro expansion
     static void TestControlsDisabledWhileRecording()
     {
         Settings settings;
         AudioBuffer audioBuffer;
         AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel panel(settings, audioRecorder);
+        SettingsPanel const panel(settings, audioRecorder);
 
         auto* deviceCombo = panel.findChild<QComboBox*>("audioDeviceCombo");
         auto* sampleRateCombo = panel.findChild<QComboBox*>("sampleRateCombo");

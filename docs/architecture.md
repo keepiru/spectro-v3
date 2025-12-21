@@ -25,39 +25,25 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
 
 ### Controllers (Coordination & Logic)
 
-- **`SpectrogramController`**: Coordinates data flow and view state
-  - Owns `STFTProcessor`, `FFTProcessor`, `FFTWindow` per channel; recreates on settings change
-  - Observes `AudioBuffer.samplesAdded()` → triggers view update for new rows
-  - Observes `Settings` signals → recreates DSP objects or updates internal state
-  - Tracks (in sample positions):
-    - `live_mode`: whether view follows live edge
-    - `live_edge_sample`: latest computed sample position
-    - `view_bottom_sample`: current view position (always aligned to stride)
-  - Mediates data access: `GetRows(channel, start, stride, count)` → calls `STFTProcessor.ComputeSpectrogram()`
-  - Tells `SpectrogramView` what sample position to display (view is passive)
-  - Receives scroll events from view, manages live/historical mode switching
-  - `SetStride(stride)` → snaps `view_bottom_sample` to new alignment, updates view
-  - `SetFFTSettings()` → recreates `FFTProcessor`, `FFTWindow`, `STFTProcessor`
+- **`SpectrogramController`**: Coordinates data flow and FFT computation
+  - Owns `IFFTProcessor`, `FFTWindow` per channel; recreates on settings change
+  - Observes `FFTSettingsChanged` signal → recreates DSP objects
+  - Provides `GetRows()` method to compute spectrogram data on-demand
+  - Implements per-row caching via `mSpectrogramRowCache` to avoid redundant FFT computation
+  - Currently view-driven (future: may add live/historical mode tracking)
 
 - **`AudioRecorder`**: Audio capture
   - Uses Qt Multimedia's `QAudioSource`
   - Captures audio samples from microphone/line-in
   - Writes samples to `AudioBuffer`
-  - Owns audio settings: input device, sample rate
-  - `SetDevice()` → restarts capture with new device
 
 ### Views (UI Widgets)
 
 - **`SpectrogramView`**: Waterfall spectrogram display
-  - Passive: only paints when told, doesn't observe data signals
-  - `SetBottomSample(sample_position)` → stores position, triggers repaint
   - On paint:
     - Derives row count from widget height
-    - Queries `Settings` for aperture and colormap
-    - Calls `SpectrogramController.GetRows(channel, bottom_sample, stride, row_count)`
-    - Renders spectrogram
-  - Forwards scroll events (as sample delta) to controller
-  - Listens to `Settings.apertureChanged()`, `Settings.colormapChanged()` → triggers repaint
+    - Queries `Settings` for aperture, colormap, stride, FFT size
+  - Future: scroll/scrubbing support, live/historical mode tracking
 
 - **`SpectrumPlot`**: Real-time frequency spectrum line plot
   - Displays most recent (or selected) frequency slice
@@ -88,28 +74,23 @@ AudioRecorder → AudioBuffer.AddSamples()
     ↓
 AudioBuffer emits samplesAdded(count)
     ↓
-SpectrogramController receives signal
+DataAvailable Signal
     ↓
-Controller: enough samples for new row?
-    Yes → live_edge_sample = sample_position
-        → if live_mode: view_bottom_sample = live_edge_sample
-        → SpectrogramView.SetBottomSample(view_bottom_sample)
-    ↓
-SpectrogramView.paint()
-    → Controller.GetRows(channel, bottom_sample, stride, row_count)
-    → render spectrogram
+SpectrogramView.update()
+SpectrumPlot.update()
 ```
 
-### Historical Mode - User Scrolls Back
+### Future: Historical Mode - User Scrolls Back
 ```
-User scrolls → SpectrogramView forwards to Controller
+[Not yet implemented]
+User scrolls → SpectrogramController updates view position
     ↓
 Controller: live_mode = false
     → view_bottom_sample = scroll_position (snapped to stride)
-    → SpectrogramView.SetBottomSample(view_bottom_sample)
+    → Triggers SpectrogramView update
     ↓
 SpectrogramView.paint()
-    → Controller.GetRows()  // calls STFTProcessor.ComputeSpectrogram()
+    → Controller.GetRows() with historical position
     → render spectrogram
 ```
 
@@ -117,30 +98,18 @@ SpectrogramView.paint()
 ```
 SettingsPanel UI change → Settings.setFFTSize(new_size)
     ↓
-Settings emits fftSettingsChanged(size, type)
+Settings emits FFTSettingsChanged()
     ↓
 SpectrogramController receives signal
-    → recreates FFTProcessor, FFTWindow, STFTProcessor
-    → resets live_edge_sample tracking
-    → snaps view_bottom_sample to new stride alignment
-    → SpectrogramView.SetBottomSample(view_bottom_sample)
+    → OnFFTSettingsChanged()
+    → recreates IFFTProcessor, FFTWindow for each channel
+    → clears mSpectrogramRowCache (invalidates all cached rows)
     ↓
+Next paint event:
 SpectrogramView.paint()
-    → queries Settings.aperture(), Settings.colormap()
-    → Controller.GetRows()  // calls STFTProcessor.ComputeSpectrogram()
+    → queries Settings for FFT size, stride, aperture, colormap
+    → Controller.GetRows() recomputes with new settings
     → render spectrogram
-```
-
-### Jump to Live
-```
-User clicks "Live" button → Controller
-    ↓
-Controller: live_mode = true
-    → view_bottom_sample = live_edge_sample
-    → SpectrogramView.SetBottomSample(view_bottom_sample)
-    ↓
-SpectrogramView.paint()
-    → render latest data
 ```
 
 ## Threading Model
@@ -149,7 +118,8 @@ SpectrogramView.paint()
 
 **Thread Safety**:
 - `AudioBuffer` uses mutex for thread-safe read/write
-- `STFTProcessor` accesses `AudioBuffer` via `SampleBuffer` (mutex-protected reads)
+- `SpectrogramController` accesses `AudioBuffer` via `SampleBuffer` (mutex-protected reads)
+- `mSpectrogramRowCache` is accessed only from main thread (no locking needed)
 - Controllers and views run on main thread only
 
 ## Component Responsibilities
@@ -180,20 +150,19 @@ SpectrogramView.paint()
 **Settings Signal Flow:**
 ```
 SettingsPanel (UI)
-    ├→ Settings.setFFTSize(size)
-    ├→ Settings.setWindowType(type)
-    ├→ Settings.setWindowStride(stride)
-    ├→ Settings.setAperture(min, max)
-    └→ Settings.setColormap(type)
+    ├→ Settings.SetFFTSize(size)
+    ├→ Settings.SetWindowType(type)
+    ├→ Settings.SetWindowStride(stride)
+    ├→ Settings.SetApertureMinDecibels(min)
+    ├→ Settings.SetApertureMaxDecibels(max)
+    └→ Settings.SetColorMap(type)
         ↓ (Settings emits signals)
-    Settings.fftSettingsChanged(size, type)
-        → SpectrogramController (recreates DSP objects)
-    Settings.windowStrideChanged(stride)
-        → SpectrogramController (updates stride, snaps view)
-    Settings.apertureChanged(min, max)
-        → SpectrogramView, SpectrumPlot (triggers repaint)
-    Settings.colormapChanged(type)
-        → SpectrogramView (rebuilds LUT, triggers repaint)
+    Settings.FFTSettingsChanged()
+        → SpectrogramController (recreates DSP objects, clears cache)
+    Settings.ApertureChanged()
+        → Views (triggers repaint with new dB range)
+    Settings.ColorMapChanged()
+        → Views (rebuilds LUT, triggers repaint)
 ```
 
 ## Key Design Decisions
@@ -216,33 +185,25 @@ SettingsPanel (UI)
 - **Lazy evaluation**: Only compute what's visible, defer the rest
 - **Future-proof**: Architecture supports background pre-computation later
 
-### Why STFTProcessor directly (no caching layer)?
-- **YAGNI**: Start simple, add caching only if profiling shows need
-- **FFT is fast**: ~1ms for 4096 samples; recomputing visible rows is acceptable
-- **Simpler architecture**: Fewer abstractions, easier to understand and debug
-- **Future-proof**: Caching can be added to `STFTProcessor` or as a wrapper layer later
+- **Settings invalidation**: Cache cleared on FFT settings change (size, window type)
+- **Future-proof**: Can expand to LRU cache or background pre-computation if needed
 
-### Why passive SpectrogramView?
-- **Single responsibility**: View only renders, doesn't manage state
-- **Controller owns coordination**: Live mode, scroll position, timing
-- **Testability**: Controller logic can be unit tested without UI
-- **Simplicity**: View doesn't observe multiple signals, just paints when told
+### Why view-driven rendering (for now)?
+- **Simpler initial implementation**: View calculates position and drives data fetching
+- **No state tracking needed**: Controller is stateless except for cache
+- **Works for initial use case**: Always displays most recent audio
+- **Future enhancement**: Will add live/historical mode with controller-driven positioning
 
 ### Why no timer?
 - **Event-driven**: Audio arrival triggers computation, not arbitrary timer
 - **Efficient**: Only compute when new data available
 - **Natural pacing**: Display updates at rate of incoming audio
 
-### Why controller manages scroll state?
-- **Centralized state**: Live mode and scroll position in one place
-- **Mode switching**: Controller decides when to exit live mode
-- **Future features**: Scrubbing, bookmarks, etc. all go through controller
-
-### Why sample-based positioning (not row indices)?
-- **Stable across settings**: Sample position represents "where in the audio" — invariant when stride changes
-- **Intuitive UX**: Changing window stride keeps view at same audio position, just different granularity
-- **Row index is derived**: `row = sample_position / stride`, computed when needed
-- **Alignment**: Controller ensures `view_bottom_sample` is always aligned to current stride (snaps on change)
+### Future: Controller-managed scroll state
+- **Centralized state**: Live mode and scroll position will move to controller
+- **Mode switching**: Controller will decide when to exit live mode
+- **Sample-based positioning**: Position by sample (not row) to remain stable across stride changes
+- **Alignment**: Controller will snap positions to stride boundaries
 
 ## Future Architecture Considerations
 
@@ -255,8 +216,9 @@ SettingsPanel (UI)
 
 ### Performance
 - Profile and potentially migrate `SpectrogramView` to `QOpenGLWidget` with texture uploads
-- Add FFT row caching (in `STFTProcessor` or wrapper) if repaint latency becomes an issue
-- Consider background thread for pre-computation if scrolling feels sluggish
+- Expand per-row cache to LRU cache if memory becomes an issue
+- Consider background thread for pre-computation when live/historical mode is added
+- Batch AudioBuffer.GetSamples() calls to reduce locking overhead
 
 ### Extensibility
 - Plugin architecture for custom window functions or color maps

@@ -11,15 +11,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <dsp_utils.h>
-#include <stdexcept>
 
-SpectrumPlot::SpectrumPlot(SpectrogramController* aController, QWidget* parent)
+SpectrumPlot::SpectrumPlot(SpectrogramController& aController, QWidget* parent)
   : QWidget(parent)
   , mController(aController)
 {
-    if (mController == nullptr) {
-        throw std::invalid_argument("SpectrumPlot: aController must not be null");
-    }
     constexpr int kMinWidth = 400;
     constexpr int kMinHeight = 200;
     setMinimumSize(kMinWidth, kMinHeight);
@@ -31,13 +27,13 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     QPainter painter(this);
     painter.fillRect(event->rect(), Qt::black);
 
-    const auto kAvailableSampleCount = mController->GetAvailableSampleCount();
-    const auto kStride = mController->GetSettings().GetWindowStride();
+    const auto kAvailableSampleCount = mController.GetAvailableSampleCount();
+    const auto kStride = mController.GetSettings().GetWindowStride();
     // Round down to nearest stride
     const auto kTopSample = (((kAvailableSampleCount) / kStride) - 1) * kStride;
-    const auto kChannels = mController->GetChannelCount();
-    const auto kApertureMinDecibels = mController->GetSettings().GetApertureMinDecibels();
-    const auto kApertureMaxDecibels = mController->GetSettings().GetApertureMaxDecibels();
+    const auto kChannels = mController.GetChannelCount();
+    const auto kApertureMinDecibels = mController.GetSettings().GetApertureMinDecibels();
+    const auto kApertureMaxDecibels = mController.GetSettings().GetApertureMaxDecibels();
     const auto kDecibelRange = kApertureMaxDecibels - kApertureMinDecibels;
     const auto kImplausiblySmallDecibelRange = 1e-6f;
     if (std::abs(kDecibelRange) < kImplausiblySmallDecibelRange) {
@@ -47,7 +43,7 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     const auto kInverseDecibelRange = 1.0f / kDecibelRange;
 
     for (size_t ch = 0; ch < kChannels; ch++) {
-        const auto kRows = mController->GetRows(ch, static_cast<int64_t>(kTopSample), 1);
+        const auto kRows = mController.GetRows(ch, static_cast<int64_t>(kTopSample), 1);
         if (kRows.empty() || kRows[0].empty()) {
             continue;
         }

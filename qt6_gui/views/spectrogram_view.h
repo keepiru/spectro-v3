@@ -25,15 +25,15 @@ class SpectrogramView : public QWidget
   public:
     /**
      * @brief Constructor
-     * @param aController Pointer to spectrogram controller (must not be null)
+     * @param aController Reference to spectrogram controller
      * @param parent Qt parent widget (optional)
      */
-    explicit SpectrogramView(SpectrogramController* aController, QWidget* parent = nullptr);
+    explicit SpectrogramView(SpectrogramController& aController, QWidget* parent = nullptr);
     ~SpectrogramView() override = default;
 
   protected:
     void paintEvent(QPaintEvent* event) override;
 
   private:
-    SpectrogramController* mController; // Not owned
+    SpectrogramController& mController;
 };

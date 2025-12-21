@@ -23,9 +23,13 @@ constexpr size_t KDefaultSampleRate = 44100;
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
-  , mAudioBuffer(new AudioBuffer(this))
-  , mAudioRecorder(new AudioRecorder(*mAudioBuffer, this))
-  , mSettings(new Settings(this))
+  , mSettings(this)
+  , mAudioBuffer(this)
+  , mAudioRecorder(mAudioBuffer, this)
+  , mSpectrogramController(mSettings, mAudioBuffer, nullptr, nullptr, this)
+  , mSpectrogramView(mSpectrogramController, this)
+  , mSpectrumPlot(mSpectrogramController, this)
+  , mSettingsPanel(mSettings, this)
 {
     constexpr int kDefaultWindowWidth = 1400;
     constexpr int kDefaultWindowHeight = 800;
@@ -38,11 +42,8 @@ MainWindow::MainWindow(QWidget* parent)
     QLoggingCategory::setFilterRules("qt.multimedia.ffmpeg=false");
 
     // For now we don't have a config UI, so just start recording with defaults
-    mAudioRecorder->Start(
+    mAudioRecorder.Start(
       QMediaDevices::defaultAudioInput(), KDefaultChannelCount, KDefaultSampleRate);
-
-    mSpectrogramController =
-      new SpectrogramController(*mSettings, *mAudioBuffer, nullptr, nullptr, this);
 
     CreateLayout();
     SetupConnections();
@@ -68,26 +69,21 @@ MainWindow::CreateLayout()
      * └─────────────────────────────────────────────────────────┘
      */
 
-    // Create view widgets
-    mSpectrogramView = new SpectrogramView(mSpectrogramController, this);
-    mSpectrumPlot = new SpectrumPlot(mSpectrogramController, this);
-    mSettingsPanel = new SettingsPanel(*mSettings, this);
-
     // Create left container with vertical layout for the two plots
     auto* leftContainer = new QWidget(this);
     auto* leftLayout = new QVBoxLayout(leftContainer);
     leftLayout->setContentsMargins(0, 0, 0, 0);
     constexpr int kSpectrogramStretch = 7; // 70% of vertical space
     constexpr int kSpectrumStretch = 3;    // 30% of vertical space
-    leftLayout->addWidget(mSpectrogramView, kSpectrogramStretch);
-    leftLayout->addWidget(mSpectrumPlot, kSpectrumStretch);
+    leftLayout->addWidget(&mSpectrogramView, kSpectrogramStretch);
+    leftLayout->addWidget(&mSpectrumPlot, kSpectrumStretch);
 
     // Create main horizontal layout
     auto* mainWidget = new QWidget(this);
     auto* mainLayout = new QHBoxLayout(mainWidget);
     mainLayout->setContentsMargins(0, 0, 0, 0);
-    mainLayout->addWidget(leftContainer, 1);  // Takes remaining space
-    mainLayout->addWidget(mSettingsPanel, 0); // Fixed width (no stretch)
+    mainLayout->addWidget(leftContainer, 1);   // Takes remaining space
+    mainLayout->addWidget(&mSettingsPanel, 0); // Fixed width (no stretch)
 
     setCentralWidget(mainWidget);
 }
@@ -99,14 +95,14 @@ MainWindow::SetupConnections()
     // and view widgets
 
     // Update SpectrogramView when new audio data is available
-    connect(mAudioBuffer,
+    connect(&mAudioBuffer,
             &AudioBuffer::DataAvailable,
-            mSpectrogramView,
+            &mSpectrogramView,
             QOverload<>::of(&SpectrogramView::update));
 
     // Also update SpectrumPlot
-    connect(mAudioBuffer,
+    connect(&mAudioBuffer,
             &AudioBuffer::DataAvailable,
-            mSpectrumPlot,
+            &mSpectrumPlot,
             QOverload<>::of(&SpectrumPlot::update));
 }

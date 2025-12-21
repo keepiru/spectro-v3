@@ -16,13 +16,10 @@
 #include <stdexcept>
 #include <vector>
 
-SpectrogramView::SpectrogramView(SpectrogramController* aController, QWidget* parent)
+SpectrogramView::SpectrogramView(SpectrogramController& aController, QWidget* parent)
   : QWidget(parent)
   , mController(aController)
 {
-    if (!aController) {
-        throw std::invalid_argument("SpectrogramView: aController must not be null");
-    }
     constexpr int kMinWidth = 400;
     constexpr int kMinHeight = 300;
     setMinimumSize(kMinWidth, kMinHeight);
@@ -33,7 +30,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
 {
     QPainter painter(this);
 
-    const size_t kChannels = mController->GetChannelCount();
+    const size_t kChannels = mController.GetChannelCount();
     if (kChannels > gkMaxChannels) {
         // Should not happen, but guard against out-of-bounds access
         throw std::runtime_error(
@@ -41,9 +38,9 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
                       kChannels,
                       gkMaxChannels));
     }
-    const auto& kSettings = mController->GetSettings();
+    const auto& kSettings = mController.GetSettings();
     const size_t kStride = kSettings.GetWindowStride();
-    const size_t kAvailableSampleCount = mController->GetAvailableSampleCount();
+    const size_t kAvailableSampleCount = mController.GetAvailableSampleCount();
     const size_t kHeight = height();
     const size_t kWidth = width();
     const float kMinDecibels = kSettings.GetApertureMinDecibels();
@@ -71,7 +68,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
 
     for (size_t ch = 0; ch < kChannels; ch++) {
         magnitudesChannelRowBin[ch] =
-          mController->GetRows(ch, static_cast<int64_t>(kTopSample), kHeight);
+          mController.GetRows(ch, static_cast<int64_t>(kTopSample), kHeight);
     }
 
     // TODO: maybe only allocate this once and reuse

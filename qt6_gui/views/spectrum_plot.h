@@ -22,12 +22,12 @@ class SpectrumPlot : public QWidget
     Q_OBJECT
 
   public:
-    explicit SpectrumPlot(SpectrogramController* aController, QWidget* parent = nullptr);
+    explicit SpectrumPlot(SpectrogramController& aController, QWidget* parent = nullptr);
     ~SpectrumPlot() override = default;
 
   protected:
     void paintEvent(QPaintEvent* event) override;
 
   private:
-    SpectrogramController* mController; // Not owned
+    SpectrogramController& mController;
 };

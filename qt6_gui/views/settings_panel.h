@@ -3,7 +3,9 @@
 #include "models/audio_recorder.h"
 #include "models/settings.h"
 #include <QComboBox>
+#include <QPushButton>
 #include <QSlider>
+#include <QSpinBox>
 #include <QWidget>
 #include <array>
 
@@ -42,8 +44,15 @@ class SettingsPanel : public QWidget
     static constexpr size_t KNumColorMapSelectors = 6;
     std::array<QComboBox*, KNumColorMapSelectors> mColorMapCombos = {};
 
+    // Audio controls
+    QComboBox* mAudioDeviceCombo = nullptr;
+    QComboBox* mSampleRateCombo = nullptr;
+    QSpinBox* mChannelCountSpinBox = nullptr;
+    QPushButton* mRecordingButton = nullptr;
+
     // Helper methods
     void CreateLayout();
+    void CreateAudioControls(class QFormLayout* aLayout);
     void CreateWindowTypeControl(class QFormLayout* aLayout);
     void CreateFFTSizeControl(class QFormLayout* aLayout);
     void CreateWindowScaleControl(class QFormLayout* aLayout);
@@ -52,4 +61,9 @@ class SettingsPanel : public QWidget
     void UpdateWindowScaleLabel();
     void UpdateApertureMinLabel();
     void UpdateApertureMaxLabel();
+    void UpdateRecordingControlsEnabled(bool aIsRecording);
+    void UpdateSampleRatesForDevice(const QAudioDevice& aDevice);
+    void UpdateChannelRangeForDevice(const QAudioDevice& aDevice);
+    void OnRecordingButtonClicked();
+    void OnRecordingStateChanged(bool aIsRecording);
 };

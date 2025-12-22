@@ -58,10 +58,10 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
     // Determine the top sample to start rendering from.
     // Go back kStride strides, then round down to nearest stride.
     // Default to 0 if the window is larger than available samples.
-    const int64_t kTopSample =
-      (kStride * static_cast<int64_t>(kHeight) < kAvailableSampleCount)
-        ? ((kAvailableSampleCount - (kStride * static_cast<int64_t>(kHeight))) / kStride) * kStride
-        : 0;
+    const int64_t kTopSampleUnaligned =
+      kAvailableSampleCount - (kStride * static_cast<int64_t>(kHeight));
+    const int64_t kTopSampleAligned = mController.CalculateTopSample(kTopSampleUnaligned);
+    const int64_t kTopSample = kTopSampleAligned < 0 ? 0 : kTopSampleAligned;
 
     // Store the magnitudes for all channels. Channel x Row x Frequency bins
     std::vector<std::vector<std::vector<float>>> magnitudesChannelRowBin(kChannels);

@@ -257,6 +257,77 @@ class TestSpectrogramController : public QObject
         const SpectrogramController controller(settings, buffer);
         QCOMPARE(controller.GetChannelCount(), 3);
     }
+
+    static void TestCalculateTopSample()
+    {
+        Settings settings;
+        const AudioBuffer audioBuffer;
+        SpectrogramController controller(settings, audioBuffer);
+
+        settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
+
+        auto check = [&](int64_t index, size_t scale, int64_t want) {
+            settings.SetWindowScale(scale);
+
+            auto have = controller.CalculateTopSample(index);
+            qDebug("CalculateTopSample: sample=%ld scale=%zu => topSample=%ld (want %ld)",
+                   index,
+                   scale,
+                   have,
+                   want);
+            QCOMPARE(have, want);
+        };
+
+        check(6, 1, -8); //[-8 -7 -6 -5 -4 -3 -2 -1] 0  1  2  3  4  5
+        check(6, 2, -4); // -8 -7 -6 -5[-4 -3 -2 -1  0  1  2  3] 4  5
+        check(6, 4, -2); // -8 -7 -6 -5 -4 -3[-2 -1  0  1  2  3  4  5]
+        check(6, 8, -2); // -8 -7 -6 -5 -4 -3[-2 -1  0  1  2  3  4  5]
+
+        check(7, 1, -8); //[-8 -7 -6 -5 -4 -3 -2 -1] 0  1  2  3  4  5  6
+        check(7, 2, -4); // -8 -7 -6 -5[-4 -3 -2 -1  0  1  2  3] 4  5  6
+        check(7, 4, -2); // -8 -7 -6 -5 -4 -3[-2 -1  0  1  2  3  4  5] 6
+        check(7, 8, -1); // -8 -7 -6 -5 -4 -3 -2[-1  0  1  2  3  4  5  6]
+
+        check(8, 1, 0); // -8 -7 -6 -5 -4 -3 -2 -1 [0  1  2  3  4  5  6  7]
+        check(8, 2, 0); // -8 -7 -6 -5 -4 -3 -2 -1 [0  1  2  3  4  5  6  7]
+        check(8, 4, 0); // -8 -7 -6 -5 -4 -3 -2 -1 [0  1  2  3  4  5  6  7]
+        check(8, 8, 0); // -8 -7 -6 -5 -4 -3 -2 -1 [0  1  2  3  4  5  6  7]
+
+        check(12, 1, 0); // [0  1  2  3  4  5  6  7] 8  9  10  11
+        check(12, 2, 4); //  0  1  2  3 [4  5  6  7  8  9  10  11]
+        check(12, 4, 4); //  0  1  2  3 [4  5  6  7  8  9  10  11]
+        check(12, 8, 4); //  0  1  2  3 [4  5  6  7  8  9  10  11]
+
+        check(13, 1, 0); // [0  1  2  3  4  5  6  7] 8  9  10  11  12
+        check(13, 2, 4); //  0  1  2  3 [4  5  6  7  8  9  10  11] 12
+        check(13, 4, 4); //  0  1  2  3 [4  5  6  7  8  9  10  11] 12
+        check(13, 8, 5); //  0  1  2  3  4 [5  6  7  8  9  10  11  12]
+
+        check(14, 1, 0); // [0  1  2  3  4  5  6  7] 8  9  10  11  12  13
+        check(14, 2, 4); //  0  1  2  3 [4  5  6  7  8  9  10  11] 12  13
+        check(14, 4, 6); //  0  1  2  3  4  5 [6  7  8  9  10  11  12  13]
+        check(14, 8, 6); //  0  1  2  3  4  5 [6  7  8  9  10  11  12  13]
+
+        check(15, 1, 0); // [0  1  2  3  4  5  6  7] 8  9  10  11  12  13  14
+        check(15, 2, 4); //  0  1  2  3 [4  5  6  7  8  9  10  11] 12  13  14
+        check(15, 4, 6); //  0  1  2  3  4  5 [6  7  8  9  10  11  12  13] 14
+        check(15, 8, 7); //  0  1  2  3  4  5  6 [7  8  9  10  11  12  13  14]
+
+        check(16, 1, 8); //  0  1  2  3  4  5  6  7 [8  9  10  11  12  13  14  15]
+        check(16, 2, 8); //  0  1  2  3  4  5  6  7 [8  9  10  11  12  13  14  15]
+        check(16, 4, 8); //  0  1  2  3  4  5  6  7 [8  9  10  11  12  13  14  15]
+        check(16, 8, 8); //  0  1  2  3  4  5  6  7 [8  9  10  11  12  13  14  15]
+
+        check(17, 1, 8); //  0  1  2  3  4  5  6  7 [8  9  10  11  12  13  14  15] 16
+        check(17, 2, 8); //  0  1  2  3  4  5  6  7 [8  9  10  11  12  13  14  15] 16
+        check(17, 4, 8); //  0  1  2  3  4  5  6  7 [8  9  10  11  12  13  14  15] 16
+        check(17, 8, 9); //  0  1  2  3  4  5  6  7  8 [9  10  11  12  13  14  15  16]
+
+        check(18, 1, 8);  //  0  1  2  3  4  5  6  7 [8  9  10  11  12  13  14  15] 16  17
+        check(18, 2, 8);  //  0  1  2  3  4  5  6  7 [8  9  10  11  12  13  14  15] 16  17
+        check(18, 4, 10); //  0  1  2  3  4  5  6  7  8  9 [10  11  12  13  14  15  16  17]
+        check(18, 8, 10); //  0  1  2  3  4  5  6  7  8  9 [10  11  12  13  14  15  16  17]
+    }
 };
 
 QTEST_GUILESS_MAIN(TestSpectrogramController)

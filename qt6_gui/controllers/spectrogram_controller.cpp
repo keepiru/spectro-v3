@@ -143,40 +143,23 @@ SpectrogramController::GetChannelCount() const
 int64_t
 SpectrogramController::CalculateTopSample(int64_t aCursorSample) const
 {
+    const int64_t kUnalignedSample = aCursorSample - mSettings.GetFFTSize();
+    return RoundToStride(kUnalignedSample);
+}
 
-    const int64_t kTransformSize = mSettings.GetFFTSize();
+int64_t
+SpectrogramController::RoundToStride(int64_t aSample) const
+{
     const int64_t kStride = mSettings.GetWindowStride();
-    const int64_t kUnalignedSample = aCursorSample - kTransformSize;
 
-    // Compute floor(kUnalignedSample / kStride) for both positive and negative values.
-    //
-    // In C++, integer division truncates toward zero, so for negative values we cannot
-    // rely on `kUnalignedSample / kStride` to implement mathematical floor division.
-    //
-    // For kUnalignedSample >= 0, truncation and floor coincide, so the simple division
-    // is correct. For kUnalignedSample < 0 we want:
-    //
-    //     floor(kUnalignedSample / kStride)
-    //
-    // Using n = kUnalignedSample (< 0) and d = kStride (> 0), this is equivalent to
-    // -ceil(-n / d). A standard integer-only idiom for ceil division when d > 0 is:
-    //
-    //     ceil(x / d) == (x + d - 1) / d
-    //
-    // Applying that with x = -n gives:
-    //
+    // Calculate floor(aSample / kStride) for both positive and negative values.
+    // For positive values, this is just integer division.
+    // For negative values, division truncates toward zero, so we use:
+    //      ceil(n / d) == ( n + d - 1) / d
     //     ceil(-n / d) == (-n + d - 1) / d
-    //
-    // and therefore:
-    //
     //     floor(n / d) == -ceil(-n / d)
     //                  == -((-n + d - 1) / d)
-    //
-    // which is exactly the expression used below for the negative branch.
-    const int64_t kStrideIndex = kUnalignedSample >= 0
-                                   ? kUnalignedSample / kStride
-                                   : -((-kUnalignedSample + kStride - 1) / kStride);
-
-    const int64_t kTopSample = kStrideIndex * kStride;
-    return kTopSample;
+    const int64_t kStrideIndex =
+      aSample >= 0 ? aSample / kStride : -((-aSample + kStride - 1) / kStride);
+    return kStrideIndex * kStride;
 }

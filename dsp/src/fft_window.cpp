@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <fft_window.h>
 #include <numbers>
 #include <span>
@@ -9,14 +10,14 @@
 #include <string>
 #include <vector>
 
-FFTWindow::FFTWindow(size_t aSize, FFTWindow::Type aType)
+FFTWindow::FFTWindow(int64_t aSize, FFTWindow::Type aType)
   : mSize(aSize)
   , mType(aType)
-  , mWindowCoefficients(aSize)
 {
-    if (aSize == 0) {
+    if (aSize <= 0) {
         throw std::invalid_argument("Window size must be greater than zero");
     }
+    mWindowCoefficients.resize(aSize);
     ComputeWindowCoefficients();
 }
 

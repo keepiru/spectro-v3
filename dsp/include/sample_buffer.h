@@ -32,7 +32,7 @@ class SampleBuffer
      * @brief Get the total number of samples stored.
      * @return Number of samples.
      */
-    size_t NumSamples() const;
+    int64_t NumSamples() const;
 
     /**
      * @brief Add audio samples to buffer.

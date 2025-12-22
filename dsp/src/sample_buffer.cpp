@@ -1,15 +1,19 @@
 #include <cstddef>
+#include <cstdint>
 #include <format>
 #include <mutex>
 #include <sample_buffer.h>
 #include <stdexcept>
 #include <vector>
 
-size_t
+int64_t
 SampleBuffer::NumSamples() const
 {
     std::lock_guard<std::mutex> const kLock(mMutex);
-    return mData.size();
+    if (mData.size() > static_cast<size_t>(std::numeric_limits<int64_t>::max())) {
+        throw std::overflow_error("SampleBuffer::NumSamples: sample count exceeds int64_t maximum");
+    }
+    return static_cast<int64_t>(mData.size());
 }
 
 void

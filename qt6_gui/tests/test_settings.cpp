@@ -27,8 +27,8 @@ class TestSettings : public QObject
     {
         Settings settings;
         const QSignalSpy spy(&settings, &Settings::FFTSettingsChanged);
-        auto size = settings.GetFFTSize();
-        auto type = settings.GetWindowType();
+        const int64_t size = settings.GetFFTSize();
+        const FFTWindow::Type type = settings.GetWindowType();
 
         settings.SetFFTSettings(size, type); // Set to default again
 

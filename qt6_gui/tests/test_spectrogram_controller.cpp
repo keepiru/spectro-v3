@@ -269,7 +269,7 @@ class TestSpectrogramController : public QObject
         auto check = [&](int64_t index, size_t scale, int64_t want) {
             settings.SetWindowScale(scale);
 
-            auto have = controller.CalculateTopSample(index);
+            const int64_t have = controller.CalculateTopSample(index);
             qDebug("CalculateTopSample: sample=%ld scale=%zu => topSample=%ld (want %ld)",
                    index,
                    scale,

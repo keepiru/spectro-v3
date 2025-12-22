@@ -101,9 +101,9 @@ SettingsPanel UI change → Settings.setFFTSize(new_size)
 Settings emits FFTSettingsChanged()
     ↓
 SpectrogramController receives signal
-    → OnFFTSettingsChanged()
+    → ResetFFT()
     → recreates IFFTProcessor, FFTWindow for each channel
-    → clears mSpectrogramRowCache (invalidates all cached rows)
+    → clears mSpectrogramRowCache
     ↓
 Next paint event:
 SpectrogramView.paint()

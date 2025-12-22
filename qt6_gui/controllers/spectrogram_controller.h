@@ -85,11 +85,13 @@ class SpectrogramController : public QObject
     [[nodiscard]] size_t GetChannelCount() const;
 
     /**
-     * @brief Notify controller that FFT settings have changed
+     * @brief Reset FFT processing components
      *
-     * Recreates FFTProcessor and FFTWindow for each channel.
+     * Clears spectrogram cache, recreates FFTProcessor and FFTWindow for each
+     * channel.  Called when settings or audio buffer change.  Also used during
+     * initialization.
      */
-    void OnFFTSettingsChanged();
+    void ResetFFT();
 
     /**
      * @brief Get reference to application settings

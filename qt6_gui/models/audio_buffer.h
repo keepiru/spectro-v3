@@ -86,6 +86,13 @@ class AudioBuffer : public QObject
      */
     void DataAvailable(size_t aSampleCount);
 
+    /**
+     * @brief Emitted when the buffer is reset
+     *
+     * This notifies listeners to clear any cached data.
+     */
+    void BufferReset();
+
   private:
     /**
      * @brief Initialize empty mChannelBuffers with given channel count and sample rate

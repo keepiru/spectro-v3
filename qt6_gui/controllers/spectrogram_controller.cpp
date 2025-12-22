@@ -35,18 +35,18 @@ SpectrogramController::SpectrogramController(const Settings& aSettings,
         };
     }
 
-    // Connect to settings change signals
-    connect(&mSettings,
-            &Settings::FFTSettingsChanged,
-            this,
-            &SpectrogramController::OnFFTSettingsChanged);
+    // Reset FFT when settings update (such as size or window type)
+    connect(&mSettings, &Settings::FFTSettingsChanged, this, &SpectrogramController::ResetFFT);
+
+    // Reset FFT when audio buffer is reset (such as new recording or file load)
+    connect(&mAudioBuffer, &AudioBuffer::BufferReset, this, &SpectrogramController::ResetFFT);
 
     // Initialize with default FFT settings
-    OnFFTSettingsChanged();
+    ResetFFT();
 }
 
 void
-SpectrogramController::OnFFTSettingsChanged()
+SpectrogramController::ResetFFT()
 {
     // Clear out the old DSP objects
     mFFTProcessors.clear();

@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <dsp_utils.h>
 
 SpectrumPlot::SpectrumPlot(SpectrogramController& aController, QWidget* parent)
@@ -27,9 +28,7 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     painter.fillRect(event->rect(), Qt::black);
 
     const auto kAvailableSampleCount = mController.GetAvailableSampleCount();
-    const auto kStride = mController.GetSettings().GetWindowStride();
-    // Round down to nearest stride
-    const auto kTopSample = (((kAvailableSampleCount) / kStride) - 1) * kStride;
+    const int64_t kTopSample = mController.CalculateTopSample(kAvailableSampleCount);
     const auto kChannels = mController.GetChannelCount();
     const auto kApertureMinDecibels = mController.GetSettings().GetApertureMinDecibels();
     const auto kApertureMaxDecibels = mController.GetSettings().GetApertureMaxDecibels();

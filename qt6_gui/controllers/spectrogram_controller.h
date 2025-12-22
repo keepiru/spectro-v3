@@ -99,6 +99,14 @@ class SpectrogramController : public QObject
      */
     [[nodiscard]] const Settings& GetSettings() const { return mSettings; }
 
+    /**
+     * @brief Calculate the top sample index aligned to window stride
+     * @param aCursorSample Cursor sample index
+     * @return Top sample index aligned to window stride
+     * @note Returns a negative value if aCursorSample is less than one transform window
+     */
+    [[nodiscard]] int64_t CalculateTopSample(int64_t aCursorSample) const;
+
   private:
     const Settings& mSettings;       // Reference to application settings model
     const AudioBuffer& mAudioBuffer; // Reference to audio buffer model

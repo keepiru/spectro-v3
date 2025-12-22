@@ -107,6 +107,13 @@ class SpectrogramController : public QObject
      */
     [[nodiscard]] int64_t CalculateTopSample(int64_t aCursorSample) const;
 
+    /**
+     * @brief round a sample index down to nearest window stride
+     * @param aSample Sample index
+     * @return Sample index rounded down to nearest window stride
+     */
+    [[nodiscard]] int64_t RoundToStride(int64_t aSample) const;
+
   private:
     const Settings& mSettings;       // Reference to application settings model
     const AudioBuffer& mAudioBuffer; // Reference to audio buffer model

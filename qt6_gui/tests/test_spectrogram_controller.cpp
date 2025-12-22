@@ -328,6 +328,66 @@ class TestSpectrogramController : public QObject
         check(18, 4, 10); //  0  1  2  3  4  5  6  7  8  9 [10  11  12  13  14  15  16  17]
         check(18, 8, 10); //  0  1  2  3  4  5  6  7  8  9 [10  11  12  13  14  15  16  17]
     }
+
+    static void TestRoundToStride()
+    {
+        Settings settings;
+        const AudioBuffer audioBuffer;
+        SpectrogramController controller(settings, audioBuffer);
+
+        settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
+
+        auto check = [&](size_t stride, int64_t sample, int64_t want) {
+            if (settings.GetFFTSize() % stride != 0) {
+                throw std::invalid_argument("Stride must divide FFT size evenly");
+            }
+            settings.SetWindowScale(settings.GetFFTSize() / stride);
+
+            const int64_t have = controller.RoundToStride(sample);
+            qDebug("RoundToStride: stride=%zu, sample=%ld, got=%ld (want %ld)",
+                   stride,
+                   sample,
+                   have,
+                   want);
+            QCOMPARE(have, want);
+        };
+
+        check(1, -2, -2);
+        check(1, -1, -1);
+        check(1, 0, 0);
+        check(1, 1, 1);
+        check(1, 2, 2);
+
+        check(2, -3, -4);
+        check(2, -2, -2);
+        check(2, -1, -2);
+        check(2, 0, 0);
+        check(2, 1, 0);
+        check(2, 2, 2);
+
+        check(4, -5, -8);
+        check(4, -4, -4);
+        check(4, -3, -4);
+        check(4, -2, -4);
+        check(4, -1, -4);
+        check(4, 0, 0);
+        check(4, 1, 0);
+        check(4, 2, 0);
+        check(4, 3, 0);
+        check(4, 4, 4);
+        check(4, 5, 4);
+
+        check(8, -10, -16);
+        check(8, -9, -16);
+        check(8, -8, -8);
+        check(8, -1, -8);
+        check(8, 0, 0);
+        check(8, 7, 0);
+        check(8, 8, 8);
+        check(8, 15, 8);
+        check(8, 16, 16);
+        check(8, 17, 16);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestSpectrogramController)

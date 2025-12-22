@@ -108,10 +108,10 @@ class TestAudioBuffer : public QObject
         QCOMPARE(buffer.GetSampleRate(), 22050);
     }
 
-    static void TestResetEmitsSignal()
+    static void TestResetEmitsBufferResetSignal()
     {
         AudioBuffer buffer;
-        const QSignalSpy spy(&buffer, &AudioBuffer::DataAvailable);
+        const QSignalSpy spy(&buffer, &AudioBuffer::BufferReset);
 
         QCOMPARE(spy.count(), 0);
 
@@ -119,10 +119,10 @@ class TestAudioBuffer : public QObject
         QCOMPARE(spy.count(), 1);
 
         buffer.AddSamples({ 1, 2, 3, 4 });
-        QCOMPARE(spy.count(), 2);
+        QCOMPARE(spy.count(), 1);
 
         buffer.Reset(2, 44100);
-        QCOMPARE(spy.count(), 3);
+        QCOMPARE(spy.count(), 2);
     }
 };
 

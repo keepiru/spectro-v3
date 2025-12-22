@@ -141,7 +141,7 @@ SpectrogramController::GetChannelCount() const
 }
 
 int64_t
-SpectrogramController::CalculateTopSample(int64_t aCursorSample) const
+SpectrogramController::CalculateTopOfWindow(int64_t aCursorSample) const
 {
     const int64_t kUnalignedSample = aCursorSample - mSettings.GetFFTSize();
     return RoundToStride(kUnalignedSample);

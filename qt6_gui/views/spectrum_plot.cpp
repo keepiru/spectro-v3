@@ -27,18 +27,18 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     QPainter painter(this);
     painter.fillRect(event->rect(), Qt::black);
 
-    const auto kAvailableSampleCount = mController.GetAvailableSampleCount();
+    const int64_t kAvailableSampleCount = mController.GetAvailableSampleCount();
     const int64_t kTopSample = mController.CalculateTopSample(kAvailableSampleCount);
-    const auto kChannels = mController.GetChannelCount();
-    const auto kApertureMinDecibels = mController.GetSettings().GetApertureMinDecibels();
-    const auto kApertureMaxDecibels = mController.GetSettings().GetApertureMaxDecibels();
-    const auto kDecibelRange = kApertureMaxDecibels - kApertureMinDecibels;
-    const auto kImplausiblySmallDecibelRange = 1e-6f;
+    const size_t kChannels = mController.GetChannelCount();
+    const float kApertureMinDecibels = mController.GetSettings().GetApertureMinDecibels();
+    const float kApertureMaxDecibels = mController.GetSettings().GetApertureMaxDecibels();
+    const float kDecibelRange = kApertureMaxDecibels - kApertureMinDecibels;
+    const float kImplausiblySmallDecibelRange = 1e-6f;
     if (std::abs(kDecibelRange) < kImplausiblySmallDecibelRange) {
         // Avoid division by zero.  We can't draw anything if the range is zero.
         return;
     }
-    const auto kInverseDecibelRange = 1.0f / kDecibelRange;
+    const float kInverseDecibelRange = 1.0f / kDecibelRange;
 
     for (size_t ch = 0; ch < kChannels; ch++) {
         const auto kRows = mController.GetRows(ch, kTopSample, 1);

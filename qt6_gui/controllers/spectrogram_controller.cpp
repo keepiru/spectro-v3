@@ -74,14 +74,14 @@ SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRo
     std::vector<std::vector<float>> spectrogram;
     spectrogram.reserve(aRowCount);
 
-    const auto kSampleCount = mFFTWindows[aChannel]->GetSize();
-    const auto kWindowStride = mSettings.GetWindowStride();
+    const int64_t kSampleCount = mFFTWindows[aChannel]->GetSize();
+    const int64_t kWindowStride = mSettings.GetWindowStride();
 
     for (size_t row = 0; row < aRowCount; row++) {
         const int64_t kWindowFirstSample =
           aFirstSample + (static_cast<int64_t>(row) * kWindowStride);
-        const auto kAvailableSamples = GetAvailableSampleCount();
-        const auto kLastNeededSample = kWindowFirstSample + kSampleCount;
+        const int64_t kAvailableSamples = GetAvailableSampleCount();
+        const int64_t kLastNeededSample = kWindowFirstSample + kSampleCount;
 
         if (kLastNeededSample < kWindowFirstSample) {
             // Yikes, we overflowed an int64, something is very wrong

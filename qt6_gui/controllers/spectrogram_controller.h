@@ -76,7 +76,7 @@ class SpectrogramController : public QObject
      * @brief Get the number of available samples
      * @return Number of samples currently available in the audio buffer
      */
-    [[nodiscard]] size_t GetAvailableSampleCount() const;
+    [[nodiscard]] int64_t GetAvailableSampleCount() const;
 
     /**
      * @brief Get the number of available channels

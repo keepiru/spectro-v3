@@ -78,9 +78,10 @@ SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRo
     const auto kWindowStride = mSettings.GetWindowStride();
 
     for (size_t row = 0; row < aRowCount; row++) {
-        const int64_t kWindowFirstSample = aFirstSample + static_cast<int64_t>(row * kWindowStride);
+        const int64_t kWindowFirstSample =
+          aFirstSample + (static_cast<int64_t>(row) * kWindowStride);
         const auto kAvailableSamples = GetAvailableSampleCount();
-        const auto kLastNeededSample = kWindowFirstSample + static_cast<int64_t>(kSampleCount);
+        const auto kLastNeededSample = kWindowFirstSample + kSampleCount;
 
         if (kLastNeededSample < kWindowFirstSample) {
             // Yikes, we overflowed an int64, something is very wrong
@@ -88,16 +89,13 @@ SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRo
         }
 
         // Check if the requested window is within available data, else return zeroed row
-        if (kWindowFirstSample < 0 ||
-            static_cast<uint64_t>(kLastNeededSample) > kAvailableSamples) {
+        if (kWindowFirstSample < 0 || kLastNeededSample > kAvailableSamples) {
             spectrogram.emplace_back((kSampleCount / 2) + 1, 0.0f);
             continue;
         }
 
         // Check cache first
-        const std::pair<size_t, int64_t> cacheKey = {
-            aChannel, aFirstSample + static_cast<int64_t>(row * kWindowStride)
-        };
+        const std::pair<size_t, int64_t> cacheKey = { aChannel, kWindowFirstSample };
 
         const auto cacheIt = mSpectrogramRowCache.find(cacheKey);
         if (cacheIt != mSpectrogramRowCache.end()) {
@@ -124,7 +122,7 @@ SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRo
     return spectrogram;
 }
 
-size_t
+int64_t
 SpectrogramController::GetAvailableSampleCount() const
 {
     if (mAudioBuffer.GetChannelCount() == 0) {

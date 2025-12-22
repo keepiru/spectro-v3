@@ -16,11 +16,11 @@ class FFTWindow
      * @brief Constructor
      * @param aSize Number of samples in the window (must be > 0)
      * @param aType Window function type
-     * @throws std::invalid_argument if aSize is zero
+     * @throws std::invalid_argument if aSize is not positive
      *
      * Window functions are precomputed upon construction for performance.
      */
-    FFTWindow(size_t aSize, Type aType);
+    FFTWindow(int64_t aSize, Type aType);
 
     /**
      * @brief Apply window to samples, returning windowed data
@@ -34,7 +34,7 @@ class FFTWindow
      * @brief Get the size of the window
      * @return Window size in samples
      */
-    [[nodiscard]] size_t GetSize() const noexcept { return mSize; }
+    [[nodiscard]] int64_t GetSize() const noexcept { return mSize; }
 
     /**
      * @brief Get the type of the window
@@ -43,7 +43,7 @@ class FFTWindow
     [[nodiscard]] Type GetType() const noexcept { return mType; }
 
   private:
-    size_t mSize;                           // Window size in samples
+    int64_t mSize;                          // Window size in samples
     Type mType;                             // Window type
     std::vector<float> mWindowCoefficients; // Precomputed window coefficients
 

@@ -35,11 +35,14 @@ class TestSettings : public QObject
         QCOMPARE(spy.count(), 0);
     }
 
-    static void TestSetFFTSettingsThrowsOnZeroWindowSize()
+    static void TestSetFFTSettingsThrowsOnNonPositiveSize()
     {
         Settings settings;
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
                                  settings.SetFFTSettings(0, settings.GetWindowType()));
+
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
+                                 settings.SetFFTSettings(-1024, settings.GetWindowType()));
     }
 
     static void TestSetFFTSettingsThrowsOnNonPowerOfTwoSize()
@@ -76,17 +79,17 @@ class TestSettings : public QObject
 
         settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
         settings.SetWindowScale(4);
-        QCOMPARE(settings.GetWindowStride(), static_cast<size_t>(512));
+        QCOMPARE(settings.GetWindowStride(), 512);
 
         settings.SetWindowScale(8);
-        QCOMPARE(settings.GetWindowStride(), static_cast<size_t>(256));
+        QCOMPARE(settings.GetWindowStride(), 256);
 
         settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
         settings.SetWindowScale(1);
-        QCOMPARE(settings.GetWindowStride(), static_cast<size_t>(1024));
+        QCOMPARE(settings.GetWindowStride(), 1024);
 
         settings.SetWindowScale(2);
-        QCOMPARE(settings.GetWindowStride(), static_cast<size_t>(512));
+        QCOMPARE(settings.GetWindowStride(), 512);
     }
 
     static void GetApertureMinDecibels()

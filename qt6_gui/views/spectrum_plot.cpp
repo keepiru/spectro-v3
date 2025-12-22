@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <cstdint>
 #include <dsp_utils.h>
 
 SpectrumPlot::SpectrumPlot(SpectrogramController& aController, QWidget* parent)
@@ -43,7 +42,7 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     const auto kInverseDecibelRange = 1.0f / kDecibelRange;
 
     for (size_t ch = 0; ch < kChannels; ch++) {
-        const auto kRows = mController.GetRows(ch, static_cast<int64_t>(kTopSample), 1);
+        const auto kRows = mController.GetRows(ch, kTopSample, 1);
         if (kRows.empty() || kRows[0].empty()) {
             continue;
         }

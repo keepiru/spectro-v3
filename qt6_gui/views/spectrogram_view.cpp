@@ -39,8 +39,8 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
                       gkMaxChannels));
     }
     const auto& kSettings = mController.GetSettings();
-    const size_t kStride = kSettings.GetWindowStride();
-    const size_t kAvailableSampleCount = mController.GetAvailableSampleCount();
+    const int64_t kStride = kSettings.GetWindowStride();
+    const int64_t kAvailableSampleCount = mController.GetAvailableSampleCount();
     const size_t kHeight = height();
     const size_t kWidth = width();
     const float kMinDecibels = kSettings.GetApertureMinDecibels();
@@ -58,17 +58,16 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
     // Determine the top sample to start rendering from.
     // Go back kStride strides, then round down to nearest stride.
     // Default to 0 if the window is larger than available samples.
-    const size_t kTopSample =
-      (kStride * kHeight < kAvailableSampleCount)
-        ? ((kAvailableSampleCount - (kStride * kHeight)) / kStride) * kStride
+    const int64_t kTopSample =
+      (kStride * static_cast<int64_t>(kHeight) < kAvailableSampleCount)
+        ? ((kAvailableSampleCount - (kStride * static_cast<int64_t>(kHeight))) / kStride) * kStride
         : 0;
 
     // Store the magnitudes for all channels. Channel x Row x Frequency bins
     std::vector<std::vector<std::vector<float>>> magnitudesChannelRowBin(kChannels);
 
     for (size_t ch = 0; ch < kChannels; ch++) {
-        magnitudesChannelRowBin[ch] =
-          mController.GetRows(ch, static_cast<int64_t>(kTopSample), kHeight);
+        magnitudesChannelRowBin[ch] = mController.GetRows(ch, kTopSample, kHeight);
     }
 
     // TODO: maybe only allocate this once and reuse

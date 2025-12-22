@@ -18,9 +18,10 @@ TEST_CASE("FFTWindow Constructor", "[fft_window]")
         REQUIRE_NOTHROW(FFTWindow(1024, FFTWindow::Type::Hann));
     }
 
-    SECTION("Invalid size (zero)")
+    SECTION("Invalid sizes")
     {
         REQUIRE_THROWS_AS(FFTWindow(0, FFTWindow::Type::Hann), std::invalid_argument);
+        REQUIRE_THROWS_AS(FFTWindow(-512, FFTWindow::Type::Hann), std::invalid_argument);
     }
 }
 

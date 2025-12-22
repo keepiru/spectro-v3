@@ -28,7 +28,7 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     painter.fillRect(event->rect(), Qt::black);
 
     const int64_t kAvailableSampleCount = mController.GetAvailableSampleCount();
-    const int64_t kTopSample = mController.CalculateTopSample(kAvailableSampleCount);
+    const int64_t kTopSample = mController.CalculateTopOfWindow(kAvailableSampleCount);
     const size_t kChannels = mController.GetChannelCount();
     const float kApertureMinDecibels = mController.GetSettings().GetApertureMinDecibels();
     const float kApertureMaxDecibels = mController.GetSettings().GetApertureMaxDecibels();

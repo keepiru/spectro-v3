@@ -258,7 +258,7 @@ class TestSpectrogramController : public QObject
         QCOMPARE(controller.GetChannelCount(), 3);
     }
 
-    static void TestCalculateTopSample()
+    static void TestCalculateTopOfWindow()
     {
         Settings settings;
         const AudioBuffer audioBuffer;
@@ -269,8 +269,8 @@ class TestSpectrogramController : public QObject
         auto check = [&](int64_t index, size_t scale, int64_t want) {
             settings.SetWindowScale(scale);
 
-            const int64_t have = controller.CalculateTopSample(index);
-            qDebug("CalculateTopSample: sample=%ld scale=%zu => topSample=%ld (want %ld)",
+            const int64_t have = controller.CalculateTopOfWindow(index);
+            qDebug("CalculateTopOfWindow: sample=%ld scale=%zu => topSample=%ld (want %ld)",
                    index,
                    scale,
                    have,

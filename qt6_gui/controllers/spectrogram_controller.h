@@ -100,12 +100,12 @@ class SpectrogramController : public QObject
     [[nodiscard]] const Settings& GetSettings() const { return mSettings; }
 
     /**
-     * @brief Calculate the top sample index aligned to window stride
+     * @brief Calculate the first sample in the stride-aligned window containing aCursorSample
      * @param aCursorSample Cursor sample index
-     * @return Top sample index aligned to window stride
+     * @return First sample index of the stride-aligned window containing aCursorSample
      * @note Returns a negative value if aCursorSample is less than one transform window
      */
-    [[nodiscard]] int64_t CalculateTopSample(int64_t aCursorSample) const;
+    [[nodiscard]] int64_t CalculateTopOfWindow(int64_t aCursorSample) const;
 
     /**
      * @brief round a sample index down to nearest window stride

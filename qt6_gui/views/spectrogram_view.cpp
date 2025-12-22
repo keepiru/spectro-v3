@@ -60,7 +60,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
     // Default to 0 if the window is larger than available samples.
     const int64_t kTopSampleUnaligned =
       kAvailableSampleCount - (kStride * static_cast<int64_t>(kHeight));
-    const int64_t kTopSampleAligned = mController.CalculateTopSample(kTopSampleUnaligned);
+    const int64_t kTopSampleAligned = mController.CalculateTopOfWindow(kTopSampleUnaligned);
     const int64_t kTopSample = kTopSampleAligned < 0 ? 0 : kTopSampleAligned;
 
     // Store the magnitudes for all channels. Channel x Row x Frequency bins

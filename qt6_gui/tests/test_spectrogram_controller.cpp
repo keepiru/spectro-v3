@@ -8,6 +8,7 @@
 #include <ifft_processor.h>
 #include <memory>
 #include <mock_fft_processor.h>
+#include <qtestcase.h>
 #include <stdexcept>
 #include <vector>
 

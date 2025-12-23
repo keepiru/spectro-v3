@@ -4,7 +4,6 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(FFTW3 REQUIRED fftw3f)
 
 add_library(spectro_dsp
-    include/dsp_utils.h
     src/fft_processor.cpp
     src/fft_window.cpp
     src/sample_buffer.cpp

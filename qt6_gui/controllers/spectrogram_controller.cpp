@@ -128,7 +128,7 @@ SpectrogramController::ComputeFFT(size_t aChannel, int64_t aFirstSample) const
     const auto kSamples = mAudioBuffer.GetSamples(aChannel, aFirstSample, kSampleCount);
     auto windowedSamples = mFFTWindows[aChannel]->Apply(kSamples);
     auto windowedSpan = std::span<float>(windowedSamples);
-    return mFFTProcessors[aChannel]->ComputeMagnitudes(windowedSpan);
+    return mFFTProcessors[aChannel]->ComputeDecibels(windowedSpan);
 }
 
 int64_t

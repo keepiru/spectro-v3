@@ -111,18 +111,24 @@ SpectrogramController::GetRow(size_t aChannel, int64_t aFirstSample) const
     }
 
     // Not in cache, compute it
-
-    // Future performance optimization: grab the entire needed range once
-    // before the loop to minimize locking and copy overhead.
-    const auto kSamples = mAudioBuffer.GetSamples(aChannel, aFirstSample, kSampleCount);
-    auto windowedSamples = mFFTWindows[aChannel]->Apply(kSamples);
-    auto windowedSpan = std::span<float>(windowedSamples);
-    const auto kSpectrum = mFFTProcessors[aChannel]->ComputeMagnitudes(windowedSpan);
+    const auto kSpectrum = ComputeFFT(aChannel, aFirstSample);
 
     // Store in cache
     mSpectrogramRowCache.emplace(cacheKey, kSpectrum);
 
     return kSpectrum;
+}
+
+std::vector<float>
+SpectrogramController::ComputeFFT(size_t aChannel, int64_t aFirstSample) const
+{
+    const int64_t kSampleCount = mFFTWindows.at(aChannel)->GetSize();
+    // Future performance optimization: grab the entire needed range once
+    // before the loop to minimize locking and copy overhead.
+    const auto kSamples = mAudioBuffer.GetSamples(aChannel, aFirstSample, kSampleCount);
+    auto windowedSamples = mFFTWindows[aChannel]->Apply(kSamples);
+    auto windowedSpan = std::span<float>(windowedSamples);
+    return mFFTProcessors[aChannel]->ComputeMagnitudes(windowedSpan);
 }
 
 int64_t

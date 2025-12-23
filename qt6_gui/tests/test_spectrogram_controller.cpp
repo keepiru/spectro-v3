@@ -100,8 +100,9 @@ class TestSpectrogramController : public QObject
         const std::vector<std::vector<float>> kWant = {
             { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
         };
-        const auto kGot = controller->GetRows(0, 0, 1);
-        QCOMPARE(kGot, kWant);
+        QCOMPARE(controller->GetRows(0, 0, 1), kWant);
+        QCOMPARE(controller->GetRow(0, 0), kWant[0]);
+        QCOMPARE(controller->ComputeFFT(0, 0), kWant[0]);
     }
 
     static void TestGetRowsMultipleNonoverlappingWindows()
@@ -169,12 +170,20 @@ class TestSpectrogramController : public QObject
         buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
         auto controller = CreateControllerWithMockFFT(settings, buffer);
 
-        auto kGot = controller->GetRows(0, 0, 2);
         const std::vector<std::vector<float>> kWant = {
             { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
         };
-        QCOMPARE(kGot, kWant);
+
+        QCOMPARE(controller->GetRows(0, 0, 2), kWant);
+
+        // Do the same thing with GetRow
+        QCOMPARE(controller->GetRow(0, 0), kWant[0]);
+        QCOMPARE(controller->GetRow(0, 8), kWant[1]);
+
+        // And with ComputeFFT
+        QCOMPARE(controller->ComputeFFT(0, 0), kWant[0]);
+        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller->ComputeFFT(0, 8));
     }
 
     static void TestGetRowsWithNegativeStartSampleReturnsZeroedRows()
@@ -184,12 +193,19 @@ class TestSpectrogramController : public QObject
         buffer.Reset(1, 44100);
         buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
         auto controller = CreateControllerWithMockFFT(settings, buffer);
-        auto kGot = controller->GetRows(0, -2, 2);
         const std::vector<std::vector<float>> kWant = {
             { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
             { 7.0f, 8.0f, 9.0f, 10.0f, 11.0f },
         };
-        QCOMPARE(kGot, kWant);
+        QCOMPARE(controller->GetRows(0, -2, 2), kWant);
+
+        // Do the same thing with GetRow
+        QCOMPARE(controller->GetRow(0, -2), kWant[0]);
+        QCOMPARE(controller->GetRow(0, 6), kWant[1]);
+
+        // And with ComputeFFT
+        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller->ComputeFFT(0, -2));
+        QCOMPARE(controller->ComputeFFT(0, 6), kWant[1]);
     }
 
     static void TestGetRowsWithHannWindowIntegration()
@@ -210,12 +226,12 @@ class TestSpectrogramController : public QObject
             { 0.0f, 0.188255101f, 0.611260474f, 0.950484395f, 0.950484395f }
         };
 
-        const auto kGot = controller->GetRows(0, 0, 2);
-        QCOMPARE(kGot, kWant);
+        QCOMPARE(controller->GetRows(0, 0, 2), kWant);
         QCOMPARE(controller->GetRow(0, 0), kWant[0]);
         QCOMPARE(controller->ComputeFFT(0, 0), kWant[0]);
     }
 
+    // NOLINTNEXTLINE(readability-function-cognitive-complexity) QTest macro expansion
     static void TestGetRowsThrowsOnInvalidChannel()
     {
         const Settings settings;
@@ -224,6 +240,8 @@ class TestSpectrogramController : public QObject
         const SpectrogramController controller(settings, buffer);
 
         QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.GetRows(1, 0, 1));
+        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.GetRow(1, 0));
+        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.ComputeFFT(1, 0));
     }
 
     static void TestGetAvailableSampleCount()
@@ -375,61 +393,6 @@ class TestSpectrogramController : public QObject
         check(8, 15, 8);
         check(8, 16, 16);
         check(8, 17, 16);
-    }
-
-    static void TestGetRowBasicCase()
-    {
-        AudioBuffer buffer;
-        buffer.Reset(1, 44100);
-        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 });
-        Settings settings;
-        auto controller = CreateControllerWithMockFFT(settings, buffer);
-
-        const std::vector<float> kWant = {
-            { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
-        };
-        const auto kGot = controller->GetRow(0, 0);
-        QCOMPARE(kGot, kWant);
-    }
-
-    // NOLINTNEXTLINE(readability-function-cognitive-complexity) QCOMPARE macro expansion
-    static void TestGetRowAndComputeFFT()
-    {
-        AudioBuffer buffer;
-        buffer.Reset(1, 44100);
-        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 });
-        Settings settings;
-        auto controller = CreateControllerWithMockFFT(settings, buffer);
-
-        // Start from the beginning
-        std::vector<float> want = { 1, 2, 3, 4, 5 };
-        QCOMPARE(controller->GetRow(0, 0), want);
-        QCOMPARE(controller->ComputeFFT(0, 0), want);
-
-        // Last possible full window
-        want = { 5, 6, 7, 8, 9 };
-        QCOMPARE(controller->GetRow(0, 4), want);
-        QCOMPARE(controller->ComputeFFT(0, 4), want);
-
-        // Zero filled window past the end
-        want = { 0, 0, 0, 0, 0 };
-        QCOMPARE(controller->GetRow(0, 5), want);
-        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller->ComputeFFT(0, 5));
-
-        // Also zero filled before the beginning
-        want = { 0, 0, 0, 0, 0 };
-        QCOMPARE(controller->GetRow(0, -1), want);
-        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller->ComputeFFT(0, -1));
-    }
-
-    static void TestGetRowAndComputeFFTThrowsOnInvalidChannel()
-    {
-        AudioBuffer buffer;
-        buffer.Reset(1, 44100);
-        const SpectrogramController controller(Settings(), buffer);
-
-        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.GetRow(1, 0));
-        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.ComputeFFT(1, 0));
     }
 };
 

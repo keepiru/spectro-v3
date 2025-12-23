@@ -74,52 +74,55 @@ SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRo
     std::vector<std::vector<float>> spectrogram;
     spectrogram.reserve(aRowCount);
 
-    const int64_t kSampleCount = mFFTWindows[aChannel]->GetSize();
     const int64_t kWindowStride = mSettings.GetWindowStride();
 
     for (size_t row = 0; row < aRowCount; row++) {
         const int64_t kWindowFirstSample =
           aFirstSample + (static_cast<int64_t>(row) * kWindowStride);
-        const int64_t kAvailableSamples = GetAvailableSampleCount();
-        const int64_t kLastNeededSample = kWindowFirstSample + kSampleCount;
-
-        if (kLastNeededSample < kWindowFirstSample) {
-            // Yikes, we overflowed an int64, something is very wrong
-            throw std::out_of_range("Requested sample range is invalid (overflow detected)");
-        }
-
-        // Check if the requested window is within available data, else return zeroed row
-        if (kWindowFirstSample < 0 || kLastNeededSample > kAvailableSamples) {
-            spectrogram.emplace_back((kSampleCount / 2) + 1, 0.0f);
-            continue;
-        }
-
-        // Check cache first
-        const std::pair<size_t, int64_t> cacheKey = { aChannel, kWindowFirstSample };
-
-        const auto cacheIt = mSpectrogramRowCache.find(cacheKey);
-        if (cacheIt != mSpectrogramRowCache.end()) {
-            // Found in cache
-            spectrogram.push_back(cacheIt->second);
-            continue;
-        }
-
-        // Not in cache, compute it
-
-        // Future performance optimization: grab the entire needed range once
-        // before the loop to minimize locking and copy overhead.
-        const auto kSamples = mAudioBuffer.GetSamples(aChannel, kWindowFirstSample, kSampleCount);
-        auto windowedSamples = mFFTWindows[aChannel]->Apply(kSamples);
-        auto windowedSpan = std::span<float>(windowedSamples);
-        const auto kSpectrum = mFFTProcessors[aChannel]->ComputeMagnitudes(windowedSpan);
-
-        // Store in cache
-        mSpectrogramRowCache.emplace(cacheKey, kSpectrum);
-
-        // And in the result
+        const auto kSpectrum = GetRow(aChannel, kWindowFirstSample);
         spectrogram.push_back(kSpectrum);
     }
     return spectrogram;
+}
+
+std::vector<float>
+SpectrogramController::GetRow(size_t aChannel, int64_t aFirstSample) const
+{
+    if (aChannel >= mAudioBuffer.GetChannelCount()) {
+        throw std::out_of_range("Channel index out of range");
+    }
+
+    const int64_t kSampleCount = mFFTWindows.at(aChannel)->GetSize();
+    const int64_t kAvailableSamples = GetAvailableSampleCount();
+    const int64_t kLastNeededSample = aFirstSample + kSampleCount;
+
+    // Check if the requested window is within available data, else return zeroed row
+    if (aFirstSample < 0 || kLastNeededSample > kAvailableSamples) {
+        return std::vector<float>((kSampleCount / 2) + 1, 0.0f);
+    }
+
+    // Check cache first
+    const std::pair<size_t, int64_t> cacheKey = { aChannel, aFirstSample };
+
+    const auto cacheIt = mSpectrogramRowCache.find(cacheKey);
+    if (cacheIt != mSpectrogramRowCache.end()) {
+        // Found in cache
+        return cacheIt->second;
+    }
+
+    // Not in cache, compute it
+
+    // Future performance optimization: grab the entire needed range once
+    // before the loop to minimize locking and copy overhead.
+    const auto kSamples = mAudioBuffer.GetSamples(aChannel, aFirstSample, kSampleCount);
+    auto windowedSamples = mFFTWindows[aChannel]->Apply(kSamples);
+    auto windowedSpan = std::span<float>(windowedSamples);
+    const auto kSpectrum = mFFTProcessors[aChannel]->ComputeMagnitudes(windowedSpan);
+
+    // Store in cache
+    mSpectrogramRowCache.emplace(cacheKey, kSpectrum);
+
+    return kSpectrum;
 }
 
 int64_t

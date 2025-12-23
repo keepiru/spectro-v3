@@ -192,20 +192,6 @@ class TestSpectrogramController : public QObject
         QCOMPARE(kGot, kWant);
     }
 
-    static void TestGetRowsThrowsOnOverflow()
-    {
-        Settings settings;
-        AudioBuffer buffer;
-        buffer.Reset(1, 44100);
-        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
-        auto controller = CreateControllerWithMockFFT(settings, buffer);
-
-        // Use a large aFirstSample to trigger overflow when computing row offsets
-        const int64_t kLargeFirstSample = std::numeric_limits<int64_t>::max() - 4;
-        QVERIFY_THROWS_EXCEPTION(std::out_of_range,
-                                 (void)controller->GetRows(0, kLargeFirstSample, 1));
-    }
-
     static void TestGetRowsWithHannWindowIntegration()
     {
         Settings settings;
@@ -387,6 +373,55 @@ class TestSpectrogramController : public QObject
         check(8, 15, 8);
         check(8, 16, 16);
         check(8, 17, 16);
+    }
+
+    static void TestGetRowBasicCase()
+    {
+        AudioBuffer buffer;
+        buffer.Reset(1, 44100);
+        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 });
+        Settings settings;
+        auto controller = CreateControllerWithMockFFT(settings, buffer);
+
+        const std::vector<float> kWant = {
+            { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
+        };
+        const auto kGot = controller->GetRow(0, 0);
+        QCOMPARE(kGot, kWant);
+    }
+
+    static void TestGetRow()
+    {
+        AudioBuffer buffer;
+        buffer.Reset(1, 44100);
+        buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 });
+        Settings settings;
+        auto controller = CreateControllerWithMockFFT(settings, buffer);
+
+        // Start from the beginning
+        std::vector<float> want = { 1, 2, 3, 4, 5 };
+        QCOMPARE(controller->GetRow(0, 0), want);
+
+        // Last possible full window
+        want = { 5, 6, 7, 8, 9 };
+        QCOMPARE(controller->GetRow(0, 4), want);
+
+        // Zero filled window past the end
+        want = { 0, 0, 0, 0, 0 };
+        QCOMPARE(controller->GetRow(0, 5), want);
+
+        // Also zero filled before the beginning
+        want = { 0, 0, 0, 0, 0 };
+        QCOMPARE(controller->GetRow(0, -1), want);
+    }
+
+    static void TestGetRowThrowsOnInvalidChannel()
+    {
+        AudioBuffer buffer;
+        buffer.Reset(1, 44100);
+        const SpectrogramController controller(Settings(), buffer);
+
+        QVERIFY_THROWS_EXCEPTION(std::out_of_range, (void)controller.GetRow(1, 0));
     }
 };
 

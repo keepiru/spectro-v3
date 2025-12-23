@@ -1,3 +1,4 @@
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -5,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <fft_processor.h>
+#include <limits>
 #include <numbers>
 #include <stdexcept>
 #include <type_traits>
@@ -119,5 +121,53 @@ TEST_CASE("FFTProcessor#ComputeMagnitudes", "[fft]")
         REQUIRE_THAT(spectrum[2], Catch::Matchers::WithinAbs(0.0, 0.00001)); // No bin 2 component
         REQUIRE_THAT(spectrum[3], Catch::Matchers::WithinAbs(0.0, 0.00001)); // No bin 3 component
         REQUIRE_THAT(spectrum[4], Catch::Matchers::WithinAbs(0.0, 0.00001)); // No Nyquist component
+    }
+}
+
+TEST_CASE("FFTProcessor#ComputeDecibels", "[fft]")
+{
+    const uint32_t kTransformSize = 8; // Small for testing
+    FFTProcessor const kProcessor(kTransformSize);
+
+    SECTION("Throws on input size mismatch", "[fft]")
+    {
+        std::vector<float> samples(kTransformSize - 1, 0.0f); // Incorrect size
+        REQUIRE_THROWS_AS(kProcessor.ComputeDecibels(samples), std::invalid_argument);
+    }
+
+    SECTION("Computes DC component for constant signal", "[fft]")
+    {
+        std::vector<float> samples(kTransformSize, 1.0f);
+        auto spectrum = kProcessor.ComputeDecibels(samples);
+
+        CAPTURE(spectrum);
+        REQUIRE(spectrum.size() == 5);
+        // 20*log10(8) = 18.061f
+        constexpr float negInf = -std::numeric_limits<float>::infinity();
+        REQUIRE_THAT(spectrum[0], Catch::Matchers::WithinAbs(18.061f, 0.001f));
+        REQUIRE_THAT(spectrum[1], Catch::Matchers::WithinRel(negInf));
+        REQUIRE_THAT(spectrum[2], Catch::Matchers::WithinRel(negInf));
+        REQUIRE_THAT(spectrum[3], Catch::Matchers::WithinRel(negInf));
+        REQUIRE_THAT(spectrum[4], Catch::Matchers::WithinRel(negInf));
+    }
+
+    SECTION("Computes peak frequency of sine wave", "[fft]")
+    {
+        const float kFrequency = 1.0f; // 1 cycle over 8 samples
+        std::vector<float> samples(kTransformSize);
+        for (size_t i = 0; i < kTransformSize; ++i) {
+            const auto kPI = std::numbers::pi_v<float>;
+            samples[i] = std::sinf(2.0f * kPI * kFrequency * static_cast<float>(i) /
+                                   static_cast<float>(kTransformSize));
+        }
+
+        auto spectrum = kProcessor.ComputeDecibels(samples);
+        CAPTURE(spectrum);
+        REQUIRE(spectrum.size() == (kTransformSize / 2) + 1);
+        REQUIRE(spectrum[0] < -100.0f); // No DC component
+        REQUIRE_THAT(spectrum[1], Catch::Matchers::WithinAbs(12.041f, 0.001f));
+        REQUIRE(spectrum[2] < -100.0f); // No bin 2 component
+        REQUIRE(spectrum[3] < -100.0f); // No bin 3 component
+        REQUIRE(spectrum[4] < -100.0f); // No Nyquist component
     }
 }

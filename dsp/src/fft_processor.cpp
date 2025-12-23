@@ -74,6 +74,19 @@ FFTProcessor::ComputeMagnitudes(const std::span<float>& aSamples) const
     return magnitudes;
 }
 
+std::vector<float>
+FFTProcessor::ComputeDecibels(const std::span<float>& aSamples) const
+{
+    const std::vector<float> magnitudes = ComputeMagnitudes(aSamples);
+    std::vector<float> decibels(magnitudes.size());
+    for (size_t i = 0; i < magnitudes.size(); ++i) {
+        // Standard conversion: dB = 20 * log10(magnitude)
+        constexpr float kDecibelScaleFactor = 20.0F;
+        decibels[i] = kDecibelScaleFactor * std::log10(magnitudes[i]);
+    }
+    return decibels;
+}
+
 void
 FFTProcessor::FFTWDeleter::operator()(FftwfPlan aPlan) const
 {

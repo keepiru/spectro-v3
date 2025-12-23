@@ -63,6 +63,17 @@ class FFTProcessor : public IFFTProcessor
     [[nodiscard]] std::vector<float> ComputeMagnitudes(
       const std::span<float>& aSamples) const override;
 
+    /**
+     * @brief Compute the frequency magnitudes in decibels from audio samples
+     * @param aSamples Input audio aSamples (size must be equal to transform_size)
+     * @return Vector of frequency magnitudes in decibels (size will be transform_size / 2 + 1)
+     *         Output bins represent frequencies: [DC, 1*Fs/N, 2*Fs/N, ..., Nyquist]
+     *         Where Fs is the sampling frequency and N is transform_size
+     * @throws std::invalid_argument if aSamples.size() != transform_size
+     */
+    [[nodiscard]] std::vector<float> ComputeDecibels(
+      const std::span<float>& aSamples) const override;
+
   private:
     // Custom deleter for FFTW resources (implementation in .cpp)
     struct FFTWDeleter

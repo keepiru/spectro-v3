@@ -67,6 +67,12 @@ class MockFFTProcessor : public IFFTProcessor
         return ret;
     }
 
+    [[nodiscard]] std::vector<float> ComputeDecibels(
+      const std::span<float>& aInputSamples) const override
+    {
+        return ComputeMagnitudes(aInputSamples);
+    }
+
   private:
     uint32_t mTransformSize;
 };

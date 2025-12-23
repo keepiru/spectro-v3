@@ -19,6 +19,12 @@ TEST_CASE("MockFFTProcessor returns fixed values", "[MockFFTProcessor]")
                 std::vector<float>({ 0.0f, 1.0f, 2.0f, 3.0f, 4.0f }));
     }
 
+    SECTION("ComputeDecibels returns fixed values")
+    {
+        REQUIRE(kMockFFT.ComputeDecibels(samples) ==
+                std::vector<float>({ 0.0f, 1.0f, 2.0f, 3.0f, 4.0f }));
+    }
+
     SECTION("ComputeComplex returns fixed complex values")
     {
         auto const complexOutput = kMockFFT.ComputeComplex(samples);
@@ -44,5 +50,10 @@ TEST_CASE("MockFFTProcessor throws on size mismatch", "[MockFFTProcessor]")
     SECTION("ComputeComplex throws std::invalid_argument")
     {
         REQUIRE_THROWS_AS(mockFft.ComputeComplex(invalidSamples), std::invalid_argument);
+    }
+
+    SECTION("ComputeDecibels throws std::invalid_argument")
+    {
+        REQUIRE_THROWS_AS(mockFft.ComputeDecibels(invalidSamples), std::invalid_argument);
     }
 }

@@ -73,6 +73,18 @@ class SpectrogramController : public QObject
                                                           size_t aRowCount) const;
 
     /**
+     * @brief Get a single spectrogram row for a channel
+     * @param aChannel Channel index (0-based)
+     * @param aFirstSample First sample position (aligned to stride)
+     * @return Vector of frequency magnitudes for the specified row
+     * @throws std::out_of_range if aChannel is invalid
+     * @note Uses internal caching to avoid redundant computations
+     * @note If ANY samples in the requested window are not available, returns a
+     * vector of zeros.
+     */
+    [[nodiscard]] std::vector<float> GetRow(size_t aChannel, int64_t aFirstSample) const;
+
+    /**
      * @brief Get the number of available samples
      * @return Number of samples currently available in the audio buffer
      */

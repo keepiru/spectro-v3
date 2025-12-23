@@ -85,6 +85,17 @@ class SpectrogramController : public QObject
     [[nodiscard]] std::vector<float> GetRow(size_t aChannel, int64_t aFirstSample) const;
 
     /**
+     * @brief Compute FFT for a channel at a specific sample position
+     * @param aChannel Channel index (0-based)
+     * @param aFirstSample First sample position (aligned to stride)
+     * @return Vector of frequency magnitudes
+     * @throws std::out_of_range if aChannel is invalid
+     * @throws std::out_of_range if requested samples are not available
+     * @note Does not use caching; called internally by GetRow
+     */
+    [[nodiscard]] std::vector<float> ComputeFFT(size_t aChannel, int64_t aFirstSample) const;
+
+    /**
      * @brief Get the number of available samples
      * @return Number of samples currently available in the audio buffer
      */

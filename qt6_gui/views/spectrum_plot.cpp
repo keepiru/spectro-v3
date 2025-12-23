@@ -10,7 +10,6 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <dsp_utils.h>
 
 SpectrumPlot::SpectrumPlot(SpectrogramController& aController, QWidget* parent)
   : QWidget(parent)
@@ -46,7 +45,7 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
             continue;
         }
 
-        const auto& kMagnitudes = kRows[0];
+        const auto& kDecibels = kRows[0];
         const size_t kWidth = width();
         const size_t kHeight = height();
 
@@ -63,15 +62,14 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
         }
 
         QPolygonF points;
-        points.reserve(static_cast<qsizetype>(kMagnitudes.size()));
+        points.reserve(static_cast<qsizetype>(kDecibels.size()));
 
-        const size_t kMaxX = std::min(kWidth, kMagnitudes.size());
+        const size_t kMaxX = std::min(kWidth, kDecibels.size());
         for (size_t x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
-            const float kDecibels = DSPUtils::MagnitudeToDecibels(kMagnitudes[x]);
-            const float kNormalizedMagnitude =
-              (kDecibels - kApertureMinDecibels) * kInverseDecibelRange;
+            const float kNormalizedDecibels =
+              (kDecibels[x] - kApertureMinDecibels) * kInverseDecibelRange;
             const float kYCoordinate =
-              static_cast<float>(kHeight) - (kNormalizedMagnitude * static_cast<float>(kHeight));
+              static_cast<float>(kHeight) - (kNormalizedDecibels * static_cast<float>(kHeight));
             points.emplace_back(static_cast<float>(x), kYCoordinate);
         }
 

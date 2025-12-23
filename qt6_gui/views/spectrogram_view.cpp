@@ -11,7 +11,6 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <dsp_utils.h>
 #include <format>
 #include <stdexcept>
 #include <vector>
@@ -64,10 +63,10 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
     const int64_t kTopSample = kTopSampleAligned < 0 ? 0 : kTopSampleAligned;
 
     // Store the magnitudes for all channels. Channel x Row x Frequency bins
-    std::vector<std::vector<std::vector<float>>> magnitudesChannelRowBin(kChannels);
+    std::vector<std::vector<std::vector<float>>> decibelsChannelRowBin(kChannels);
 
     for (size_t ch = 0; ch < kChannels; ch++) {
-        magnitudesChannelRowBin[ch] = mController.GetRows(ch, kTopSample, kHeight);
+        decibelsChannelRowBin[ch] = mController.GetRows(ch, kTopSample, kHeight);
     }
 
     // TODO: maybe only allocate this once and reuse
@@ -76,7 +75,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
     image.fill(Qt::black);
 
     // Determine max X to render, lesser of view width or data width
-    const size_t kMaxX = std::min(kWidth, magnitudesChannelRowBin[0][0].size());
+    const size_t kMaxX = std::min(kWidth, decibelsChannelRowBin[0][0].size());
 
     // Render spectrogram data into image
     // This is the hot path, so avoid branches and unnecessary allocations.
@@ -96,8 +95,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
             // NOLINTEND(readability-identifier-length)
             // Sum RGB values for each channel
             for (size_t ch = 0; ch < kChannels; ch++) {
-                const float kMagnitude = magnitudesChannelRowBin[ch][y][x];
-                const float kDecibels = DSPUtils::MagnitudeToDecibels(kMagnitude);
+                const float kDecibels = decibelsChannelRowBin[ch][y][x];
                 // Map to 0-255
                 auto colorMapIndex = (kDecibels - kMinDecibels) * kInverseDecibelRange;
                 colorMapIndex = std::clamp(colorMapIndex, 0.0f, kColorMapMaxIndex);

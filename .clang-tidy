@@ -67,3 +67,4 @@ CheckOptions:
 
 FormatStyle: file
 HeaderFilterRegex: '^(?!.*build/).*$'
+SystemHeaders: false

@@ -3,13 +3,23 @@
 find_package(Qt6 REQUIRED COMPONENTS Test)
 find_package(Catch2 3 REQUIRED)
 
+# Shared test main library - compiled once, linked to all tests in this directory.
+# This is an internal helper for qt6_gui tests only and is not intended for use
+# by other modules or test suites. It speeds up builds and clang-tidy (heavy
+# Qt/Catch2 headers are parsed only once).
+add_library(spectro_test_main STATIC test_main_qt.cpp)
+target_link_libraries(spectro_test_main
+    PUBLIC
+        Qt6::Widgets
+        Catch2::Catch2
+)
+
 # Helper function to create Qt tests with Catch2
 function(add_qt_test TEST_NAME)
     cmake_parse_arguments(ARG "" "INCLUDE_DIR" "" ${ARGN})
     
     add_executable(${TEST_NAME} 
         ${TEST_NAME}.cpp
-        test_main_qt.cpp
     )
     
     if(ARG_INCLUDE_DIR)
@@ -19,8 +29,8 @@ function(add_qt_test TEST_NAME)
     target_link_libraries(${TEST_NAME}
         PRIVATE
             spectro_qt6_gui
+            spectro_test_main
             Qt6::Test
-            Catch2::Catch2
     )
     
     # Option A: batched tests

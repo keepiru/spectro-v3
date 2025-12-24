@@ -4,9 +4,8 @@
 #include <QAudioDevice>
 #include <QAudioFormat>
 #include <QMediaDevices>
-#include <QObject>
 #include <QSignalSpy>
-#include <QTest>
+#include <catch2/catch_test_macros.hpp>
 
 /**
  * @brief Mock QIODevice to simulate audio input for testing.
@@ -52,137 +51,127 @@ class MockQIODevice : public QIODevice
     QByteArray mBuffer;
 };
 
-class TestAudioRecorder : public QObject
+TEST_CASE("AudioRecorder constructor succeeds", "[audio_recorder]")
 {
-    Q_OBJECT
+    AudioBuffer buffer;
+    const AudioRecorder recorder(buffer);
+    // Constructor should not crash
+}
 
-  private slots:
-    static void TestConstructorSucceeds()
-    {
-        AudioBuffer buffer;
-        const AudioRecorder recorder(buffer);
-        // Constructor should not crash
-    }
+TEST_CASE("AudioRecorder::Start throws with invalid arguments", "[audio_recorder]")
+{
+    AudioBuffer buffer;
+    AudioRecorder recorder(buffer);
 
-    // NOLINTNEXTLINE(readability-function-cognitive-complexity) -- QVERIFY macro expansion
-    static void TestStartWithInvalidArgsThrows()
-    {
-        AudioBuffer buffer;
-        AudioRecorder recorder(buffer);
+    // Invalid channel count
+    REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), -1, 48000), std::invalid_argument);
+    REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), 0, 48000), std::invalid_argument);
+    recorder.Start(QAudioDevice(), 1, 48000);             // Does not throw
+    recorder.Start(QAudioDevice(), gkMaxChannels, 48000); // Does not throw
+    REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), gkMaxChannels + 1, 48000),
+                      std::invalid_argument);
 
-        // Invalid channel count
-        QVERIFY_EXCEPTION_THROWN(recorder.Start(QAudioDevice(), -1, 48000), std::invalid_argument);
-        QVERIFY_EXCEPTION_THROWN(recorder.Start(QAudioDevice(), 0, 48000), std::invalid_argument);
-        recorder.Start(QAudioDevice(), 1, 48000);             // Does not throw
-        recorder.Start(QAudioDevice(), gkMaxChannels, 48000); // Does not throw
-        QVERIFY_EXCEPTION_THROWN(recorder.Start(QAudioDevice(), gkMaxChannels + 1, 48000),
-                                 std::invalid_argument);
+    // Invalid sample rate
+    REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), 1, 0), std::invalid_argument);
+    REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), 1, -44100), std::invalid_argument);
+}
 
-        // Invalid sample rate
-        QVERIFY_EXCEPTION_THROWN(recorder.Start(QAudioDevice(), 1, 0), std::invalid_argument);
-        QVERIFY_EXCEPTION_THROWN(recorder.Start(QAudioDevice(), 1, -44100), std::invalid_argument);
-    }
+TEST_CASE("AudioRecorder::Start resets audio buffer", "[audio_recorder]")
+{
+    AudioBuffer buffer;
+    AudioRecorder recorder(buffer);
+    MockQIODevice ioDevice;
 
-    static void TestStartResetsAudioBuffer()
-    {
-        AudioBuffer buffer;
-        AudioRecorder recorder(buffer);
-        MockQIODevice ioDevice;
+    // Add some samples to the buffer first
+    buffer.AddSamples({ 0.1f, 0.2f, 0.3f, 0.4f });
+    REQUIRE(buffer.NumSamples() == 2);
+    REQUIRE(buffer.GetSampleRate() == 44100);
 
-        // Add some samples to the buffer first
-        buffer.AddSamples({ 0.1f, 0.2f, 0.3f, 0.4f });
-        QCOMPARE(buffer.NumSamples(), 2);
-        QCOMPARE(buffer.GetSampleRate(), 44100);
+    recorder.Start(QAudioDevice(), 2, 48000, &ioDevice);
 
-        recorder.Start(QAudioDevice(), 2, 48000, &ioDevice);
+    // Buffer should be reset
+    REQUIRE(buffer.NumSamples() == 0);
+    REQUIRE(buffer.GetSampleRate() == 48000);
+}
 
-        // Buffer should be reset
-        QCOMPARE(buffer.NumSamples(), 0);
-        QCOMPARE(buffer.GetSampleRate(), 48000);
-    }
+TEST_CASE("AudioRecorder::Stop when not recording is no-op", "[audio_recorder]")
+{
+    AudioBuffer buffer;
+    AudioRecorder recorder(buffer);
+    const QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
+    recorder.Stop();           // Should not crash
+    REQUIRE(spy.count() == 0); // No events should be emitted
+}
 
-    static void TestStopWhenNotRecordingIsNoOp()
-    {
-        AudioBuffer buffer;
-        AudioRecorder recorder(buffer);
-        const QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
-        recorder.Stop();          // Should not crash
-        QCOMPARE(spy.count(), 0); // No events should be emitted
-    }
+TEST_CASE("AudioRecorder::Stop after start succeeds", "[audio_recorder]")
+{
+    AudioBuffer buffer;
+    AudioRecorder recorder(buffer);
+    MockQIODevice ioDevice;
+    recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
+    QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
 
-    static void TestStopAfterStartSucceeds()
-    {
-        AudioBuffer buffer;
-        AudioRecorder recorder(buffer);
-        MockQIODevice ioDevice;
-        recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
-        QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
+    recorder.Stop(); // Should not crash
+    REQUIRE(spy.count() == 1);
+    const QList<QVariant> arguments = spy.takeFirst();
+    REQUIRE(arguments.at(0).toBool() == false);
 
-        recorder.Stop(); // Should not crash
-        QCOMPARE(spy.count(), 1);
-        const QList<QVariant> arguments = spy.takeFirst();
-        QCOMPARE(arguments.at(0).toBool(), false);
+    recorder.Stop();           // Repeating should be a no-op
+    REQUIRE(spy.count() == 0); // No new signals
+}
 
-        recorder.Stop();          // Repeating should be a no-op
-        QCOMPARE(spy.count(), 0); // No new signals
-    }
+TEST_CASE("AudioRecorder recording state changed signal emitted", "[audio_recorder]")
+{
+    AudioBuffer buffer;
+    MockQIODevice ioDevice;
+    AudioRecorder recorder(buffer);
+    QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
 
-    static void TestRecordingStateChangedSignalEmitted()
-    {
-        AudioBuffer buffer;
-        MockQIODevice ioDevice;
-        AudioRecorder recorder(buffer);
-        QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
+    recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
 
-        recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
+    // Verify the signal is emitted
+    REQUIRE(spy.count() == 1);
 
-        // Verify the signal is emitted
-        QCOMPARE(spy.count(), 1);
+    // Check that the state changed to true
+    const QList<QVariant> arguments = spy.takeFirst();
+    REQUIRE(arguments.at(0).toBool() == true);
+}
 
-        // Check that the state changed to true
-        const QList<QVariant> arguments = spy.takeFirst();
-        QCOMPARE(arguments.at(0).toBool(), true);
-    }
+TEST_CASE("AudioRecorder audio data written to buffer", "[audio_recorder]")
+{
+    AudioBuffer buffer;
+    MockQIODevice ioDevice;
+    AudioRecorder recorder(buffer);
+    recorder.Start(QAudioDevice(), 2, 48000, &ioDevice);
 
-    static void TestAudioDataWrittenToBuffer()
-    {
-        AudioBuffer buffer;
-        MockQIODevice ioDevice;
-        AudioRecorder recorder(buffer);
-        recorder.Start(QAudioDevice(), 2, 48000, &ioDevice);
+    // Feed in some mock audio data...
+    ioDevice.SimulateAudioData({ 0.1, 0.2, 0.3, 0.4 });
 
-        // Feed in some mock audio data...
-        ioDevice.SimulateAudioData({ 0.1, 0.2, 0.3, 0.4 });
+    // ... then see if it comes back.
+    REQUIRE(buffer.NumSamples() == 2);
+    REQUIRE(buffer.GetSamples(0, 0, 2) == std::vector<float>({ 0.1, 0.3 }));
+    REQUIRE(buffer.GetSamples(1, 0, 2) == std::vector<float>({ 0.2, 0.4 }));
 
-        // ... then see if it comes back.
-        QCOMPARE(buffer.NumSamples(), 2);
-        QCOMPARE(buffer.GetSamples(0, 0, 2), std::vector<float>({ 0.1, 0.3 }));
-        QCOMPARE(buffer.GetSamples(1, 0, 2), std::vector<float>({ 0.2, 0.4 }));
+    // Add some more...
+    ioDevice.SimulateAudioData({ 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 });
 
-        // Add some more...
-        ioDevice.SimulateAudioData({ 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 });
+    // ... And it should all be there.
+    REQUIRE(buffer.NumSamples() == 5);
+    REQUIRE(buffer.GetSamples(0, 0, 5) == std::vector<float>({ 0.1, 0.3, 0.5, 0.7, 0.9 }));
+    REQUIRE(buffer.GetSamples(1, 0, 5) == std::vector<float>({ 0.2, 0.4, 0.6, 0.8, 1.0 }));
+}
 
-        // ... And it should all be there.
-        QCOMPARE(buffer.NumSamples(), 5);
-        QCOMPARE(buffer.GetSamples(0, 0, 5), std::vector<float>({ 0.1, 0.3, 0.5, 0.7, 0.9 }));
-        QCOMPARE(buffer.GetSamples(1, 0, 5), std::vector<float>({ 0.2, 0.4, 0.6, 0.8, 1.0 }));
-    }
+TEST_CASE("AudioRecorder::IsRecording", "[audio_recorder]")
+{
+    AudioBuffer buffer;
+    MockQIODevice ioDevice;
+    AudioRecorder recorder(buffer);
 
-    static void TestIsRecording()
-    {
-        AudioBuffer buffer;
-        MockQIODevice ioDevice;
-        AudioRecorder recorder(buffer);
+    REQUIRE(recorder.IsRecording() == false);
 
-        QCOMPARE(recorder.IsRecording(), false);
+    recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
+    REQUIRE(recorder.IsRecording() == true);
 
-        recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
-        QCOMPARE(recorder.IsRecording(), true);
-
-        recorder.Stop();
-        QCOMPARE(recorder.IsRecording(), false);
-    }
-};
-
-QTEST_MAIN(TestAudioRecorder)
-#include "test_audio_recorder.moc"
+    recorder.Stop();
+    REQUIRE(recorder.IsRecording() == false);
+}

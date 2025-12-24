@@ -1,186 +1,170 @@
 #include "include/global_constants.h"
 #include "models/settings.h"
-#include <QObject>
 #include <QSignalSpy>
-#include <QTest>
+#include <catch2/catch_test_macros.hpp>
 #include <fft_window.h>
 
-class TestSettings : public QObject
+TEST_CASE("Settings::SetFFTSettings emits signal", "[settings]")
 {
-    Q_OBJECT
+    Settings settings;
+    settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
+    const QSignalSpy spy(&settings, &Settings::FFTSettingsChanged);
 
-  private slots:
-    static void TestSetFFTSettingsEmitsSignal()
-    {
-        Settings settings;
-        settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
-        const QSignalSpy spy(&settings, &Settings::FFTSettingsChanged);
+    settings.SetFFTSettings(4096, FFTWindow::Type::Rectangular);
 
-        settings.SetFFTSettings(4096, FFTWindow::Type::Rectangular);
+    REQUIRE(spy.count() == 1);
+    REQUIRE(settings.GetFFTSize() == 4096);
+    REQUIRE(settings.GetWindowType() == FFTWindow::Type::Rectangular);
+}
 
-        QCOMPARE(spy.count(), 1);
-        QCOMPARE(settings.GetFFTSize(), 4096);
-        QCOMPARE(settings.GetWindowType(), FFTWindow::Type::Rectangular);
-    }
+TEST_CASE("Settings::SetFFTSettings no signal if same values", "[settings]")
+{
+    Settings settings;
+    const QSignalSpy spy(&settings, &Settings::FFTSettingsChanged);
+    const int64_t size = settings.GetFFTSize();
+    const FFTWindow::Type type = settings.GetWindowType();
 
-    static void TestSetFFTSettingsNoSignalIfSameValues()
-    {
-        Settings settings;
-        const QSignalSpy spy(&settings, &Settings::FFTSettingsChanged);
-        const int64_t size = settings.GetFFTSize();
-        const FFTWindow::Type type = settings.GetWindowType();
+    settings.SetFFTSettings(size, type); // Set to default again
 
-        settings.SetFFTSettings(size, type); // Set to default again
+    REQUIRE(spy.count() == 0);
+}
 
-        QCOMPARE(spy.count(), 0);
-    }
+TEST_CASE("Settings::SetFFTSettings throws on non-positive size", "[settings]")
+{
+    Settings settings;
+    REQUIRE_THROWS_AS(settings.SetFFTSettings(0, settings.GetWindowType()), std::invalid_argument);
+    REQUIRE_THROWS_AS(settings.SetFFTSettings(-1024, settings.GetWindowType()),
+                      std::invalid_argument);
+}
 
-    static void TestSetFFTSettingsThrowsOnNonPositiveSize()
-    {
-        Settings settings;
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
-                                 settings.SetFFTSettings(0, settings.GetWindowType()));
+TEST_CASE("Settings::SetFFTSettings throws on non-power of two size", "[settings]")
+{
+    Settings settings;
+    REQUIRE_THROWS_AS(settings.SetFFTSettings(255, settings.GetWindowType()),
+                      std::invalid_argument);
+}
 
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
-                                 settings.SetFFTSettings(-1024, settings.GetWindowType()));
-    }
+TEST_CASE("Settings::SetWindowStride emits signal", "[settings]")
+{
+    Settings settings;
+    const QSignalSpy spy(&settings, &Settings::WindowScaleChanged);
 
-    static void TestSetFFTSettingsThrowsOnNonPowerOfTwoSize()
-    {
-        Settings settings;
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument,
-                                 settings.SetFFTSettings(255, settings.GetWindowType()));
-    }
+    settings.SetWindowScale(2);
 
-    static void TestSetWindowStrideEmitsSignal()
-    {
-        Settings settings;
-        const QSignalSpy spy(&settings, &Settings::WindowScaleChanged);
+    REQUIRE(spy.count() == 1);
+    REQUIRE(settings.GetWindowScale() == 2);
+}
 
-        settings.SetWindowScale(2);
+TEST_CASE("Settings::SetWindowScale throws on invalid values", "[settings]")
+{
+    Settings settings;
+    REQUIRE_THROWS_AS(settings.SetWindowScale(0), std::invalid_argument);
+    REQUIRE_THROWS_AS(settings.SetWindowScale(3), std::invalid_argument);
+    REQUIRE_THROWS_AS(settings.SetWindowScale(5), std::invalid_argument);
+    REQUIRE_THROWS_AS(settings.SetWindowScale(32), std::invalid_argument);
+}
 
-        QCOMPARE(spy.count(), 1);
-        QCOMPARE(settings.GetWindowScale(), 2);
-    }
+TEST_CASE("Settings::GetStride computes stride", "[settings]")
+{
+    Settings settings;
 
-    // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-    static void TestSetWindowScaleThrowsOnInvalidValues()
-    {
-        Settings settings;
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, settings.SetWindowScale(0));
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, settings.SetWindowScale(3));
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, settings.SetWindowScale(5));
-        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, settings.SetWindowScale(32));
-    }
+    settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
+    settings.SetWindowScale(4);
+    REQUIRE(settings.GetWindowStride() == 512);
 
-    static void TestGetStrideComputesStride()
-    {
-        Settings settings;
+    settings.SetWindowScale(8);
+    REQUIRE(settings.GetWindowStride() == 256);
 
-        settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
-        settings.SetWindowScale(4);
-        QCOMPARE(settings.GetWindowStride(), 512);
+    settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
+    settings.SetWindowScale(1);
+    REQUIRE(settings.GetWindowStride() == 1024);
 
-        settings.SetWindowScale(8);
-        QCOMPARE(settings.GetWindowStride(), 256);
+    settings.SetWindowScale(2);
+    REQUIRE(settings.GetWindowStride() == 512);
+}
 
-        settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
-        settings.SetWindowScale(1);
-        QCOMPARE(settings.GetWindowStride(), 1024);
+TEST_CASE("Settings::GetApertureMinDecibels", "[settings]")
+{
+    const Settings settings;
+    REQUIRE(settings.GetApertureMinDecibels() == -30.0f);
+}
 
-        settings.SetWindowScale(2);
-        QCOMPARE(settings.GetWindowStride(), 512);
-    }
+TEST_CASE("Settings::GetApertureMaxDecibels", "[settings]")
+{
+    const Settings settings;
+    REQUIRE(settings.GetApertureMaxDecibels() == 30.0f);
+}
 
-    static void GetApertureMinDecibels()
-    {
-        const Settings settings;
-        QCOMPARE(settings.GetApertureMinDecibels(), -30.0f);
-    }
+TEST_CASE("Settings::SetColorMap invalid", "[settings]")
+{
+    Settings settings;
 
-    static void GetApertureMaxDecibels()
-    {
-        const Settings settings;
-        QCOMPARE(settings.GetApertureMaxDecibels(), 30.0f);
-    }
+    // Invalid enum value (not in defined range)
+    // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
+    const auto invalidValue = static_cast<Settings::ColorMapType>(999);
+    REQUIRE_THROWS_AS(settings.SetColorMap(0, invalidValue), std::invalid_argument);
 
-    static void TestSetColorMapInvalid()
-    {
-        Settings settings;
+    // Also verify the Count sentinel is not accepted
+    REQUIRE_THROWS_AS(settings.SetColorMap(0, Settings::ColorMapType::Count),
+                      std::invalid_argument);
+}
 
-        // Invalid enum value (not in defined range)
-        // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
-        const auto invalidValue = static_cast<Settings::ColorMapType>(999);
-        QVERIFY_EXCEPTION_THROWN(settings.SetColorMap(0, invalidValue), std::invalid_argument);
+// NOLINTNEXTLINE(readability-function-cognitive-complexity) -- caused by macro expansion
+TEST_CASE("Settings default color maps", "[settings]")
+{
+    const Settings settings;
 
-        // Also verify the Count sentinel is not accepted
-        QVERIFY_EXCEPTION_THROWN(settings.SetColorMap(0, Settings::ColorMapType::Count),
-                                 std::invalid_argument);
-    }
-
-    // The linter complains about cognitive complexity because it's looking at
-    // the macro expansion of QCOMPARE.  That's silly.  This is fine.
-    // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-    static void TestDefaultColorMaps()
-    {
-        const Settings settings;
-
-        for (size_t i = 0; i < 256; i++) {
-            const auto intensity = static_cast<uint8_t>(i);
-            // Channel 0: Cyan
-            QCOMPARE(settings.GetColorMapValue(0, i).r, 0);
-            QCOMPARE(settings.GetColorMapValue(0, i).g, intensity);
-            QCOMPARE(settings.GetColorMapValue(0, i).b, intensity);
-            // Channel 1: Red
-            QCOMPARE(settings.GetColorMapValue(1, i).r, intensity);
-            QCOMPARE(settings.GetColorMapValue(1, i).g, 0);
-            QCOMPARE(settings.GetColorMapValue(1, i).b, 0);
-            // Rest of channels: White
-            for (size_t ch = 2; ch < gkMaxChannels; ch++) {
-                QCOMPARE(settings.GetColorMapValue(ch, i).r, intensity);
-                QCOMPARE(settings.GetColorMapValue(ch, i).g, intensity);
-                QCOMPARE(settings.GetColorMapValue(ch, i).b, intensity);
-            }
-        }
-    }
-
-    static void TestGetColorMap()
-    {
-        Settings settings;
-
-        // Confirm default color maps
-        QCOMPARE(settings.GetColorMap(0), Settings::ColorMapType::Cyan);
-        QCOMPARE(settings.GetColorMap(1), Settings::ColorMapType::Red);
+    for (size_t i = 0; i < 256; i++) {
+        const auto intensity = static_cast<uint8_t>(i);
+        // Channel 0: Cyan
+        REQUIRE(settings.GetColorMapValue(0, i).r == 0);
+        REQUIRE(settings.GetColorMapValue(0, i).g == intensity);
+        REQUIRE(settings.GetColorMapValue(0, i).b == intensity);
+        // Channel 1: Red
+        REQUIRE(settings.GetColorMapValue(1, i).r == intensity);
+        REQUIRE(settings.GetColorMapValue(1, i).g == 0);
+        REQUIRE(settings.GetColorMapValue(1, i).b == 0);
+        // Rest of channels: White
         for (size_t ch = 2; ch < gkMaxChannels; ch++) {
-            QCOMPARE(settings.GetColorMap(ch), Settings::ColorMapType::White);
+            REQUIRE(settings.GetColorMapValue(ch, i).r == intensity);
+            REQUIRE(settings.GetColorMapValue(ch, i).g == intensity);
+            REQUIRE(settings.GetColorMapValue(ch, i).b == intensity);
         }
+    }
+}
 
-        // Then change and confirm
-        settings.SetColorMap(0, Settings::ColorMapType::Blue);
-        QCOMPARE(settings.GetColorMap(0), Settings::ColorMapType::Blue);
+TEST_CASE("Settings::GetColorMap", "[settings]")
+{
+    Settings settings;
+
+    // Confirm default color maps
+    REQUIRE(settings.GetColorMap(0) == Settings::ColorMapType::Cyan);
+    REQUIRE(settings.GetColorMap(1) == Settings::ColorMapType::Red);
+    for (size_t ch = 2; ch < gkMaxChannels; ch++) {
+        REQUIRE(settings.GetColorMap(ch) == Settings::ColorMapType::White);
     }
 
-    static void TestGetColorMapValueOutOfRange()
-    {
-        const Settings settings;
+    // Then change and confirm
+    settings.SetColorMap(0, Settings::ColorMapType::Blue);
+    REQUIRE(settings.GetColorMap(0) == Settings::ColorMapType::Blue);
+}
 
-        // Index out of range should throw
-        QVERIFY_EXCEPTION_THROWN((void)settings.GetColorMapValue(gkMaxChannels, 0),
-                                 std::out_of_range);
-    }
+TEST_CASE("Settings::GetColorMapValue out of range", "[settings]")
+{
+    const Settings settings;
 
-    static void TestSetAperture()
-    {
-        Settings settings;
-        const QSignalSpy spy(&settings, &Settings::ApertureSettingsChanged);
+    // Index out of range should throw
+    REQUIRE_THROWS_AS((void)settings.GetColorMapValue(gkMaxChannels, 0), std::out_of_range);
+}
 
-        settings.SetApertureMinDecibels(-40.0f);
-        settings.SetApertureMaxDecibels(20.0f);
-        QCOMPARE(spy.count(), 2);
-        QCOMPARE(settings.GetApertureMinDecibels(), -40.0f);
-        QCOMPARE(settings.GetApertureMaxDecibels(), 20.0f);
-    }
-};
+TEST_CASE("Settings::SetAperture", "[settings]")
+{
+    Settings settings;
+    const QSignalSpy spy(&settings, &Settings::ApertureSettingsChanged);
 
-QTEST_MAIN(TestSettings)
-#include "test_settings.moc"
+    settings.SetApertureMinDecibels(-40.0f);
+    settings.SetApertureMaxDecibels(20.0f);
+    REQUIRE(spy.count() == 2);
+    REQUIRE(settings.GetApertureMinDecibels() == -40.0f);
+    REQUIRE(settings.GetApertureMaxDecibels() == 20.0f);
+}

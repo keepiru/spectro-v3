@@ -8,383 +8,369 @@
 #include <QSignalSpy>
 #include <QSlider>
 #include <QSpinBox>
-#include <QTest>
+#include <catch2/catch_test_macros.hpp>
 #include <fft_window.h>
 
-class TestSettingsPanel : public QObject
+TEST_CASE("SettingsPanel constructor", "[settings_panel]")
 {
-    Q_OBJECT
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    const SettingsPanel panel(settings, audioRecorder);
+    REQUIRE(panel.width() == 300);
+}
 
-  private slots:
-    static void TestConstructor()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        const SettingsPanel panel(settings, audioRecorder);
-        QCOMPARE(panel.width(), 300);
-    }
+TEST_CASE("SettingsPanel window type control", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
 
-    static void TestWindowTypeControl()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
+    auto* combo = panel.findChild<QComboBox*>("windowTypeCombo");
+    REQUIRE(combo != nullptr);
 
-        auto* combo = panel.findChild<QComboBox*>("windowTypeCombo");
-        QVERIFY(combo != nullptr);
+    // Check that it has the expected items
+    REQUIRE(combo->count() == 2);
+    REQUIRE(combo->itemText(0) == "Rectangular");
+    REQUIRE(combo->itemText(1) == "Hann");
 
-        // Check that it has the expected items
-        QCOMPARE(combo->count(), 2);
-        QCOMPARE(combo->itemText(0), "Rectangular");
-        QCOMPARE(combo->itemText(1), "Hann");
+    // Change the value and verify settings update
+    combo->setCurrentIndex(0);
+    REQUIRE(settings.GetWindowType() == FFTWindow::Type::Rectangular);
 
-        // Change the value and verify settings update
-        combo->setCurrentIndex(0);
-        QCOMPARE(settings.GetWindowType(), FFTWindow::Type::Rectangular);
+    combo->setCurrentIndex(1);
+    REQUIRE(settings.GetWindowType() == FFTWindow::Type::Hann);
+}
 
-        combo->setCurrentIndex(1);
-        QCOMPARE(settings.GetWindowType(), FFTWindow::Type::Hann);
-    }
+TEST_CASE("SettingsPanel FFT size control", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
 
-    // NOLINTNEXTLINE(readability-function-cognitive-complexity) - QCOMPARE macro expansion
-    static void TestFFTSizeControl()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
+    auto* combo = panel.findChild<QComboBox*>("fftSizeCombo");
+    REQUIRE(combo != nullptr);
 
-        auto* combo = panel.findChild<QComboBox*>("fftSizeCombo");
-        QVERIFY(combo != nullptr);
+    // Check that it has the expected items
+    REQUIRE(combo->count() == 5);
+    REQUIRE(combo->itemText(0) == "512");
+    REQUIRE(combo->itemText(1) == "1024");
+    REQUIRE(combo->itemText(2) == "2048");
+    REQUIRE(combo->itemText(3) == "4096");
+    REQUIRE(combo->itemText(4) == "8192");
 
-        // Check that it has the expected items
-        QCOMPARE(combo->count(), 5);
-        QCOMPARE(combo->itemText(0), "512");
-        QCOMPARE(combo->itemText(1), "1024");
-        QCOMPARE(combo->itemText(2), "2048");
-        QCOMPARE(combo->itemText(3), "4096");
-        QCOMPARE(combo->itemText(4), "8192");
+    // Change the value and verify settings update
+    combo->setCurrentIndex(0);
+    REQUIRE(settings.GetFFTSize() == 512);
 
-        // Change the value and verify settings update
-        combo->setCurrentIndex(0);
-        QCOMPARE(settings.GetFFTSize(), 512);
+    combo->setCurrentIndex(4);
+    REQUIRE(settings.GetFFTSize() == 8192);
+}
 
-        combo->setCurrentIndex(4);
-        QCOMPARE(settings.GetFFTSize(), 8192);
-    }
+TEST_CASE("SettingsPanel window scale control", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
 
-    // NOLINTNEXTLINE(readability-function-cognitive-complexity) - QCOMPARE macro expansion
-    static void TestWindowScaleControl()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
+    auto* slider = panel.findChild<QSlider*>("windowScaleSlider");
+    auto* label = panel.findChild<QLabel*>("windowScaleLabel");
+    REQUIRE(slider != nullptr);
+    REQUIRE(label != nullptr);
 
-        auto* slider = panel.findChild<QSlider*>("windowScaleSlider");
-        auto* label = panel.findChild<QLabel*>("windowScaleLabel");
-        QVERIFY(slider != nullptr);
-        QVERIFY(label != nullptr);
+    // Check range
+    REQUIRE(slider->minimum() == 0);
+    REQUIRE(slider->maximum() == 4);
 
-        // Check range
-        QCOMPARE(slider->minimum(), 0);
-        QCOMPARE(slider->maximum(), 4);
+    // Test each position
+    slider->setValue(0);
+    REQUIRE(settings.GetWindowScale() == 1);
+    REQUIRE(label->text() == "1");
 
-        // Test each position
-        slider->setValue(0);
-        QCOMPARE(settings.GetWindowScale(), 1);
-        QCOMPARE(label->text(), "1");
+    slider->setValue(1);
+    REQUIRE(settings.GetWindowScale() == 2);
+    REQUIRE(label->text() == "2");
 
-        slider->setValue(1);
-        QCOMPARE(settings.GetWindowScale(), 2);
-        QCOMPARE(label->text(), "2");
+    slider->setValue(2);
+    REQUIRE(settings.GetWindowScale() == 4);
+    REQUIRE(label->text() == "4");
 
-        slider->setValue(2);
-        QCOMPARE(settings.GetWindowScale(), 4);
-        QCOMPARE(label->text(), "4");
+    slider->setValue(3);
+    REQUIRE(settings.GetWindowScale() == 8);
+    REQUIRE(label->text() == "8");
 
-        slider->setValue(3);
-        QCOMPARE(settings.GetWindowScale(), 8);
-        QCOMPARE(label->text(), "8");
+    slider->setValue(4);
+    REQUIRE(settings.GetWindowScale() == 16);
+    REQUIRE(label->text() == "16");
+}
 
-        slider->setValue(4);
-        QCOMPARE(settings.GetWindowScale(), 16);
-        QCOMPARE(label->text(), "16");
-    }
+TEST_CASE("SettingsPanel aperture min control", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
 
-    static void TestApertureMinControl()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
+    auto* slider = panel.findChild<QSlider*>("apertureMinSlider");
+    auto* label = panel.findChild<QLabel*>("apertureMinLabel");
+    REQUIRE(slider != nullptr);
+    REQUIRE(label != nullptr);
 
-        auto* slider = panel.findChild<QSlider*>("apertureMinSlider");
-        auto* label = panel.findChild<QLabel*>("apertureMinLabel");
-        QVERIFY(slider != nullptr);
-        QVERIFY(label != nullptr);
+    // Check range
+    REQUIRE(slider->minimum() == -80);
+    REQUIRE(slider->maximum() == 30);
 
-        // Check range
-        QCOMPARE(slider->minimum(), -80);
-        QCOMPARE(slider->maximum(), 30);
+    // Test setting values
+    slider->setValue(-50);
+    REQUIRE(settings.GetApertureMinDecibels() == -50.0f);
+    REQUIRE(label->text() == "-50 dB");
 
-        // Test setting values
-        slider->setValue(-50);
-        QCOMPARE(settings.GetApertureMinDecibels(), -50.0f);
-        QCOMPARE(label->text(), "-50 dB");
+    slider->setValue(10);
+    REQUIRE(settings.GetApertureMinDecibels() == 10.0f);
+    REQUIRE(label->text() == "10 dB");
+}
 
-        slider->setValue(10);
-        QCOMPARE(settings.GetApertureMinDecibels(), 10.0f);
-        QCOMPARE(label->text(), "10 dB");
-    }
+TEST_CASE("SettingsPanel aperture max control", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
 
-    static void TestApertureMaxControl()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
+    auto* slider = panel.findChild<QSlider*>("apertureMaxSlider");
+    auto* label = panel.findChild<QLabel*>("apertureMaxLabel");
+    REQUIRE(slider != nullptr);
+    REQUIRE(label != nullptr);
 
-        auto* slider = panel.findChild<QSlider*>("apertureMaxSlider");
-        auto* label = panel.findChild<QLabel*>("apertureMaxLabel");
-        QVERIFY(slider != nullptr);
-        QVERIFY(label != nullptr);
+    // Check range
+    REQUIRE(slider->minimum() == -80);
+    REQUIRE(slider->maximum() == 30);
 
-        // Check range
-        QCOMPARE(slider->minimum(), -80);
-        QCOMPARE(slider->maximum(), 30);
+    // Test setting values
+    slider->setValue(-20);
+    REQUIRE(settings.GetApertureMaxDecibels() == -20.0f);
+    REQUIRE(label->text() == "-20 dB");
 
-        // Test setting values
-        slider->setValue(-20);
-        QCOMPARE(settings.GetApertureMaxDecibels(), -20.0f);
-        QCOMPARE(label->text(), "-20 dB");
+    slider->setValue(20);
+    REQUIRE(settings.GetApertureMaxDecibels() == 20.0f);
+    REQUIRE(label->text() == "20 dB");
+}
 
-        slider->setValue(20);
-        QCOMPARE(settings.GetApertureMaxDecibels(), 20.0f);
-        QCOMPARE(label->text(), "20 dB");
-    }
+// NOLINTNEXTLINE(readability-function-cognitive-complexity) -- caused by macro expansion
+TEST_CASE("SettingsPanel color map controls", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
 
-    // NOLINTNEXTLINE(readability-function-cognitive-complexity) - QCOMPARE macro expansion
-    static void TestColorMapControls()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
+    // Test all 6 color map combos
+    for (size_t i = 0; i < 6; i++) {
+        const QString objectName = QString("colorMapCombo%1").arg(i);
+        auto* combo = panel.findChild<QComboBox*>(objectName);
+        REQUIRE(combo != nullptr);
 
-        // Test all 6 color map combos
-        for (size_t i = 0; i < 6; i++) {
-            const QString objectName = QString("colorMapCombo%1").arg(i);
-            auto* combo = panel.findChild<QComboBox*>(objectName);
-            QVERIFY2(combo != nullptr, qPrintable(QString("Color map combo %1 not found").arg(i)));
+        // Check that it has the 7 implemented color map types
+        REQUIRE(combo->count() == 7); // White, Red, Green, Blue, Cyan, Magenta, Yellow
 
-            // Check that it has the 7 implemented color map types
-            QCOMPARE(combo->count(), 7); // White, Red, Green, Blue, Cyan, Magenta, Yellow
+        // Check icon size
+        REQUIRE(combo->iconSize() == QSize(128, 16));
 
-            // Check icon size
-            QCOMPARE(combo->iconSize(), QSize(128, 16));
+        // Verify each combo has icons
+        for (int j = 0; j < combo->count(); j++) {
+            REQUIRE(!combo->itemIcon(j).isNull());
+        }
 
-            // Verify each combo has icons
-            for (int j = 0; j < combo->count(); j++) {
-                QVERIFY2(
-                  !combo->itemIcon(j).isNull(),
-                  qPrintable(QString("Icon missing for color map %1, item %2").arg(i).arg(j)));
-            }
+        // Test changing color map (only for valid channels)
+        if (i < gkMaxChannels) {
+            combo->setCurrentIndex(static_cast<int>(Settings::ColorMapType::Red));
+            REQUIRE(settings.GetColorMap(i) == Settings::ColorMapType::Red);
 
-            // Test changing color map (only for valid channels)
-            if (i < gkMaxChannels) {
-                combo->setCurrentIndex(static_cast<int>(Settings::ColorMapType::Red));
-                QCOMPARE(settings.GetColorMap(i), Settings::ColorMapType::Red);
-
-                combo->setCurrentIndex(static_cast<int>(Settings::ColorMapType::Blue));
-                QCOMPARE(settings.GetColorMap(i), Settings::ColorMapType::Blue);
-            }
+            combo->setCurrentIndex(static_cast<int>(Settings::ColorMapType::Blue));
+            REQUIRE(settings.GetColorMap(i) == Settings::ColorMapType::Blue);
         }
     }
+}
 
-    static void TestInitialValues()
-    {
-        Settings settings;
-        // Set some initial values
-        settings.SetFFTSettings(4096, FFTWindow::Type::Rectangular);
-        settings.SetWindowScale(8);
-        settings.SetApertureMinDecibels(-60.0f);
-        settings.SetApertureMaxDecibels(10.0f);
-        settings.SetColorMap(0, Settings::ColorMapType::Magenta);
+TEST_CASE("SettingsPanel initial values", "[settings_panel]")
+{
+    Settings settings;
+    // Set some initial values
+    settings.SetFFTSettings(4096, FFTWindow::Type::Rectangular);
+    settings.SetWindowScale(8);
+    settings.SetApertureMinDecibels(-60.0f);
+    settings.SetApertureMaxDecibels(10.0f);
+    settings.SetColorMap(0, Settings::ColorMapType::Magenta);
 
-        // Create panel and verify controls reflect the settings
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
+    // Create panel and verify controls reflect the settings
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
 
-        auto* windowTypeCombo = panel.findChild<QComboBox*>("windowTypeCombo");
-        QCOMPARE(windowTypeCombo->currentData().toInt(),
-                 static_cast<int>(FFTWindow::Type::Rectangular));
+    auto* windowTypeCombo = panel.findChild<QComboBox*>("windowTypeCombo");
+    REQUIRE(windowTypeCombo->currentData().toInt() ==
+            static_cast<int>(FFTWindow::Type::Rectangular));
 
-        auto* fftSizeCombo = panel.findChild<QComboBox*>("fftSizeCombo");
-        QCOMPARE(fftSizeCombo->currentData().toULongLong(), 4096);
+    auto* fftSizeCombo = panel.findChild<QComboBox*>("fftSizeCombo");
+    REQUIRE(fftSizeCombo->currentData().toULongLong() == 4096);
 
-        auto* windowScaleSlider = panel.findChild<QSlider*>("windowScaleSlider");
-        QCOMPARE(windowScaleSlider->value(), 3); // 8 is at index 3
+    auto* windowScaleSlider = panel.findChild<QSlider*>("windowScaleSlider");
+    REQUIRE(windowScaleSlider->value() == 3); // 8 is at index 3
 
-        auto* apertureMinSlider = panel.findChild<QSlider*>("apertureMinSlider");
-        QCOMPARE(apertureMinSlider->value(), -60);
+    auto* apertureMinSlider = panel.findChild<QSlider*>("apertureMinSlider");
+    REQUIRE(apertureMinSlider->value() == -60);
 
-        auto* apertureMaxSlider = panel.findChild<QSlider*>("apertureMaxSlider");
-        QCOMPARE(apertureMaxSlider->value(), 10);
+    auto* apertureMaxSlider = panel.findChild<QSlider*>("apertureMaxSlider");
+    REQUIRE(apertureMaxSlider->value() == 10);
 
-        auto* colorMapCombo0 = panel.findChild<QComboBox*>("colorMapCombo0");
-        QCOMPARE(colorMapCombo0->currentData().toInt(),
-                 static_cast<int>(Settings::ColorMapType::Magenta));
+    auto* colorMapCombo0 = panel.findChild<QComboBox*>("colorMapCombo0");
+    REQUIRE(colorMapCombo0->currentData().toInt() ==
+            static_cast<int>(Settings::ColorMapType::Magenta));
+}
+
+TEST_CASE("SettingsPanel signal connections", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
+
+    // Test that signals are emitted when controls change
+    QSignalSpy const fftSpy(&settings, &Settings::FFTSettingsChanged);
+    QSignalSpy const windowScaleSpy(&settings, &Settings::WindowScaleChanged);
+    QSignalSpy const apertureSpy(&settings, &Settings::ApertureSettingsChanged);
+
+    auto* fftSizeCombo = panel.findChild<QComboBox*>("fftSizeCombo");
+    fftSizeCombo->setCurrentIndex(0);
+    REQUIRE(fftSpy.count() == 1);
+
+    auto* windowTypeCombo = panel.findChild<QComboBox*>("windowTypeCombo");
+    windowTypeCombo->setCurrentIndex(0);
+    REQUIRE(fftSpy.count() == 2);
+
+    auto* windowScaleSlider = panel.findChild<QSlider*>("windowScaleSlider");
+    windowScaleSlider->setValue(4);
+    REQUIRE(windowScaleSpy.count() == 1);
+
+    auto* apertureMinSlider = panel.findChild<QSlider*>("apertureMinSlider");
+    apertureMinSlider->setValue(-40);
+    REQUIRE(apertureSpy.count() == 1);
+
+    auto* apertureMaxSlider = panel.findChild<QSlider*>("apertureMaxSlider");
+    apertureMaxSlider->setValue(15);
+    REQUIRE(apertureSpy.count() == 2);
+}
+
+TEST_CASE("SettingsPanel audio device control", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
+
+    auto* combo = panel.findChild<QComboBox*>("audioDeviceCombo");
+    REQUIRE(combo != nullptr);
+
+    // Should have at least one device (system should have some audio input)
+    // On CI systems there may be no devices, so just verify the control exists
+    REQUIRE(combo->count() >= 0);
+}
+
+TEST_CASE("SettingsPanel sample rate control", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
+
+    auto* combo = panel.findChild<QComboBox*>("sampleRateCombo");
+    REQUIRE(combo != nullptr);
+
+    // Sample rates should be populated based on device capabilities
+    // On CI systems there may be no devices, so just verify the control exists
+    REQUIRE(combo->count() >= 0);
+
+    // If there are sample rates, verify they have Hz suffix in display text
+    if (combo->count() > 0) {
+        REQUIRE(combo->itemText(0).contains("Hz"));
     }
+}
 
-    static void TestSignalConnections()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
+TEST_CASE("SettingsPanel channel count control", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
 
-        // Test that signals are emitted when controls change
-        QSignalSpy const fftSpy(&settings, &Settings::FFTSettingsChanged);
-        QSignalSpy const windowScaleSpy(&settings, &Settings::WindowScaleChanged);
-        QSignalSpy const apertureSpy(&settings, &Settings::ApertureSettingsChanged);
+    auto* spinBox = panel.findChild<QSpinBox*>("channelCountSpinBox");
+    REQUIRE(spinBox != nullptr);
 
-        auto* fftSizeCombo = panel.findChild<QComboBox*>("fftSizeCombo");
-        fftSizeCombo->setCurrentIndex(0);
-        QCOMPARE(fftSpy.count(), 1);
+    // Check that max is clamped to application's gkMaxChannels
+    REQUIRE(spinBox->maximum() <= static_cast<int>(gkMaxChannels));
 
-        auto* windowTypeCombo = panel.findChild<QComboBox*>("windowTypeCombo");
-        windowTypeCombo->setCurrentIndex(0);
-        QCOMPARE(fftSpy.count(), 2);
+    // Check that minimum is at least 1
+    REQUIRE(spinBox->minimum() >= 1);
 
-        auto* windowScaleSlider = panel.findChild<QSlider*>("windowScaleSlider");
-        windowScaleSlider->setValue(4);
-        QCOMPARE(windowScaleSpy.count(), 1);
+    // Current value should be within range
+    REQUIRE(spinBox->value() >= spinBox->minimum());
+    REQUIRE(spinBox->value() <= spinBox->maximum());
+}
 
-        auto* apertureMinSlider = panel.findChild<QSlider*>("apertureMinSlider");
-        apertureMinSlider->setValue(-40);
-        QCOMPARE(apertureSpy.count(), 1);
+TEST_CASE("SettingsPanel recording button", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
 
-        auto* apertureMaxSlider = panel.findChild<QSlider*>("apertureMaxSlider");
-        apertureMaxSlider->setValue(15);
-        QCOMPARE(apertureSpy.count(), 2);
-    }
+    auto* button = panel.findChild<QPushButton*>("recordingButton");
+    REQUIRE(button != nullptr);
 
-    static void TestAudioDeviceControl()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
+    // Initially should show "Start Recording" (not recording)
+    REQUIRE(button->text() == QString("Start Recording"));
+}
 
-        auto* combo = panel.findChild<QComboBox*>("audioDeviceCombo");
-        QVERIFY(combo != nullptr);
+TEST_CASE("SettingsPanel controls disabled while recording", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder);
 
-        // Should have at least one device (system should have some audio input)
-        // On CI systems there may be no devices, so just verify the control exists
-        QVERIFY(combo->count() >= 0);
-    }
+    auto* deviceCombo = panel.findChild<QComboBox*>("audioDeviceCombo");
+    auto* sampleRateCombo = panel.findChild<QComboBox*>("sampleRateCombo");
+    auto* channelSpinBox = panel.findChild<QSpinBox*>("channelCountSpinBox");
+    auto* recordingButton = panel.findChild<QPushButton*>("recordingButton");
 
-    static void TestSampleRateControl()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
+    REQUIRE(deviceCombo != nullptr);
+    REQUIRE(sampleRateCombo != nullptr);
+    REQUIRE(channelSpinBox != nullptr);
+    REQUIRE(recordingButton != nullptr);
 
-        auto* combo = panel.findChild<QComboBox*>("sampleRateCombo");
-        QVERIFY(combo != nullptr);
+    // Initially not recording - controls should be enabled
+    REQUIRE(deviceCombo->isEnabled());
+    REQUIRE(sampleRateCombo->isEnabled());
+    REQUIRE(channelSpinBox->isEnabled());
 
-        // Sample rates should be populated based on device capabilities
-        // On CI systems there may be no devices, so just verify the control exists
-        QVERIFY(combo->count() >= 0);
+    // Simulate recording state change by emitting signal
+    emit audioRecorder.RecordingStateChanged(true);
 
-        // If there are sample rates, verify they have Hz suffix in display text
-        if (combo->count() > 0) {
-            QVERIFY(combo->itemText(0).contains("Hz"));
-        }
-    }
+    // Controls should now be disabled
+    REQUIRE(!deviceCombo->isEnabled());
+    REQUIRE(!sampleRateCombo->isEnabled());
+    REQUIRE(!channelSpinBox->isEnabled());
+    REQUIRE(recordingButton->text() == QString("Stop Recording"));
 
-    static void TestChannelCountControl()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
+    // Simulate recording stopped
+    emit audioRecorder.RecordingStateChanged(false);
 
-        auto* spinBox = panel.findChild<QSpinBox*>("channelCountSpinBox");
-        QVERIFY(spinBox != nullptr);
-
-        // Check that max is clamped to application's gkMaxChannels
-        QVERIFY(spinBox->maximum() <= static_cast<int>(gkMaxChannels));
-
-        // Check that minimum is at least 1
-        QVERIFY(spinBox->minimum() >= 1);
-
-        // Current value should be within range
-        QVERIFY(spinBox->value() >= spinBox->minimum());
-        QVERIFY(spinBox->value() <= spinBox->maximum());
-    }
-
-    static void TestRecordingButton()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
-
-        auto* button = panel.findChild<QPushButton*>("recordingButton");
-        QVERIFY(button != nullptr);
-
-        // Initially should show "Start Recording" (not recording)
-        QCOMPARE(button->text(), QString("Start Recording"));
-    }
-
-    // NOLINTNEXTLINE(readability-function-cognitive-complexity) - QCOMPARE macro expansion
-    static void TestControlsDisabledWhileRecording()
-    {
-        Settings settings;
-        AudioBuffer audioBuffer;
-        AudioRecorder audioRecorder(audioBuffer);
-        SettingsPanel const panel(settings, audioRecorder);
-
-        auto* deviceCombo = panel.findChild<QComboBox*>("audioDeviceCombo");
-        auto* sampleRateCombo = panel.findChild<QComboBox*>("sampleRateCombo");
-        auto* channelSpinBox = panel.findChild<QSpinBox*>("channelCountSpinBox");
-        auto* recordingButton = panel.findChild<QPushButton*>("recordingButton");
-
-        QVERIFY(deviceCombo != nullptr);
-        QVERIFY(sampleRateCombo != nullptr);
-        QVERIFY(channelSpinBox != nullptr);
-        QVERIFY(recordingButton != nullptr);
-
-        // Initially not recording - controls should be enabled
-        QVERIFY(deviceCombo->isEnabled());
-        QVERIFY(sampleRateCombo->isEnabled());
-        QVERIFY(channelSpinBox->isEnabled());
-
-        // Simulate recording state change by emitting signal
-        emit audioRecorder.RecordingStateChanged(true);
-
-        // Controls should now be disabled
-        QVERIFY(!deviceCombo->isEnabled());
-        QVERIFY(!sampleRateCombo->isEnabled());
-        QVERIFY(!channelSpinBox->isEnabled());
-        QCOMPARE(recordingButton->text(), QString("Stop Recording"));
-
-        // Simulate recording stopped
-        emit audioRecorder.RecordingStateChanged(false);
-
-        // Controls should be enabled again
-        QVERIFY(deviceCombo->isEnabled());
-        QVERIFY(sampleRateCombo->isEnabled());
-        QVERIFY(channelSpinBox->isEnabled());
-        QCOMPARE(recordingButton->text(), QString("Start Recording"));
-    }
-};
-
-QTEST_MAIN(TestSettingsPanel)
-#include "test_settings_panel.moc"
+    // Controls should be enabled again
+    REQUIRE(deviceCombo->isEnabled());
+    REQUIRE(sampleRateCombo->isEnabled());
+    REQUIRE(channelSpinBox->isEnabled());
+    REQUIRE(recordingButton->text() == QString("Start Recording"));
+}

@@ -12,7 +12,7 @@ BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
 
 .PHONY: all build configure clean rebuild test test-one \
-        tdd release lint lint-fix lint-files help run
+        tdd release lint lint-fix-changed lint-fix lint-files help run
 
 # Default target
 all: build
@@ -74,6 +74,11 @@ lint-fix:
 lint-changed:
 	@echo "Running clang-tidy on changed files..."
 	@git diff --name-only HEAD | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
+
+# Lint files changed in git
+lint-fix-changed:
+	@echo "Running clang-tidy on changed files..."
+	@git diff --name-only HEAD | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet
 
 run: build
 	@echo "Running spectro-v3..."

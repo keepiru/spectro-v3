@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+#include <functional>
+#include <memory>
 #include <span>
 #include <vector>
 
@@ -57,3 +59,12 @@ class IFFTProcessor
     [[nodiscard]] virtual std::vector<float> ComputeDecibels(
       const std::span<float>& aSamples) const = 0;
 };
+
+/**
+ * @brief Factory function type that creates IFFTProcessor instances with a
+ * specified transform size.
+ *
+ * The function takes a transform size (number of input samples) and returns a
+ * std::unique_ptr<IFFTProcessor> configured for that size.
+ */
+using IFFTProcessorFactory = std::function<std::unique_ptr<IFFTProcessor>(size_t)>;

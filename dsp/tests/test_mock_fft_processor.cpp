@@ -1,3 +1,4 @@
+#include "ifft_processor.h"
 #include "mock_fft_processor.h"
 #include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -55,5 +56,18 @@ TEST_CASE("MockFFTProcessor throws on size mismatch", "[MockFFTProcessor]")
     SECTION("ComputeDecibels throws std::invalid_argument")
     {
         REQUIRE_THROWS_AS(mockFft.ComputeDecibels(invalidSamples), std::invalid_argument);
+    }
+}
+
+TEST_CASE("MockFFTProcessor::GetFactory", "[MockFFTProcessor]")
+{
+    const IFFTProcessorFactory factory = MockFFTProcessor::GetFactory();
+
+    SECTION("Factory creates MockFFTProcessor instances")
+    {
+        const uint32_t kTransformSize = 32;
+        auto processor = factory(kTransformSize);
+        REQUIRE(processor != nullptr);
+        REQUIRE(processor->GetTransformSize() == kTransformSize);
     }
 }

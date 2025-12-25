@@ -1,4 +1,5 @@
 #include "controllers/spectrogram_controller.h"
+#include "ifft_processor.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
 #include <QObject>
@@ -15,7 +16,7 @@
 
 SpectrogramController::SpectrogramController(const Settings& aSettings,
                                              const AudioBuffer& aAudioBuffer,
-                                             FFTProcessorFactory aFFTProcessorFactory,
+                                             IFFTProcessorFactory aFFTProcessorFactory,
                                              FFTWindowFactory aFFTWindowFactory,
                                              QObject* aParent)
   : QObject(aParent)

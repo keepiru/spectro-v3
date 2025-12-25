@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+#include <functional>
+#include <memory>
 #include <span>
 #include <vector>
 
@@ -52,3 +54,12 @@ class FFTWindow
      */
     void ComputeWindowCoefficients();
 };
+
+/**
+ * @brief Factory function type that creates FFTWindow instances with a
+ * specified size and type.
+ *
+ * The function takes a size (number of samples) and a window type, and returns
+ * a std::unique_ptr<FFTWindow> configured for that size and type.
+ */
+using FFTWindowFactory = std::function<std::unique_ptr<FFTWindow>(size_t, FFTWindow::Type)>;

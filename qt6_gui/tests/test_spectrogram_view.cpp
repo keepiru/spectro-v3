@@ -111,3 +111,49 @@ TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
         REQUIRE(kHave == kWant);
     }
 }
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity) macro expansion
+TEST_CASE("Benchmark", "[spectrogram_view][!benchmark]")
+{
+    Settings settings;
+    const AudioBuffer audioBuffer; // No data loaded, so GetRows will return all zeros
+    SpectrogramController controller(settings, audioBuffer);
+    SpectrogramView view(controller);
+
+    SECTION("GenerateSpectrogramImage performance")
+    {
+        // Simple performance benchmark to ensure image generation is efficient.
+        settings.SetFFTSettings(2048, FFTWindow::Type::Rectangular);
+
+        // No data is loaded in the audio buffer, so GetRows will return zeroed
+        // data.  Let's verify that assumption first.
+        SECTION("Verify zeroed data assumption")
+        {
+            const auto have = controller.GetRows(0, 0, 10);
+            REQUIRE(have.size() == 10);
+            for (const auto& row : have) {
+                REQUIRE(row.size() == (settings.GetFFTSize() / 2) + 1);
+                for (const auto& value : row) {
+                    REQUIRE(value == 0.0f);
+                }
+            }
+        }
+
+        // Let's also see how fast GetRows is because it will affect the overall
+        // image generation time.
+        BENCHMARK("SpectrogramController::GetRows 1024 rows")
+        {
+            return controller.GetRows(0, 0, 1024);
+        };
+
+        BENCHMARK("GenerateSpectrogramImage 800x600")
+        {
+            return view.GenerateSpectrogramImage(800, 600);
+        };
+
+        BENCHMARK("GenerateSpectrogramImage 1920x1080")
+        {
+            return view.GenerateSpectrogramImage(1920, 1080);
+        };
+    }
+}

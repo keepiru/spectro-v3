@@ -12,7 +12,7 @@ BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
 
 .PHONY: all build configure clean rebuild test test-one \
-        tdd release lint lint-fix-changed lint-fix lint-files help run
+        tdd release lint lint-fix-changed lint-fix lint-files help run bench
 
 # Default target
 all: build
@@ -84,6 +84,10 @@ run: build
 	@echo "Running spectro-v3..."
 	$(BUILD_DIR)/qt6_gui/spectro
 
+bench: build
+	@echo "Running benchmarks..."
+	$(BUILD_DIR)/qt6_gui/tests/test_spectrogram_view benchmark
+
 # Help target
 help:
 	@echo "Spectro-v3 Build System"
@@ -102,6 +106,7 @@ help:
 	@echo "  make test-direct  - Run test executable directly (faster)"
 	@echo "  make test-one NAME=<pattern> - Run tests matching pattern"
 	@echo "  make tdd          - Quick build + test cycle"
+	@echo "  make bench        - Run benchmarks"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  make lint         - Run clang-tidy on all source files"

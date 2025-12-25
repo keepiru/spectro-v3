@@ -84,6 +84,24 @@ TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
         CHECK(image.height() == height);
     }
 
+    SECTION("generates a black image if aperture range is zero")
+    {
+        settings.SetApertureMinDecibels(10.0f);
+        settings.SetApertureMaxDecibels(10.0f); // zero range
+
+        const QImage image = view.GenerateSpectrogramImage(256, 256);
+
+        CHECK(image.width() == 256);
+        CHECK(image.height() == 256);
+
+        // Check that all pixels are black
+        for (int yCoord = 0; yCoord < image.height(); ++yCoord) {
+            for (int xCoord = 0; xCoord < image.width(); ++xCoord) {
+                REQUIRE(image.pixel(xCoord, yCoord) == qRgb(0, 0, 0));
+            }
+        }
+    }
+
     SECTION("generates correct image data based on audio buffer samples")
     {
         // Integration test pulling data through the full pipeline.

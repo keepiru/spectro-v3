@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <fft_window.h>
-#include <functional>
 #include <ifft_processor.h>
 #include <memory>
 #include <vector>
@@ -25,9 +24,6 @@ class SpectrogramController : public QObject
     static constexpr size_t KDefaultFftSize = 2048;
     static constexpr auto KDefaultWindowType = FFTWindow::Type::Hann;
 
-    using FFTProcessorFactory = std::function<std::unique_ptr<IFFTProcessor>(size_t)>;
-    using FFTWindowFactory = std::function<std::unique_ptr<FFTWindow>(size_t, FFTWindow::Type)>;
-
     /**
      * @brief Constructor
      * @param aSettings Reference to application settings model
@@ -43,7 +39,7 @@ class SpectrogramController : public QObject
      */
     SpectrogramController(const Settings& aSettings,
                           const AudioBuffer& aAudioBuffer,
-                          FFTProcessorFactory aFFTProcessorFactory = nullptr,
+                          IFFTProcessorFactory aFFTProcessorFactory = nullptr,
                           FFTWindowFactory aFFTWindowFactory = nullptr,
                           QObject* aParent = nullptr);
 
@@ -145,7 +141,7 @@ class SpectrogramController : public QObject
     std::vector<std::unique_ptr<IFFTProcessor>> mFFTProcessors;
     std::vector<std::unique_ptr<FFTWindow>> mFFTWindows;
 
-    FFTProcessorFactory mFFTProcessorFactory;
+    IFFTProcessorFactory mFFTProcessorFactory;
     FFTWindowFactory mFFTWindowFactory;
 
     // Spectrogram row cache.  Key: (channel, first sample).  Stores a single row

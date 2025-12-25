@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <ifft_processor.h>
+#include <memory>
 #include <span>
 #include <stdexcept>
 #include <vector>
@@ -71,6 +72,15 @@ class MockFFTProcessor : public IFFTProcessor
       const std::span<float>& aInputSamples) const override
     {
         return ComputeMagnitudes(aInputSamples);
+    }
+
+    /**
+     * @brief Get factory function for creating IFFTProcessor instances
+     * @return Factory function
+     */
+    [[nodiscard]] static IFFTProcessorFactory GetFactory()
+    {
+        return [](size_t size) { return std::make_unique<MockFFTProcessor>(size); };
     }
 
   private:

@@ -21,14 +21,13 @@ TEST_CASE("SpectrogramController constructor", "[spectrogram_controller]")
 TEST_CASE("SpectrogramController::SetFFTSettings", "[spectrogram_controller]")
 {
     std::vector<size_t> procCalls;
-    const SpectrogramController::FFTProcessorFactory procSpy = [&procCalls](size_t size) {
+    const IFFTProcessorFactory procSpy = [&procCalls](size_t size) {
         procCalls.emplace_back(size);
         return std::make_unique<MockFFTProcessor>(size);
     };
 
     std::vector<std::pair<size_t, FFTWindow::Type>> windowCalls;
-    const SpectrogramController::FFTWindowFactory windowSpy = [&windowCalls](size_t size,
-                                                                             FFTWindow::Type type) {
+    const FFTWindowFactory windowSpy = [&windowCalls](size_t size, FFTWindow::Type type) {
         windowCalls.emplace_back(size, type);
         return std::make_unique<FFTWindow>(size, type);
     };
@@ -67,14 +66,10 @@ namespace {
 std::unique_ptr<SpectrogramController>
 CreateControllerWithMockFFT(Settings& aSettings, AudioBuffer& aBuffer)
 {
-    // The mock FFT processor just returns input samples as magnitudes
-    auto mockFFTProcessorFactory = [](size_t size) {
-        return std::make_unique<MockFFTProcessor>(size);
-    };
 
     aSettings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
-    auto controller =
-      std::make_unique<SpectrogramController>(aSettings, aBuffer, mockFFTProcessorFactory, nullptr);
+    auto controller = std::make_unique<SpectrogramController>(
+      aSettings, aBuffer, MockFFTProcessor::GetFactory(), nullptr);
     aSettings.SetWindowScale(1);
 
     return controller;

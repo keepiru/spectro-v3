@@ -31,6 +31,14 @@ class SpectrogramView : public QWidget
     explicit SpectrogramView(SpectrogramController& aController, QWidget* parent = nullptr);
     ~SpectrogramView() override = default;
 
+    /**
+     * @brief Generate spectrogram image for given dimensions
+     * @param aWidth Width in pixels
+     * @param aHeight Height in pixels
+     * @return Generated spectrogram image
+     */
+    QImage GenerateSpectrogramImage(size_t aWidth, size_t aHeight);
+
   protected:
     void paintEvent(QPaintEvent* event) override;
 

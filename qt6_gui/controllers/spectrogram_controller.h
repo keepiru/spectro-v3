@@ -101,7 +101,7 @@ class SpectrogramController : public QObject
      * @brief Get the number of available channels
      * @return Number of audio channels
      */
-    [[nodiscard]] size_t GetChannelCount() const;
+    [[nodiscard]] virtual size_t GetChannelCount() const;
 
     /**
      * @brief Reset FFT processing components

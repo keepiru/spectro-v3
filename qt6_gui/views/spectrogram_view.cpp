@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <format>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -38,9 +39,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
 QImage
 SpectrogramView::GenerateSpectrogramImage(size_t aWidth, size_t aHeight)
 {
-    // TODO: maybe only allocate this once and reuse
     QImage image(static_cast<int>(aWidth), static_cast<int>(aHeight), QImage::Format_RGBA8888);
-    // Fill with black
     image.fill(Qt::black);
 
     const size_t kChannels = mController.GetChannelCount();
@@ -118,14 +117,20 @@ SpectrogramView::GenerateSpectrogramImage(size_t aWidth, size_t aHeight)
                 b += kColor.b;
             }
 
+            // Clamp final RGB values to [0, 255]
+            constexpr int kMaxColorChannelValue = std::numeric_limits<uint8_t>::max();
+            r = std::min(r, kMaxColorChannelValue);
+            g = std::min(g, kMaxColorChannelValue);
+            b = std::min(b, kMaxColorChannelValue);
+
             // As above, we're accessing the framebuffer directly for performance
             // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            const size_t kScanLineIndex = x * 4;
-            const uint8_t kAlpha = 255;
+            constexpr size_t kBytesPerRGBAPixel = 4;
+            const size_t kScanLineIndex = x * kBytesPerRGBAPixel;
             kScanLine[kScanLineIndex + 0] = static_cast<uint8_t>(r); // R
             kScanLine[kScanLineIndex + 1] = static_cast<uint8_t>(g); // G
             kScanLine[kScanLineIndex + 2] = static_cast<uint8_t>(b); // B
-            kScanLine[kScanLineIndex + 3] = kAlpha;                  // A
+            kScanLine[kScanLineIndex + 3] = kMaxColorChannelValue;   // A
             // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         }
     }

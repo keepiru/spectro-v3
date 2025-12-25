@@ -73,6 +73,8 @@ class Settings : public QObject
         uint8_t b;
     };
 
+    using ColorMapLUTs = std::array<std::array<ColorMapEntry, KColorMapLUTSize>, gkMaxChannels>;
+
     explicit Settings(QObject* aParent = nullptr);
 
     /**
@@ -164,11 +166,7 @@ class Settings : public QObject
      * @brief Get the color map LUTs for all channels
      * @return Reference to the array of color map LUTs
      */
-    [[nodiscard]] const std::array<std::array<ColorMapEntry, KColorMapLUTSize>, gkMaxChannels>&
-    GetColorMapLUTs() const
-    {
-        return mColorMapLUTs;
-    }
+    [[nodiscard]] const ColorMapLUTs& GetColorMapLUTs() const { return mColorMapLUTs; }
 
     /**
      * @brief Get the color map LUT value at a specific index
@@ -248,7 +246,7 @@ class Settings : public QObject
 
     // Color map lookup tables (LUTs) for each channel.  The simple nested array
     // structure provides fast access in the hot path.
-    std::array<std::array<ColorMapEntry, KColorMapLUTSize>, gkMaxChannels> mColorMapLUTs;
+    ColorMapLUTs mColorMapLUTs;
 
     // Selected color maps for each channel.
     std::array<ColorMapType, gkMaxChannels> mSelectedColorMaps = KDefaultColorMaps;

@@ -175,3 +175,51 @@ TEST_CASE("Benchmark", "[spectrogram_view][!benchmark]")
         };
     }
 }
+
+TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
+{
+    Settings settings;
+    const AudioBuffer audioBuffer;
+    SpectrogramController controller(settings, audioBuffer);
+    const SpectrogramView view(controller);
+
+    SECTION("returns correct RenderConfig values")
+    {
+
+        settings.SetApertureMinDecibels(-100.0f);
+        settings.SetApertureMaxDecibels(0.0f);
+        settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
+        settings.SetWindowScale(2); // stride = 1024
+
+        constexpr size_t height = 256;
+        const RenderConfig have = view.GetRenderConfig(height);
+        const RenderConfig want{
+            .channels = 2,
+            .stride = 1024,
+            .available_sample_count = 0,
+            .top_sample = 0,
+            .min_decibels = -100.0f,
+            .max_decibels = 0.0f,
+            .decibel_range = 100.0f,
+            .inverse_decibel_range = 2.55f,
+            .color_map_lut = settings.GetColorMapLUTs(),
+        };
+        REQUIRE(ToString(have) == ToString(want));
+    }
+
+    SECTION("throws on invalid channel count")
+    {
+        // mock controller to return invalid channel count
+        class MockController : public SpectrogramController
+        {
+          public:
+            using SpectrogramController::SpectrogramController;
+            size_t GetChannelCount() const override { return GENERATE(0, gkMaxChannels + 1); }
+        };
+        MockController mockController(settings, audioBuffer);
+        SpectrogramView mockView(mockController);
+        REQUIRE_THROWS_MATCHES(mockView.GetRenderConfig(256),
+                               std::runtime_error,
+                               MessageMatches(ContainsSubstring("out of range")));
+    }
+}

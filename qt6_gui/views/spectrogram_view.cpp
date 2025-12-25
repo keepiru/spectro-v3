@@ -56,7 +56,7 @@ SpectrogramView::GenerateSpectrogramImage(size_t aWidth, size_t aHeight)
     const float kMinDecibels = kSettings.GetApertureMinDecibels();
     const float kMaxDecibels = kSettings.GetApertureMaxDecibels();
     const float kDecibelRange = kMaxDecibels - kMinDecibels;
-    const float kImplausiblySmallDecibelRange = 1e-6f;
+    constexpr float kImplausiblySmallDecibelRange = 1e-6f;
     if (std::abs(kDecibelRange) < kImplausiblySmallDecibelRange) {
         // Avoid division by zero.  We can't draw anything if the range is zero.
         return image;

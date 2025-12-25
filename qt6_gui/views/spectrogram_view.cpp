@@ -36,34 +36,18 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
     painter.drawImage(0, 0, image);
 }
 
-QImage
-SpectrogramView::GenerateSpectrogramImage(size_t aWidth, size_t aHeight)
+RenderConfig
+SpectrogramView::GetRenderConfig(size_t aHeight) const
 {
-    QImage image(static_cast<int>(aWidth), static_cast<int>(aHeight), QImage::Format_RGBA8888);
-    image.fill(Qt::black);
-
-    const size_t kChannels = mController.GetChannelCount();
-    if (kChannels > gkMaxChannels || kChannels < 1) {
-        // Should not happen, but guard against out-of-bounds access
-        throw std::runtime_error(std::format("{}: channel count {} out of range [1, {}]",
-                                             __PRETTY_FUNCTION__,
-                                             kChannels,
-                                             gkMaxChannels));
-    }
     const auto& kSettings = mController.GetSettings();
-    const int64_t kStride = kSettings.GetWindowStride();
-    const int64_t kAvailableSampleCount = mController.GetAvailableSampleCount();
     const float kMinDecibels = kSettings.GetApertureMinDecibels();
     const float kMaxDecibels = kSettings.GetApertureMaxDecibels();
     const float kDecibelRange = kMaxDecibels - kMinDecibels;
-    constexpr float kImplausiblySmallDecibelRange = 1e-6f;
-    if (std::abs(kDecibelRange) < kImplausiblySmallDecibelRange) {
-        // Avoid division by zero.  We can't draw anything if the range is zero.
-        return image;
-    }
     constexpr auto kColorMapMaxIndex = static_cast<float>(Settings::KColorMapLUTSize - 1);
     const float kInverseDecibelRange = kColorMapMaxIndex / kDecibelRange;
-    const auto& kColorMapLUT = kSettings.GetColorMapLUTs();
+    const size_t kChannels = mController.GetChannelCount();
+    const int64_t kStride = kSettings.GetWindowStride();
+    const int64_t kAvailableSampleCount = mController.GetAvailableSampleCount();
 
     // Determine the top sample to start rendering from.
     // Go back kStride strides, then round down to nearest stride.
@@ -73,11 +57,46 @@ SpectrogramView::GenerateSpectrogramImage(size_t aWidth, size_t aHeight)
     const int64_t kTopSampleAligned = mController.CalculateTopOfWindow(kTopSampleUnaligned);
     const int64_t kTopSample = kTopSampleAligned < 0 ? 0 : kTopSampleAligned;
 
-    // Store the magnitudes for all channels. Channel x Row x Frequency bins
-    std::vector<std::vector<std::vector<float>>> decibelsChannelRowBin(kChannels);
+    // Validate channel count.  This should never happen because AudioBuffer
+    // enforces channel count limits, but let's be safe.  This guards against
+    // out-of-bounds access into the color map LUTs array.
+    if (kChannels > gkMaxChannels || kChannels < 1) {
+        throw std::runtime_error(std::format("{}: channel count {} out of range [1, {}]",
+                                             __PRETTY_FUNCTION__,
+                                             kChannels,
+                                             gkMaxChannels));
+    }
 
-    for (size_t ch = 0; ch < kChannels; ch++) {
-        decibelsChannelRowBin[ch] = mController.GetRows(ch, kTopSample, aHeight);
+    return RenderConfig{ .channels = kChannels,
+                         .stride = kStride,
+                         .available_sample_count = kAvailableSampleCount,
+                         .top_sample = kTopSample,
+                         .min_decibels = kMinDecibels,
+                         .max_decibels = kMaxDecibels,
+                         .decibel_range = kDecibelRange,
+                         .inverse_decibel_range = kInverseDecibelRange,
+                         .color_map_lut = kSettings.GetColorMapLUTs() };
+}
+
+QImage
+SpectrogramView::GenerateSpectrogramImage(size_t aWidth, size_t aHeight)
+{
+    QImage image(static_cast<int>(aWidth), static_cast<int>(aHeight), QImage::Format_RGBA8888);
+    image.fill(Qt::black);
+
+    const auto renderConfig = GetRenderConfig(aHeight);
+
+    constexpr float kImplausiblySmallDecibelRange = 1e-6f;
+    if (std::abs(renderConfig.decibel_range) < kImplausiblySmallDecibelRange) {
+        // inverse_decibel_range is infinity.  We can't draw anything if the range is zero.
+        return image;
+    }
+
+    // Store the magnitudes for all channels. Channel x Row x Frequency bins
+    std::vector<std::vector<std::vector<float>>> decibelsChannelRowBin(renderConfig.channels);
+
+    for (size_t ch = 0; ch < renderConfig.channels; ch++) {
+        decibelsChannelRowBin[ch] = mController.GetRows(ch, renderConfig.top_sample, aHeight);
     }
 
     // Determine max X to render, lesser of view width or data width
@@ -100,18 +119,22 @@ SpectrogramView::GenerateSpectrogramImage(size_t aWidth, size_t aHeight)
             int b = 0;
             // NOLINTEND(readability-identifier-length)
             // Sum RGB values for each channel
-            for (size_t ch = 0; ch < kChannels; ch++) {
+            for (size_t ch = 0; ch < renderConfig.channels; ch++) {
                 const float kDecibels = decibelsChannelRowBin[ch][y][x];
                 // Map to 0-255
-                auto colorMapIndex = (kDecibels - kMinDecibels) * kInverseDecibelRange;
+                auto colorMapIndex =
+                  (kDecibels - renderConfig.min_decibels) * renderConfig.inverse_decibel_range;
+                constexpr auto kColorMapMaxIndex =
+                  static_cast<float>(Settings::KColorMapLUTSize - 1);
                 colorMapIndex = std::clamp(colorMapIndex, 0.0f, kColorMapMaxIndex);
                 // Don't use .at() here for performance in the hot path.  ch is
                 // guaranteed to be in range because it's from 0 to kChannels-1,
                 // and kChannels is asserted above to be <= gkMaxChannels.
                 // colorMapIndex is clamped to 0-255 above, and the static_cast
                 // to uint8_t guarantees that as well.
-                // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-                const auto kColor = kColorMapLUT[ch][static_cast<uint8_t>(colorMapIndex)];
+                const Settings::ColorMapEntry kColor =
+                  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+                  renderConfig.color_map_lut[ch][static_cast<uint8_t>(colorMapIndex)];
                 r += kColor.r;
                 g += kColor.g;
                 b += kColor.b;

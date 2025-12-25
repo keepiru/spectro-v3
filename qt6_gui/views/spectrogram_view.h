@@ -1,9 +1,52 @@
 #pragma once
 
+#include "models/settings.h"
 #include <QWidget>
+#include <cstddef>
+#include <cstdint>
 
 // Forward declarations
 class SpectrogramController;
+
+/**
+ * @brief Configuration data for rendering spectrogram
+ */
+struct RenderConfig
+{
+    size_t channels;
+    int64_t stride;
+    int64_t available_sample_count;
+    int64_t top_sample;
+    float min_decibels;
+    float max_decibels;
+    float decibel_range;
+    float inverse_decibel_range;
+    const Settings::ColorMapLUTs& color_map_lut;
+
+    /**
+     * @brief Debugging/testing helper for inspecting RenderConfig instances.
+     *
+     * Converts the RenderConfig into a human-readable string, primarily for
+     * use in logging, assertions, and test failure messages where detailed
+     * comparison of render parameters is needed.
+     */
+    friend std::string ToString(const RenderConfig& config)
+    {
+        return std::format(
+          "RenderConfig{{\n channels={}\n stride={}\n available_sample_count={}\n top_sample={}\n "
+          "min_decibels={}\n max_decibels={}\n decibel_range={}\n inverse_decibel_range={}\n "
+          "color_map_lut_ref=<ptr:{}>}}",
+          config.channels,
+          config.stride,
+          config.available_sample_count,
+          config.top_sample,
+          config.min_decibels,
+          config.max_decibels,
+          config.decibel_range,
+          config.inverse_decibel_range,
+          static_cast<const void*>(&config.color_map_lut));
+    }
+};
 
 /**
  * @brief Waterfall spectrogram display widget
@@ -38,6 +81,13 @@ class SpectrogramView : public QWidget
      * @return Generated spectrogram image
      */
     QImage GenerateSpectrogramImage(size_t aWidth, size_t aHeight);
+
+    /**
+     * @brief Gather configuration needed for rendering
+     * @param aHeight Height in pixels (needed for topSample calculation)
+     * @return RenderConfig struct with all settings and precomputed values
+     */
+    [[nodiscard]] RenderConfig GetRenderConfig(size_t aHeight) const;
 
   protected:
     void paintEvent(QPaintEvent* event) override;

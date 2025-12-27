@@ -173,3 +173,11 @@ SpectrogramController::RoundToStride(int64_t aSample) const
       aSample >= 0 ? aSample / kStride : -((-aSample + kStride - 1) / kStride);
     return kStrideIndex * kStride;
 }
+
+float
+SpectrogramController::GetHzPerBin() const
+{
+    const size_t kSampleRate = mAudioBuffer.GetSampleRate();
+    const size_t kFFTSize = mSettings.GetFFTSize();
+    return static_cast<float>(kSampleRate) / static_cast<float>(kFFTSize);
+}

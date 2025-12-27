@@ -33,6 +33,19 @@ class SpectrumPlot : public QWidget
      */
     [[nodiscard]] std::vector<float> GetDecibels(size_t aChannel) const;
 
+    /**
+     * @brief Compute the points for plotting from decibel values
+     * @param aDecibels Vector of decibel values
+     * @param aWidth Width of the plot area in pixels
+     * @param aHeight Height of the plot area in pixels
+     * @return QPolygonF Polygon of points for plotting
+     * @note Points outside the given width are not included
+     * @note If the decibel range is zero, an empty polygon is returned
+     */
+    [[nodiscard]] QPolygonF ComputePoints(const std::vector<float>& aDecibels,
+                                          size_t aWidth,
+                                          size_t aHeight) const;
+
   protected:
     void paintEvent(QPaintEvent* event) override;
 

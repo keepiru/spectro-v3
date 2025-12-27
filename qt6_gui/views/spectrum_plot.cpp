@@ -29,6 +29,35 @@ SpectrumPlot::GetDecibels(const size_t aChannel) const
     return mController.GetRow(aChannel, kTopSample);
 }
 
+QPolygonF
+SpectrumPlot::ComputePoints(const std::vector<float>& aDecibels,
+                            const size_t aWidth,
+                            const size_t aHeight) const
+{
+    QPolygonF points;
+    points.reserve(static_cast<qsizetype>(aDecibels.size()));
+
+    const float kApertureMinDecibels = mController.GetSettings().GetApertureMinDecibels();
+    const float kApertureMaxDecibels = mController.GetSettings().GetApertureMaxDecibels();
+    const float kDecibelRange = kApertureMaxDecibels - kApertureMinDecibels;
+    const float kImplausiblySmallDecibelRange = 1e-6f;
+    if (std::abs(kDecibelRange) < kImplausiblySmallDecibelRange) {
+        // We can't draw anything if the range is zero.
+        return points;
+    }
+    const float kInverseDecibelRange = 1.0f / kDecibelRange;
+
+    const size_t kMaxX = std::min(aWidth, aDecibels.size());
+    for (size_t x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
+        const float kNormalizedDecibels =
+          (aDecibels[x] - kApertureMinDecibels) * kInverseDecibelRange;
+        const float kYCoordinate =
+          static_cast<float>(aHeight) - (kNormalizedDecibels * static_cast<float>(aHeight));
+        points.emplace_back(static_cast<float>(x), kYCoordinate);
+    }
+    return points;
+}
+
 void
 SpectrumPlot::paintEvent(QPaintEvent* event)
 {
@@ -36,22 +65,8 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     painter.fillRect(event->rect(), Qt::black);
 
     const size_t kChannels = mController.GetChannelCount();
-    const float kApertureMinDecibels = mController.GetSettings().GetApertureMinDecibels();
-    const float kApertureMaxDecibels = mController.GetSettings().GetApertureMaxDecibels();
-    const float kDecibelRange = kApertureMaxDecibels - kApertureMinDecibels;
-    const float kImplausiblySmallDecibelRange = 1e-6f;
-    if (std::abs(kDecibelRange) < kImplausiblySmallDecibelRange) {
-        // Avoid division by zero.  We can't draw anything if the range is zero.
-        return;
-    }
-    const float kInverseDecibelRange = 1.0f / kDecibelRange;
 
     for (size_t ch = 0; ch < kChannels; ch++) {
-        const std::vector<float> kDecibels = GetDecibels(ch);
-
-        const size_t kWidth = width();
-        const size_t kHeight = height();
-
         switch (ch) {
             case 0:
                 painter.setPen(Qt::magenta);
@@ -64,18 +79,8 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
                 break;
         }
 
-        QPolygonF points;
-        points.reserve(static_cast<qsizetype>(kDecibels.size()));
-
-        const size_t kMaxX = std::min(kWidth, kDecibels.size());
-        for (size_t x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
-            const float kNormalizedDecibels =
-              (kDecibels[x] - kApertureMinDecibels) * kInverseDecibelRange;
-            const float kYCoordinate =
-              static_cast<float>(kHeight) - (kNormalizedDecibels * static_cast<float>(kHeight));
-            points.emplace_back(static_cast<float>(x), kYCoordinate);
-        }
-
+        const std::vector<float> kDecibels = GetDecibels(ch);
+        const QPolygonF points = ComputePoints(kDecibels, width(), height());
         painter.drawPolyline(points);
     }
 }

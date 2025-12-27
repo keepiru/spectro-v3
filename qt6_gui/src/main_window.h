@@ -3,6 +3,7 @@
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
 #include "models/audio_recorder.h"
+#include "views/scale_view.h"
 #include "views/settings_panel.h"
 #include "views/spectrogram_view.h"
 #include "views/spectrum_plot.h"
@@ -47,6 +48,7 @@ class MainWindow : public QMainWindow
 
     // View widgets
     SpectrogramView mSpectrogramView;
+    ScaleView mScaleView;
     SpectrumPlot mSpectrumPlot;
     SettingsPanel mSettingsPanel;
 };

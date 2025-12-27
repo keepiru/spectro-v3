@@ -71,7 +71,7 @@ class SpectrogramView : public QWidget
      * @param aController Reference to spectrogram controller
      * @param parent Qt parent widget (optional)
      */
-    explicit SpectrogramView(SpectrogramController& aController, QWidget* parent = nullptr);
+    explicit SpectrogramView(const SpectrogramController& aController, QWidget* parent = nullptr);
     ~SpectrogramView() override = default;
 
     /**
@@ -93,5 +93,5 @@ class SpectrogramView : public QWidget
     void paintEvent(QPaintEvent* event) override;
 
   private:
-    SpectrogramController& mController;
+    const SpectrogramController& mController;
 };

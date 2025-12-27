@@ -16,7 +16,7 @@
 #include <stdexcept>
 #include <vector>
 
-SpectrogramView::SpectrogramView(SpectrogramController& aController, QWidget* parent)
+SpectrogramView::SpectrogramView(const SpectrogramController& aController, QWidget* parent)
   : QWidget(parent)
   , mController(aController)
 {

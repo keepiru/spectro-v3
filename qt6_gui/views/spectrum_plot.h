@@ -25,6 +25,14 @@ class SpectrumPlot : public QWidget
     explicit SpectrumPlot(SpectrogramController& aController, QWidget* parent = nullptr);
     ~SpectrumPlot() override = default;
 
+    /**
+     * @brief Get the decibel values for the most recent stride in a given channel
+     * @param aChannel Channel index (0-based)
+     * @return std::vector<float> Vector of decibel values for the current FFT window
+     * @throws std::out_of_range if aChannel is out of range
+     */
+    [[nodiscard]] std::vector<float> GetDecibels(size_t aChannel) const;
+
   protected:
     void paintEvent(QPaintEvent* event) override;
 

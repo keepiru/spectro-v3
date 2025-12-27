@@ -20,14 +20,20 @@ SpectrumPlot::SpectrumPlot(SpectrogramController& aController, QWidget* parent)
     setMinimumSize(kMinWidth, kMinHeight);
 }
 
+std::vector<float>
+SpectrumPlot::GetDecibels(size_t aChannel) const
+{
+    const int64_t kAvailableSampleCount = mController.GetAvailableSampleCount();
+    const int64_t kTopSample = mController.CalculateTopOfWindow(kAvailableSampleCount);
+    return mController.GetRow(aChannel, kTopSample);
+}
+
 void
 SpectrumPlot::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
     painter.fillRect(event->rect(), Qt::black);
 
-    const int64_t kAvailableSampleCount = mController.GetAvailableSampleCount();
-    const int64_t kTopSample = mController.CalculateTopOfWindow(kAvailableSampleCount);
     const size_t kChannels = mController.GetChannelCount();
     const float kApertureMinDecibels = mController.GetSettings().GetApertureMinDecibels();
     const float kApertureMaxDecibels = mController.GetSettings().GetApertureMaxDecibels();
@@ -40,7 +46,7 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     const float kInverseDecibelRange = 1.0f / kDecibelRange;
 
     for (size_t ch = 0; ch < kChannels; ch++) {
-        const auto kDecibels = mController.GetRow(ch, kTopSample);
+        const std::vector<float> kDecibels = GetDecibels(ch);
 
         const size_t kWidth = width();
         const size_t kHeight = height();

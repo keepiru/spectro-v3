@@ -11,7 +11,7 @@ TEST_CASE("SpectrumPlot constructor", "[spectrum_plot]")
 {
     const Settings settings;
     const AudioBuffer audioBuffer;
-    SpectrogramController controller(settings, audioBuffer);
+    const SpectrogramController controller(settings, audioBuffer);
     const SpectrumPlot plot(controller);
     REQUIRE(plot.minimumWidth() > 0);
     REQUIRE(plot.minimumHeight() > 0);
@@ -21,7 +21,7 @@ TEST_CASE("SpectrumPlot is widget", "[spectrum_plot]")
 {
     const Settings settings;
     const AudioBuffer audioBuffer;
-    SpectrogramController controller(settings, audioBuffer);
+    const SpectrogramController controller(settings, audioBuffer);
     SpectrumPlot plot(controller);
     REQUIRE(qobject_cast<QWidget*>(&plot) != nullptr);
 }
@@ -31,8 +31,8 @@ TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
 {
     Settings settings;
     AudioBuffer audioBuffer;
-    SpectrogramController controller(settings, audioBuffer, MockFFTProcessor::GetFactory());
-    SpectrumPlot plot(controller);
+    const SpectrogramController controller(settings, audioBuffer, MockFFTProcessor::GetFactory());
+    const SpectrumPlot plot(controller);
     settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
     settings.SetWindowScale(2); // Stride 4
 

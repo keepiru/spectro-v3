@@ -40,12 +40,8 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     const float kInverseDecibelRange = 1.0f / kDecibelRange;
 
     for (size_t ch = 0; ch < kChannels; ch++) {
-        const auto kRows = mController.GetRows(ch, kTopSample, 1);
-        if (kRows.empty() || kRows[0].empty()) {
-            continue;
-        }
+        const auto kDecibels = mController.GetRow(ch, kTopSample);
 
-        const auto& kDecibels = kRows[0];
         const size_t kWidth = width();
         const size_t kHeight = height();
 

@@ -78,3 +78,49 @@ TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
                                Catch::Matchers::Message("Channel index out of range"));
     }
 }
+
+TEST_CASE("SpectrumPlot::ComputePoints", "[spectrum_plot]")
+{
+    Settings settings;
+    const AudioBuffer audioBuffer;
+    const SpectrogramController controller(settings, audioBuffer);
+    const SpectrumPlot plot(controller);
+
+    SECTION("computes correct points for given decibel values")
+    {
+        const std::vector<float> decibels = { -100.0f, -50.0f, 0.0f, 50.0f, 100.0f };
+        settings.SetApertureMinDecibels(-100.0f);
+        settings.SetApertureMaxDecibels(100.0f);
+
+        const QPolygonF have = plot.ComputePoints(decibels, 10, 100);
+        REQUIRE(have.size() == decibels.size());
+        CHECK(have[0] == QPointF(0.0f, 100.0f)); // -100 dB -> bottom
+        CHECK(have[1] == QPointF(1.0f, 75.0f));  // -50 dB
+        CHECK(have[2] == QPointF(2.0f, 50.0f));  // 0 dB
+        CHECK(have[3] == QPointF(3.0f, 25.0f));  // 50 dB
+        CHECK(have[4] == QPointF(4.0f, 0.0f));   // 100 dB -> top
+    }
+
+    SECTION("does not include points outside the given width")
+    {
+        const std::vector<float> decibels = { -100.0f, -50.0f, 0.0f, 50.0f, 100.0f };
+        settings.SetApertureMinDecibels(-100.0f);
+        settings.SetApertureMaxDecibels(100.0f);
+
+        const QPolygonF have = plot.ComputePoints(decibels, 3, 100);
+        REQUIRE(have.size() == 3);
+        CHECK(have[0] == QPointF(0.0f, 100.0f));
+        CHECK(have[1] == QPointF(1.0f, 75.0f));
+        CHECK(have[2] == QPointF(2.0f, 50.0f));
+    }
+
+    SECTION("returns empty polygon if decibel range is zero")
+    {
+        const std::vector<float> decibels = { -50.0f, -50.0f, -50.0f };
+        settings.SetApertureMinDecibels(-50.0f);
+        settings.SetApertureMaxDecibels(-50.0f);
+
+        const QPolygonF have = plot.ComputePoints(decibels, 10, 100);
+        REQUIRE(have.empty());
+    }
+}

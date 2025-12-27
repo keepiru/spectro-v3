@@ -133,6 +133,12 @@ class SpectrogramController : public QObject
      */
     [[nodiscard]] int64_t RoundToStride(int64_t aSample) const;
 
+    /**
+     * @brief Get frequency resolution in Hz per FFT bin
+     * @return Frequency resolution in Hz
+     */
+    [[nodiscard]] float GetHzPerBin() const;
+
   private:
     const Settings& mSettings;       // Reference to application settings model
     const AudioBuffer& mAudioBuffer; // Reference to audio buffer model

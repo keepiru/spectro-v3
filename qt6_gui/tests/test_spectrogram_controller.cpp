@@ -1,8 +1,8 @@
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
-
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <cstddef>
 #include <fft_window.h>
 #include <ifft_processor.h>
@@ -10,6 +10,10 @@
 #include <mock_fft_processor.h>
 #include <stdexcept>
 #include <vector>
+
+namespace {
+using namespace Catch::Matchers;
+}
 
 TEST_CASE("SpectrogramController constructor", "[spectrogram_controller]")
 {
@@ -384,4 +388,22 @@ TEST_CASE("SpectrogramController::RoundToStride", "[spectrogram_controller]")
     check(8, 15, 8);
     check(8, 16, 16);
     check(8, 17, 16);
+}
+
+TEST_CASE("SpectrogramController::GetHzPerBin", "[spectrogram_controller]")
+{
+    Settings settings;
+    AudioBuffer buffer;
+    buffer.Reset(2, 48000); // 48 kHz sample rate
+    const SpectrogramController controller(settings, buffer);
+
+    settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
+    CHECK_THAT(controller.GetHzPerBin(), WithinAbs(46.875f, 0.0001f)); // 48000 / 1024
+
+    settings.SetFFTSettings(2048, FFTWindow::Type::Rectangular);
+    CHECK_THAT(controller.GetHzPerBin(), WithinAbs(23.4375f, 0.0001f)); // 48000 / 2048
+
+    buffer.Reset(1, 44100); // 44.1 kHz sample rate
+    settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
+    CHECK_THAT(controller.GetHzPerBin(), WithinAbs(43.06640625f, 0.0001f)); // 44100 / 1024
 }

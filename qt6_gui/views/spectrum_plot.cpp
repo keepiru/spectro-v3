@@ -10,8 +10,9 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
-SpectrumPlot::SpectrumPlot(SpectrogramController& aController, QWidget* parent)
+SpectrumPlot::SpectrumPlot(const SpectrogramController& aController, QWidget* parent)
   : QWidget(parent)
   , mController(aController)
 {
@@ -21,7 +22,7 @@ SpectrumPlot::SpectrumPlot(SpectrogramController& aController, QWidget* parent)
 }
 
 std::vector<float>
-SpectrumPlot::GetDecibels(size_t aChannel) const
+SpectrumPlot::GetDecibels(const size_t aChannel) const
 {
     const int64_t kAvailableSampleCount = mController.GetAvailableSampleCount();
     const int64_t kTopSample = mController.CalculateTopOfWindow(kAvailableSampleCount);

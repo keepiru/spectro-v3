@@ -73,6 +73,7 @@ MainWindow::CreateLayout()
     auto* leftContainer = new QWidget(this);
     auto* leftLayout = new QVBoxLayout(leftContainer);
     leftLayout->setContentsMargins(0, 0, 0, 0);
+    leftLayout->setSpacing(1);
     constexpr int kSpectrogramStretch = 7; // 70% of vertical space
     constexpr int kSpectrumStretch = 3;    // 30% of vertical space
     leftLayout->addWidget(&mSpectrogramView, kSpectrogramStretch);

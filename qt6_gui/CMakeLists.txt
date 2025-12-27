@@ -20,6 +20,8 @@ add_library(spectro_qt6_gui
     controllers/spectrogram_controller.h
     views/spectrogram_view.cpp
     views/spectrogram_view.h
+    views/scale_view.cpp
+    views/scale_view.h
     views/spectrum_plot.cpp
     views/spectrum_plot.h
     views/settings_panel.cpp

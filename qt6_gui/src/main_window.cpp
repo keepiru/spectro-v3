@@ -3,6 +3,7 @@
 #include "models/audio_buffer.h"
 #include "models/audio_recorder.h"
 #include "models/settings.h"
+#include "views/scale_view.h"
 #include "views/settings_panel.h"
 #include "views/spectrogram_view.h"
 #include "views/spectrum_plot.h"
@@ -28,6 +29,7 @@ MainWindow::MainWindow(QWidget* parent)
   , mAudioRecorder(mAudioBuffer, this)
   , mSpectrogramController(mSettings, mAudioBuffer, nullptr, nullptr, this)
   , mSpectrogramView(mSpectrogramController, this)
+  , mScaleView(mSpectrogramController, this)
   , mSpectrumPlot(mSpectrogramController, this)
   , mSettingsPanel(mSettings, mAudioRecorder, this)
 {
@@ -62,6 +64,9 @@ MainWindow::CreateLayout()
      * │ │ │ (stretch 7)              │ │                    │   │
      * │ │ └──────────────────────────┘ │                    │   │
      * │ │ ┌──────────────────────────┐ │                    │   │
+     * │ │ │ ScaleView (fixed 20px)   │ │                    │   │
+     * │ │ └──────────────────────────┘ │                    │   │
+     * │ │ ┌──────────────────────────┐ │                    │   │
      * │ │ │ SpectrumPlot             │ │                    │   │
      * │ │ │ (stretch 3)              │ │                    │   │
      * │ │ └──────────────────────────┘ │                    │   │
@@ -77,6 +82,7 @@ MainWindow::CreateLayout()
     constexpr int kSpectrogramStretch = 7; // 70% of vertical space
     constexpr int kSpectrumStretch = 3;    // 30% of vertical space
     leftLayout->addWidget(&mSpectrogramView, kSpectrogramStretch);
+    leftLayout->addWidget(&mScaleView, 0); // Fixed height (no stretch)
     leftLayout->addWidget(&mSpectrumPlot, kSpectrumStretch);
 
     // Create main horizontal layout

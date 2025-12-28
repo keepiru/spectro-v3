@@ -38,8 +38,22 @@ class SpectrumPlot : public QWidget
         float top_marker_decibels;   // Decibel value of the topmost marker
         int marker_count;            // Number of markers to generate
 
-        friend bool operator==(const DecibelScaleParameters& lhs,
-                               const DecibelScaleParameters& rhs) = default;
+        // Comparison and output operators for testing
+        friend bool operator==(const DecibelScaleParameters& aLHS,
+                               const DecibelScaleParameters& aRHS) = default;
+        friend std::ostream& operator<<(std::ostream& aOS, const DecibelScaleParameters& aParams)
+        {
+            aOS << std::format(
+              "DecibelScaleParameters(aperture_min_decibels={}, aperture_max_decibels={}, "
+              "pixels_per_decibel={}, decibel_step={}, top_marker_decibels={}, marker_count={})",
+              aParams.aperture_min_decibels,
+              aParams.aperture_max_decibels,
+              aParams.pixels_per_decibel,
+              aParams.decibel_step,
+              aParams.top_marker_decibels,
+              aParams.marker_count);
+            return aOS;
+        }
     };
 
     struct DecibelMarker

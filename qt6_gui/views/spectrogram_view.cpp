@@ -1,6 +1,7 @@
 #include "spectrogram_view.h"
 #include "controllers/spectrogram_controller.h"
 #include "include/global_constants.h"
+#include <QCursor>
 #include <QImage>
 #include <QPaintEvent>
 #include <QPainter>
@@ -34,6 +35,13 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
 
     // blit the result
     painter.drawImage(0, 0, image);
+
+    // Overlay crosshair.  We don't need to provide any labels here, just a
+    // vertical line.  The measurements happen in the SpectrumPlot view.
+    const auto kMousePos = mapFromGlobal(QCursor::pos());
+    const float kCrosshairPenWidth = 0.5f;
+    painter.setPen(QPen(Qt::yellow, kCrosshairPenWidth, Qt::DashLine));
+    painter.drawLine(kMousePos.x(), 0, kMousePos.x(), height());
 }
 
 RenderConfig

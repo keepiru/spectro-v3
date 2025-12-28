@@ -90,34 +90,32 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     painter.setPen(Qt::white);
     painter.setFont(QFont("Sans", kFontSizePoints));
 
-    const std::vector<DecibelMarker> markers = GenerateDecibelScaleMarkers(width(), height());
+    const DecibelScaleParameters params = CalculateDecibelScaleParameters(height());
+    const std::vector<DecibelMarker> markers = GenerateDecibelScaleMarkers(params, width());
     for (const auto& marker : markers) {
         painter.drawLine(marker.line);
         painter.drawText(marker.rect, Qt::AlignRight | Qt::AlignVCenter, marker.text);
     }
 }
 
-std::vector<SpectrumPlot::DecibelMarker>
-SpectrumPlot::GenerateDecibelScaleMarkers(const int aWidth, const int aHeight) const
+SpectrumPlot::DecibelScaleParameters
+SpectrumPlot::CalculateDecibelScaleParameters(const int aHeight) const
 {
-    // Tick mark settings
-    constexpr int kTickMarkWidth = 10;
-
-    // Label dimensions and offsets
-    constexpr int kLabelWidth = 20;
-    constexpr int kLabelHeight = 10;
-    constexpr int kLabelOffsetX = kTickMarkWidth + kLabelWidth + 5; // from the right edge
-    constexpr int kLabelOffsetY = kLabelHeight / 2;
-    const int32_t kLabelPositionX = aWidth - kLabelOffsetX;
-
     // Compute the marker positions and spacing
     const auto& kSettings = mController.GetSettings();
     const float kApertureMinDecibels = kSettings.GetApertureMinDecibels();
     const float kApertureMaxDecibels = kSettings.GetApertureMaxDecibels();
 
     if (kApertureMinDecibels == kApertureMaxDecibels) {
-        // Can't compute markers if the range is zero
-        return {};
+        // Can't compute markers if the range is zero.  We'll set .marker_count
+        // to 0, which will cause GenerateDecibelScaleMarkers() to return an
+        // empty vector.
+        return { .aperture_min_decibels = kApertureMinDecibels,
+                 .aperture_max_decibels = kApertureMaxDecibels,
+                 .pixels_per_decibel = 0.0f,
+                 .decibel_step = 0,
+                 .top_marker_decibels = 0.0f,
+                 .marker_count = 0 };
     }
 
     // Pixels per decibel - may be negative if min > max
@@ -149,13 +147,39 @@ SpectrumPlot::GenerateDecibelScaleMarkers(const int aWidth, const int aHeight) c
     const int kMarkerCount =
       (static_cast<int>(kApertureMaxDecibels - kApertureMinDecibels) / decibelStep) + 1;
 
+    return { .aperture_min_decibels = kApertureMinDecibels,
+             .aperture_max_decibels = kApertureMaxDecibels,
+             .pixels_per_decibel = kPixelsPerDecibel,
+             .decibel_step = decibelStep,
+             .top_marker_decibels = kTopMarkerDecibels,
+             .marker_count = kMarkerCount };
+}
+
+std::vector<SpectrumPlot::DecibelMarker>
+SpectrumPlot::GenerateDecibelScaleMarkers(const DecibelScaleParameters& aParams, const int aWidth)
+{
+    // Tick mark settings
+    constexpr int kTickMarkWidth = 10;
+
+    // Label dimensions and offsets
+    constexpr int kLabelWidth = 20;
+    constexpr int kLabelHeight = 10;
+    constexpr int kLabelOffsetX = kTickMarkWidth + kLabelWidth + 5; // from the right edge
+    constexpr int kLabelOffsetY = kLabelHeight / 2;
+    const int32_t kLabelPositionX = aWidth - kLabelOffsetX;
+
+    if (aParams.marker_count == 0) {
+        return {};
+    }
+
     std::vector<DecibelMarker> markers;
 
-    for (int i = 0; i < kMarkerCount; i++) {
+    for (int i = 0; i < aParams.marker_count; i++) {
         // Compute the Y position for this decibel level
-        const float kDecibels = kTopMarkerDecibels - static_cast<float>(i * decibelStep);
-        const auto kYPosition =
-          static_cast<int32_t>((kApertureMaxDecibels - kDecibels) * kPixelsPerDecibel);
+        const float kDecibels =
+          aParams.top_marker_decibels - static_cast<float>(i * aParams.decibel_step);
+        const auto kYPosition = static_cast<int32_t>((aParams.aperture_max_decibels - kDecibels) *
+                                                     aParams.pixels_per_decibel);
 
         const QLine kTickLine(aWidth - kTickMarkWidth, kYPosition, aWidth, kYPosition);
         const QRect kLabelRect(

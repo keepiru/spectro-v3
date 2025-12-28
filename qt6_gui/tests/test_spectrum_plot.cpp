@@ -151,18 +151,12 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
 
     SECTION("handles zero height")
     {
-        // It doesn't care... it will still output overlapping markers at y=0
         settings.SetApertureMinDecibels(-60.0f);
         settings.SetApertureMaxDecibels(0.0f);
 
         const std::vector<SpectrumPlot::DecibelMarker> want = {
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "0" },
-            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-10" },
-            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-20" },
-            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-30" },
-            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-40" },
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-50" },
-            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-60" },
         };
         REQUIRE(plot.GenerateDecibelScaleMarkers(200, 0) == want);
     }
@@ -173,8 +167,9 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         settings.SetApertureMaxDecibels(1.0f);
 
         const std::vector<SpectrumPlot::DecibelMarker> want = {
-            { .line = QLine(190, -540, 200, -540), .rect = QRect(165, -545, 20, 10), .text = "10" },
+            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "1" },
             { .line = QLine(190, 60, 200, 60), .rect = QRect(165, 55, 20, 10), .text = "0" },
+            { .line = QLine(190, 120, 200, 120), .rect = QRect(165, 115, 20, 10), .text = "-1" },
         };
         REQUIRE(plot.GenerateDecibelScaleMarkers(200, 120) == want);
     }

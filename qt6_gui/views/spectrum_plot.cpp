@@ -8,6 +8,7 @@
 #include <Qt>
 #include <QtTypes>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -100,7 +101,6 @@ std::vector<SpectrumPlot::DecibelMarker>
 SpectrumPlot::GenerateDecibelScaleMarkers(const int aWidth, const int aHeight) const
 {
     // Tick mark settings
-    constexpr int kDecibelStep = 10;
     constexpr int kTickMarkWidth = 10;
 
     // Label dimensions and offsets
@@ -114,22 +114,37 @@ SpectrumPlot::GenerateDecibelScaleMarkers(const int aWidth, const int aHeight) c
     const auto& kSettings = mController.GetSettings();
     const float kApertureMinDecibels = kSettings.GetApertureMinDecibels();
     const float kApertureMaxDecibels = kSettings.GetApertureMaxDecibels();
-    const float kTopMarkerDecibels = std::ceil(kApertureMaxDecibels / kDecibelStep) * kDecibelStep;
-    const float kPixelsPerDecibel =
-      static_cast<float>(aHeight) / (kApertureMaxDecibels - kApertureMinDecibels);
-    const int kMarkerCount =
-      static_cast<int>((kTopMarkerDecibels - kApertureMinDecibels) / kDecibelStep) + 1;
 
     if (kApertureMinDecibels == kApertureMaxDecibels) {
         // Can't compute markers if the range is zero
         return {};
     }
 
+    const float kPixelsPerDecibel =
+      static_cast<float>(aHeight) / (kApertureMaxDecibels - kApertureMinDecibels);
+
+    // Choose the smallest step which ensures minimum spacing
+    constexpr int kMinSpacingPx = 20;
+    constexpr std::array<int, 6> kPossibleSteps = { 1, 2, 5, 10, 20, 50 };
+    int decibelStep = kPossibleSteps.back(); // Default to largest if none work
+    for (const int step : kPossibleSteps) {
+        if (static_cast<float>(step) * kPixelsPerDecibel >= kMinSpacingPx) {
+            decibelStep = step;
+            break;
+        }
+    }
+
+    const float kTopMarkerDecibels =
+      std::ceil(kApertureMaxDecibels / static_cast<float>(decibelStep)) *
+      static_cast<float>(decibelStep);
+    const int kMarkerCount =
+      (static_cast<int>(kApertureMaxDecibels - kApertureMinDecibels) / decibelStep) + 1;
+
     std::vector<DecibelMarker> markers;
 
     for (int i = 0; i < kMarkerCount; i++) {
         // Compute the Y position for this decibel level
-        const float kDecibels = kTopMarkerDecibels - static_cast<float>(i * kDecibelStep);
+        const float kDecibels = kTopMarkerDecibels - static_cast<float>(i * decibelStep);
         const auto kYPosition =
           static_cast<int32_t>((kApertureMaxDecibels - kDecibels) * kPixelsPerDecibel);
 

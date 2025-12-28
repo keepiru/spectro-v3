@@ -56,17 +56,18 @@ class SpectrumPlot : public QWidget
         }
     };
 
-    // A single decibel scale marker (tick mark line and label)
-    struct DecibelMarker
+    // A single scale marker (tick mark line and label), for decibel scale or
+    // crosshair
+    struct Marker
     {
         QLine line;   // Line for the tick mark
         QRect rect;   // Rectangle for the label position
-        QString text; // Decibel value for the marker
+        QString text; // value for the marker
 
-        friend bool operator==(const DecibelMarker& aLHS, const DecibelMarker& aRHS) = default;
-        friend std::ostream& operator<<(std::ostream& aOS, const DecibelMarker& aMarker)
+        friend bool operator==(const Marker& aLHS, const Marker& aRHS) = default;
+        friend std::ostream& operator<<(std::ostream& aOS, const Marker& aMarker)
         {
-            aOS << std::format("DecibelMarker(line=({}, {}, {}, {}),rect=({}, {}, {}, {}),'{}')",
+            aOS << std::format("Marker(line=({}, {}, {}, {}),rect=({}, {}, {}, {}),'{}')",
                                aMarker.line.x1(),
                                aMarker.line.y1(),
                                aMarker.line.x2(),
@@ -119,11 +120,22 @@ class SpectrumPlot : public QWidget
      * @brief Generate decibel scale markers for the plot
      * @param aParams Decibel scale parameters
      * @param aWidth Width of the plot area in pixels
-     * @return std::vector<DecibelMarker> Vector of decibel markers
+     * @return std::vector<Marker> Vector of decibel markers
      */
-    [[nodiscard]] static std::vector<DecibelMarker> GenerateDecibelScaleMarkers(
+    [[nodiscard]] static std::vector<Marker> GenerateDecibelScaleMarkers(
       const DecibelScaleParameters& aParams,
       int aWidth);
+
+    /**
+     *  @brief Compute crosshair lines and labels for the given mouse position
+     *  @param aMousePos Mouse position in widget coordinates
+     *  @param aHeight Height of the plot area in pixels
+     *  @param aWidth Width of the plot area in pixels
+     *  @return std::array<Marker, 2> Array containing frequency and decibel markers
+     */
+    [[nodiscard]] std::array<Marker, 2> ComputeCrosshair(QPoint aMousePos,
+                                                         int aHeight,
+                                                         int aWidth) const;
 
   protected:
     void paintEvent(QPaintEvent* event) override;

@@ -28,6 +28,20 @@ class SpectrumPlot : public QWidget
     Q_OBJECT
 
   public:
+    // The vertical scale paramaters used by GenerateDecibelScaleMarkers().
+    struct DecibelScaleParameters
+    {
+        float aperture_min_decibels; // Passed through from settings
+        float aperture_max_decibels; // Passed through from settings
+        float pixels_per_decibel;    // May be negative for inverted scale
+        int decibel_step;            // May be negative for inverted scale
+        float top_marker_decibels;   // Decibel value of the topmost marker
+        int marker_count;            // Number of markers to generate
+
+        friend bool operator==(const DecibelScaleParameters& lhs,
+                               const DecibelScaleParameters& rhs) = default;
+    };
+
     struct DecibelMarker
     {
         QLine line;   // Line for the tick mark
@@ -76,8 +90,26 @@ class SpectrumPlot : public QWidget
                                           size_t aWidth,
                                           size_t aHeight) const;
 
-    [[nodiscard]] std::vector<DecibelMarker> GenerateDecibelScaleMarkers(int aWidth,
-                                                                         int aHeight) const;
+    /**
+     * @brief Calculate decibel scale parameters for the plot
+     * @param aHeight Height of the plot area in pixels
+     * @return DecibelScaleParameters Decibel scale parameters
+     *
+     * These parameters cover the vertical spacing, range, count, step, etc for
+     * the decibel scale markers.  Horizontal positions are handled in
+     * GenerateDecibelScaleMarkers().
+     */
+    [[nodiscard]] DecibelScaleParameters CalculateDecibelScaleParameters(int aHeight) const;
+
+    /**
+     * @brief Generate decibel scale markers for the plot
+     * @param aParams Decibel scale parameters
+     * @param aWidth Width of the plot area in pixels
+     * @return std::vector<DecibelMarker> Vector of decibel markers
+     */
+    [[nodiscard]] static std::vector<DecibelMarker> GenerateDecibelScaleMarkers(
+      const DecibelScaleParameters& aParams,
+      int aWidth);
 
   protected:
     void paintEvent(QPaintEvent* event) override;

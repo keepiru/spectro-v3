@@ -146,7 +146,8 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
             { .line = QLine(190, 100, 200, 100), .rect = QRect(165, 95, 20, 10), .text = "-50" },
             { .line = QLine(190, 120, 200, 120), .rect = QRect(165, 115, 20, 10), .text = "-60" },
         };
-        REQUIRE(plot.GenerateDecibelScaleMarkers(200, 120) == want);
+        const auto params = plot.CalculateDecibelScaleParameters(120);
+        REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
 
     SECTION("handles zero height")
@@ -158,7 +159,8 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "0" },
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-50" },
         };
-        REQUIRE(plot.GenerateDecibelScaleMarkers(200, 0) == want);
+        const auto params = plot.CalculateDecibelScaleParameters(0);
+        REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
 
     SECTION("handles small aperture")
@@ -171,7 +173,8 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
             { .line = QLine(190, 60, 200, 60), .rect = QRect(165, 55, 20, 10), .text = "0" },
             { .line = QLine(190, 120, 200, 120), .rect = QRect(165, 115, 20, 10), .text = "-1" },
         };
-        REQUIRE(plot.GenerateDecibelScaleMarkers(200, 120) == want);
+        const auto params = plot.CalculateDecibelScaleParameters(120);
+        REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
 
     SECTION("handles inverted aperture")
@@ -188,7 +191,8 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
             { .line = QLine(190, 100, 200, 100), .rect = QRect(165, 95, 20, 10), .text = "-10" },
             { .line = QLine(190, 120, 200, 120), .rect = QRect(165, 115, 20, 10), .text = "0" },
         };
-        REQUIRE(plot.GenerateDecibelScaleMarkers(200, 120) == want);
+        const auto params = plot.CalculateDecibelScaleParameters(120);
+        REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
 
     SECTION("handles equal min and max aperture")
@@ -197,6 +201,32 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         settings.SetApertureMaxDecibels(-50.0f);
 
         const std::vector<SpectrumPlot::DecibelMarker> want = {};
-        REQUIRE(plot.GenerateDecibelScaleMarkers(200, 120) == want);
+        const auto params = plot.CalculateDecibelScaleParameters(120);
+        REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
+}
+
+TEST_CASE("SpectrumPlot::CalculateDecibelScaleParameters", "[spectrum_plot]")
+{
+    Settings settings;
+    const AudioBuffer audioBuffer;
+    const SpectrogramController controller(settings, audioBuffer);
+    const SpectrumPlot plot(controller);
+
+    SECTION("computes correct parameters for normal aperture")
+    {
+        settings.SetApertureMinDecibels(-60.0f);
+        settings.SetApertureMaxDecibels(0.0f);
+        const SpectrumPlot::DecibelScaleParameters want = {
+            .aperture_min_decibels = -60.0f,
+            .aperture_max_decibels = 0.0f,
+            .pixels_per_decibel = 2.0f,
+            .decibel_step = 10,
+            .top_marker_decibels = 0.0f,
+            .marker_count = 7,
+        };
+        REQUIRE(plot.CalculateDecibelScaleParameters(120) == want);
+    }
+
+    // Additional test cases can be added here for other scenarios
 }

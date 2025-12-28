@@ -124,3 +124,77 @@ TEST_CASE("SpectrumPlot::ComputePoints", "[spectrum_plot]")
         REQUIRE(have.empty());
     }
 }
+
+TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
+{
+    Settings settings;
+    const AudioBuffer audioBuffer;
+    const SpectrogramController controller(settings, audioBuffer);
+    const SpectrumPlot plot(controller);
+
+    SECTION("returns correct markers for given height and width")
+    {
+        settings.SetApertureMinDecibels(-60.0f);
+        settings.SetApertureMaxDecibels(0.0f);
+
+        const std::vector<SpectrumPlot::DecibelMarker> want = {
+            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "0" },
+            { .line = QLine(190, 20, 200, 20), .rect = QRect(165, 15, 20, 10), .text = "-10" },
+            { .line = QLine(190, 40, 200, 40), .rect = QRect(165, 35, 20, 10), .text = "-20" },
+            { .line = QLine(190, 60, 200, 60), .rect = QRect(165, 55, 20, 10), .text = "-30" },
+            { .line = QLine(190, 80, 200, 80), .rect = QRect(165, 75, 20, 10), .text = "-40" },
+            { .line = QLine(190, 100, 200, 100), .rect = QRect(165, 95, 20, 10), .text = "-50" },
+            { .line = QLine(190, 120, 200, 120), .rect = QRect(165, 115, 20, 10), .text = "-60" },
+        };
+        REQUIRE(plot.GenerateDecibelScaleMarkers(200, 120) == want);
+    }
+
+    SECTION("handles zero height")
+    {
+        // It doesn't care... it will still output overlapping markers at y=0
+        settings.SetApertureMinDecibels(-60.0f);
+        settings.SetApertureMaxDecibels(0.0f);
+
+        const std::vector<SpectrumPlot::DecibelMarker> want = {
+            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "0" },
+            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-10" },
+            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-20" },
+            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-30" },
+            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-40" },
+            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-50" },
+            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-60" },
+        };
+        REQUIRE(plot.GenerateDecibelScaleMarkers(200, 0) == want);
+    }
+
+    SECTION("handles small aperture")
+    {
+        settings.SetApertureMinDecibels(-1.0f);
+        settings.SetApertureMaxDecibels(1.0f);
+
+        const std::vector<SpectrumPlot::DecibelMarker> want = {
+            { .line = QLine(190, -540, 200, -540), .rect = QRect(165, -545, 20, 10), .text = "10" },
+            { .line = QLine(190, 60, 200, 60), .rect = QRect(165, 55, 20, 10), .text = "0" },
+        };
+        REQUIRE(plot.GenerateDecibelScaleMarkers(200, 120) == want);
+    }
+
+    SECTION("handles inverted aperture")
+    {
+        settings.SetApertureMinDecibels(0.0f);
+        settings.SetApertureMaxDecibels(-60.0f);
+
+        // FIXME: Actually it doesn't handle this very well.  :)
+        const std::vector<SpectrumPlot::DecibelMarker> want = {};
+        REQUIRE(plot.GenerateDecibelScaleMarkers(200, 120) == want);
+    }
+
+    SECTION("handles equal min and max aperture")
+    {
+        settings.SetApertureMinDecibels(-50.0f);
+        settings.SetApertureMaxDecibels(-50.0f);
+
+        const std::vector<SpectrumPlot::DecibelMarker> want = {};
+        REQUIRE(plot.GenerateDecibelScaleMarkers(200, 120) == want);
+    }
+}

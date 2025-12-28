@@ -1,6 +1,12 @@
 #pragma once
 
+#include <QLine>
+#include <QObject>
+#include <QRect>
+#include <QString>
 #include <QWidget>
+#include <format>
+#include <ostream>
 
 class SpectrogramController;
 
@@ -22,6 +28,30 @@ class SpectrumPlot : public QWidget
     Q_OBJECT
 
   public:
+    struct DecibelMarker
+    {
+        QLine line;   // Line for the tick mark
+        QRect rect;   // Rectangle for the label position
+        QString text; // Decibel value for the marker
+
+        friend bool operator==(const DecibelMarker& lhs, const DecibelMarker& rhs) = default;
+        friend std::ostream& operator<<(std::ostream& ostream, const DecibelMarker& marker)
+        {
+            ostream << std::format(
+              "DecibelMarker(line=({}, {}, {}, {}),rect=({}, {}, {}, {}),'{}')",
+              marker.line.x1(),
+              marker.line.y1(),
+              marker.line.x2(),
+              marker.line.y2(),
+              marker.rect.x(),
+              marker.rect.y(),
+              marker.rect.width(),
+              marker.rect.height(),
+              marker.text.toStdString());
+            return ostream;
+        }
+    };
+
     explicit SpectrumPlot(const SpectrogramController& aController, QWidget* parent = nullptr);
     ~SpectrumPlot() override = default;
 
@@ -45,6 +75,9 @@ class SpectrumPlot : public QWidget
     [[nodiscard]] QPolygonF ComputePoints(const std::vector<float>& aDecibels,
                                           size_t aWidth,
                                           size_t aHeight) const;
+
+    [[nodiscard]] std::vector<DecibelMarker> GenerateDecibelScaleMarkers(int aWidth,
+                                                                         int aHeight) const;
 
   protected:
     void paintEvent(QPaintEvent* event) override;

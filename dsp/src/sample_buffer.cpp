@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <format>
+#include <limits>
 #include <mutex>
 #include <sample_buffer.h>
 #include <stdexcept>

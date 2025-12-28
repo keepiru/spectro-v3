@@ -1,5 +1,6 @@
 #include "spectrum_plot.h"
 #include "controllers/spectrogram_controller.h"
+#include <QLine>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPolygonF>
@@ -83,4 +84,61 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
         const QPolygonF points = ComputePoints(kDecibels, width(), height());
         painter.drawPolyline(points);
     }
+
+    constexpr int kFontSizePoints = 8;
+    painter.setPen(Qt::white);
+    painter.setFont(QFont("Sans", kFontSizePoints));
+
+    const std::vector<DecibelMarker> markers = GenerateDecibelScaleMarkers(width(), height());
+    for (const auto& marker : markers) {
+        painter.drawLine(marker.line);
+        painter.drawText(marker.rect, Qt::AlignRight | Qt::AlignVCenter, marker.text);
+    }
+}
+
+std::vector<SpectrumPlot::DecibelMarker>
+SpectrumPlot::GenerateDecibelScaleMarkers(const int aWidth, const int aHeight) const
+{
+    // Tick mark settings
+    constexpr int kDecibelStep = 10;
+    constexpr int kTickMarkWidth = 10;
+
+    // Label dimensions and offsets
+    constexpr int kLabelWidth = 20;
+    constexpr int kLabelHeight = 10;
+    constexpr int kLabelOffsetX = kTickMarkWidth + kLabelWidth + 5; // from the right edge
+    constexpr int kLabelOffsetY = kLabelHeight / 2;
+    const int32_t kLabelPositionX = aWidth - kLabelOffsetX;
+
+    // Compute the marker positions and spacing
+    const auto& kSettings = mController.GetSettings();
+    const float kApertureMinDecibels = kSettings.GetApertureMinDecibels();
+    const float kApertureMaxDecibels = kSettings.GetApertureMaxDecibels();
+    const float kTopMarkerDecibels = std::ceil(kApertureMaxDecibels / kDecibelStep) * kDecibelStep;
+    const float kPixelsPerDecibel =
+      static_cast<float>(aHeight) / (kApertureMaxDecibels - kApertureMinDecibels);
+    const int kMarkerCount =
+      static_cast<int>((kTopMarkerDecibels - kApertureMinDecibels) / kDecibelStep) + 1;
+
+    if (kApertureMinDecibels == kApertureMaxDecibels) {
+        // Can't compute markers if the range is zero
+        return {};
+    }
+
+    std::vector<DecibelMarker> markers;
+
+    for (int i = 0; i < kMarkerCount; i++) {
+        // Compute the Y position for this decibel level
+        const float kDecibels = kTopMarkerDecibels - static_cast<float>(i * kDecibelStep);
+        const auto kYPosition =
+          static_cast<int32_t>((kApertureMaxDecibels - kDecibels) * kPixelsPerDecibel);
+
+        const QLine kTickLine(aWidth - kTickMarkWidth, kYPosition, aWidth, kYPosition);
+        const QRect kLabelRect(
+          kLabelPositionX, kYPosition - kLabelOffsetY, kLabelWidth, kLabelHeight);
+        const QString kDecibelString = QString::number(static_cast<int>(kDecibels));
+        markers.push_back(
+          DecibelMarker{ .line = kTickLine, .rect = kLabelRect, .text = kDecibelString });
+    }
+    return markers;
 }

@@ -33,7 +33,7 @@ TEST_CASE("SpectrogramView constructor", "[spectrogram_view]")
 {
     const Settings settings;
     const AudioBuffer audioBuffer;
-    SpectrogramController controller(settings, audioBuffer);
+    const SpectrogramController controller(settings, audioBuffer);
     const SpectrogramView view(controller);
 
     REQUIRE(view.minimumWidth() > 0);
@@ -44,7 +44,7 @@ TEST_CASE("SpectrogramView is widget", "[spectrogram_view]")
 {
     const Settings settings;
     const AudioBuffer audioBuffer;
-    SpectrogramController controller(settings, audioBuffer);
+    const SpectrogramController controller(settings, audioBuffer);
     SpectrogramView view(controller);
     REQUIRE(qobject_cast<QWidget*>(&view) != nullptr);
 }
@@ -55,7 +55,7 @@ TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
     Settings settings;
 
     AudioBuffer audioBuffer;
-    SpectrogramController controller(
+    const SpectrogramController controller(
       settings, audioBuffer, MockFFTProcessor::GetFactory(), nullptr);
     SpectrogramView view(controller);
 
@@ -68,7 +68,7 @@ TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
             using SpectrogramController::SpectrogramController;
             size_t GetChannelCount() const override { return GENERATE(0, gkMaxChannels + 1); }
         };
-        MockController mockController(settings, audioBuffer);
+        const MockController mockController(settings, audioBuffer);
         SpectrogramView mockView(mockController);
         REQUIRE_THROWS_MATCHES(mockView.GenerateSpectrogramImage(256, 256),
                                std::runtime_error,
@@ -180,7 +180,7 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
 {
     Settings settings;
     const AudioBuffer audioBuffer;
-    SpectrogramController controller(settings, audioBuffer);
+    const SpectrogramController controller(settings, audioBuffer);
     const SpectrogramView view(controller);
 
     SECTION("returns correct RenderConfig values")
@@ -216,8 +216,8 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
             using SpectrogramController::SpectrogramController;
             size_t GetChannelCount() const override { return GENERATE(0, gkMaxChannels + 1); }
         };
-        MockController mockController(settings, audioBuffer);
-        SpectrogramView mockView(mockController);
+        const MockController mockController(settings, audioBuffer);
+        const SpectrogramView mockView(mockController);
         REQUIRE_THROWS_MATCHES(mockView.GetRenderConfig(256),
                                std::runtime_error,
                                MessageMatches(ContainsSubstring("out of range")));

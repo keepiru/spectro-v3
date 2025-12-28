@@ -115,7 +115,7 @@ SettingsPanel::CreateFFTSizeControl(QFormLayout* aLayout)
 
     // Connect to settings
     connect(mFFTSizeCombo, &QComboBox::currentIndexChanged, this, [this](int /*aIndex*/) {
-        const size_t selectedSize = mFFTSizeCombo->currentData().toULongLong();
+        const int64_t selectedSize = mFFTSizeCombo->currentData().toLongLong();
         mSettings->SetFFTSettings(selectedSize, mSettings->GetWindowType());
     });
 

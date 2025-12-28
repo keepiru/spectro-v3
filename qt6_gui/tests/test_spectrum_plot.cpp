@@ -148,7 +148,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         };
         REQUIRE(params == wantParams);
 
-        const std::vector<SpectrumPlot::DecibelMarker> want = {
+        const std::vector<SpectrumPlot::Marker> want = {
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "0" },
             { .line = QLine(190, 20, 200, 20), .rect = QRect(165, 15, 20, 10), .text = "-10" },
             { .line = QLine(190, 40, 200, 40), .rect = QRect(165, 35, 20, 10), .text = "-20" },
@@ -176,7 +176,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         };
         REQUIRE(params == wantParams);
 
-        const std::vector<SpectrumPlot::DecibelMarker> want = {
+        const std::vector<SpectrumPlot::Marker> want = {
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "0" },
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-50" },
         };
@@ -199,7 +199,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         };
         REQUIRE(params == wantParams);
 
-        const std::vector<SpectrumPlot::DecibelMarker> want = {
+        const std::vector<SpectrumPlot::Marker> want = {
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "1" },
             { .line = QLine(190, 60, 200, 60), .rect = QRect(165, 55, 20, 10), .text = "0" },
             { .line = QLine(190, 120, 200, 120), .rect = QRect(165, 115, 20, 10), .text = "-1" },
@@ -223,7 +223,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         };
         REQUIRE(params == wantParams);
 
-        const std::vector<SpectrumPlot::DecibelMarker> want = {
+        const std::vector<SpectrumPlot::Marker> want = {
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-60" },
             { .line = QLine(190, 20, 200, 20), .rect = QRect(165, 15, 20, 10), .text = "-50" },
             { .line = QLine(190, 40, 200, 40), .rect = QRect(165, 35, 20, 10), .text = "-40" },
@@ -251,7 +251,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         };
         REQUIRE(params == wantParams);
 
-        const std::vector<SpectrumPlot::DecibelMarker> want = {};
+        const std::vector<SpectrumPlot::Marker> want = {};
         REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
 }
@@ -279,5 +279,146 @@ TEST_CASE("SpectrumPlot::CalculateDecibelScaleParameters", "[spectrum_plot]")
             .marker_count = 7,
         };
         REQUIRE(plot.CalculateDecibelScaleParameters(120) == want);
+    }
+}
+
+TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
+{
+    Settings settings;
+    const AudioBuffer audioBuffer;
+    settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
+    const SpectrogramController controller(settings, audioBuffer, MockFFTProcessor::GetFactory());
+    const SpectrumPlot plot(controller);
+
+    SECTION("computes correct crosshair at center of widget")
+    {
+        settings.SetApertureMinDecibels(-100.0f);
+        settings.SetApertureMaxDecibels(0.0f);
+
+        const int kWidth = 512;
+        const int kHeight = 200;
+        const QPoint kMousePos(256, 100); // Center
+
+        const auto markers = plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
+        REQUIRE(markers.size() == 2);
+
+        // Frequency marker (vertical line)
+        const auto& freqMarker = markers[0];
+        CHECK(freqMarker.line == QLine(256, 0, 256, 200));
+        CHECK(freqMarker.rect == QRect(261, 5, 50, 10));
+        // Hz calculation: mouseX * HzPerBin = 256 * (44100/1024) = ~11025 Hz
+        CHECK(freqMarker.text == "11025 Hz");
+
+        // Decibel marker (horizontal line)
+        const auto& dbMarker = markers[1];
+        CHECK(dbMarker.line == QLine(0, 100, 512, 100));
+        CHECK(dbMarker.rect == QRect(412, 82, 60, 15));
+        // dB at center should be -50 dB (halfway between -100 and 0)
+        CHECK(dbMarker.text == "-50 dB");
+    }
+
+    SECTION("computes correct crosshair at top left corner")
+    {
+        settings.SetApertureMinDecibels(-100.0f);
+        settings.SetApertureMaxDecibels(0.0f);
+
+        const int kWidth = 512;
+        const int kHeight = 200;
+        const QPoint kMousePos(0, 0); // Top left
+
+        const auto markers = plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
+        REQUIRE(markers.size() == 2);
+
+        // Frequency marker at x=0
+        const auto& freqMarker = markers[0];
+        CHECK(freqMarker.line == QLine(0, 0, 0, 200));
+        CHECK(freqMarker.rect == QRect(5, 5, 50, 10));
+        CHECK(freqMarker.text == "0 Hz");
+
+        // Decibel marker at y=0 (top = max dB)
+        const auto& dbMarker = markers[1];
+        CHECK(dbMarker.line == QLine(0, 0, 512, 0));
+        CHECK(dbMarker.rect == QRect(412, -18, 60, 15));
+        CHECK(dbMarker.text == "0 dB");
+    }
+
+    SECTION("computes correct crosshair at bottom right corner")
+    {
+        settings.SetApertureMinDecibels(-100.0f);
+        settings.SetApertureMaxDecibels(0.0f);
+
+        const int kWidth = 512;
+        const int kHeight = 200;
+        const QPoint kMousePos(511, 199); // Bottom right
+
+        const auto markers = plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
+        REQUIRE(markers.size() == 2);
+
+        // Frequency marker at x=511
+        const auto& freqMarker = markers[0];
+        CHECK(freqMarker.line == QLine(511, 0, 511, 200));
+        CHECK(freqMarker.rect == QRect(516, 5, 50, 10));
+        CAPTURE(freqMarker);
+        CHECK(freqMarker.text == "22006 Hz");
+
+        // Decibel marker at y=199 (bottom = min dB)
+        const auto& dbMarker = markers[1];
+        CHECK(dbMarker.line == QLine(0, 199, 512, 199));
+        CHECK(dbMarker.rect == QRect(412, 181, 60, 15));
+        CHECK(dbMarker.text == "-99 dB");
+    }
+
+    SECTION("handles different aperture ranges")
+    {
+        settings.SetApertureMinDecibels(-60.0f);
+        settings.SetApertureMaxDecibels(-20.0f);
+
+        const int kWidth = 400;
+        const int kHeight = 100;
+        const QPoint kMousePos(200, 50); // Center
+
+        const auto markers = plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
+        REQUIRE(markers.size() == 2);
+
+        // At center of 100px height with -60 to -20 dB range:
+        // Center should be -40 dB
+        const auto& dbMarker = markers[1];
+        CHECK(dbMarker.text == "-40 dB");
+    }
+
+    SECTION("handles inverted aperture")
+    {
+        settings.SetApertureMinDecibels(0.0f);
+        settings.SetApertureMaxDecibels(-100.0f);
+
+        const int kWidth = 512;
+        const int kHeight = 200;
+        const QPoint kMousePos(256, 100); // Center
+
+        const auto markers = plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
+        REQUIRE(markers.size() == 2);
+
+        // With inverted aperture, center should still compute correctly
+        // normalized_y = 1 - (100/200) = 0.5
+        // dB = 0 + (0.5 * -100) = -50 dB
+        const auto& dbMarker = markers[1];
+        CHECK(dbMarker.text == "-50 dB");
+    }
+
+    SECTION("computes correct frequency for different FFT sizes")
+    {
+        settings.SetFFTSettings(512, FFTWindow::Type::Rectangular);
+
+        const int kWidth = 256;
+        const int kHeight = 100;
+        const QPoint kMousePos(128, 50); // Center
+
+        const auto markers = plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
+        REQUIRE(markers.size() == 2);
+
+        // Hz calculation: mouseX * HzPerBin = 128 * (44100/512) ≈ 11025 Hz
+        const auto& freqMarker = markers[0];
+        CHECK(freqMarker.text == "11025 Hz");
+        // The exact value depends on sample rate from settings
     }
 }

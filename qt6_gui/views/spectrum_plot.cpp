@@ -1,5 +1,6 @@
 #include "spectrum_plot.h"
 #include "controllers/spectrogram_controller.h"
+#include <QCursor>
 #include <QLine>
 #include <QPaintEvent>
 #include <QPainter>
@@ -66,6 +67,7 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     QPainter painter(this);
     painter.fillRect(event->rect(), Qt::black);
 
+    // Draw the spectrum for each channel
     const size_t kChannels = mController.GetChannelCount();
 
     for (size_t ch = 0; ch < kChannels; ch++) {
@@ -86,16 +88,33 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
         painter.drawPolyline(points);
     }
 
+    // Draw the decibel scale markers
     constexpr int kFontSizePoints = 8;
     painter.setPen(Qt::white);
-    painter.setFont(QFont("Sans", kFontSizePoints));
+    painter.setFont(QFont("Arial", kFontSizePoints));
 
     const DecibelScaleParameters params = CalculateDecibelScaleParameters(height());
-    const std::vector<DecibelMarker> markers = GenerateDecibelScaleMarkers(params, width());
+    const std::vector<Marker> markers = GenerateDecibelScaleMarkers(params, width());
     for (const auto& marker : markers) {
         painter.drawLine(marker.line);
         painter.drawText(marker.rect, Qt::AlignRight | Qt::AlignVCenter, marker.text);
     }
+
+    // Draw crosshair at mouse position
+    const auto kMousePos = mapFromGlobal(QCursor::pos());
+    const auto kMarkers = ComputeCrosshair(kMousePos, height(), width());
+
+    // dashed yellow line
+    const float kCrosshairPenWidth = 0.5f;
+    painter.setPen(QPen(Qt::yellow, kCrosshairPenWidth, Qt::DashLine));
+
+    // Vertical line for frequency
+    painter.drawLine(kMarkers[0].line);
+    painter.drawText(kMarkers[0].rect, Qt::AlignLeft | Qt::AlignVCenter, kMarkers[0].text);
+
+    // Horizontal line for decibel level
+    painter.drawLine(kMarkers[1].line);
+    painter.drawText(kMarkers[1].rect, Qt::AlignRight | Qt::AlignBottom, kMarkers[1].text);
 }
 
 SpectrumPlot::DecibelScaleParameters
@@ -155,7 +174,7 @@ SpectrumPlot::CalculateDecibelScaleParameters(const int aHeight) const
              .marker_count = kMarkerCount };
 }
 
-std::vector<SpectrumPlot::DecibelMarker>
+std::vector<SpectrumPlot::Marker>
 SpectrumPlot::GenerateDecibelScaleMarkers(const DecibelScaleParameters& aParams, const int aWidth)
 {
     // Tick mark settings
@@ -172,7 +191,7 @@ SpectrumPlot::GenerateDecibelScaleMarkers(const DecibelScaleParameters& aParams,
         return {};
     }
 
-    std::vector<DecibelMarker> markers;
+    std::vector<Marker> markers;
 
     for (int i = 0; i < aParams.marker_count; i++) {
         // Compute the Y position for this decibel level
@@ -185,8 +204,48 @@ SpectrumPlot::GenerateDecibelScaleMarkers(const DecibelScaleParameters& aParams,
         const QRect kLabelRect(
           kLabelPositionX, kYPosition - kLabelOffsetY, kLabelWidth, kLabelHeight);
         const QString kDecibelString = QString::number(static_cast<int>(kDecibels));
-        markers.push_back(
-          DecibelMarker{ .line = kTickLine, .rect = kLabelRect, .text = kDecibelString });
+        markers.push_back(Marker{ .line = kTickLine, .rect = kLabelRect, .text = kDecibelString });
     }
     return markers;
+}
+
+std::array<SpectrumPlot::Marker, 2>
+SpectrumPlot::ComputeCrosshair(QPoint aMousePos, int aHeight, int aWidth) const
+{
+    // Vertical line for frequency
+    const QLine kFrequencyLine(aMousePos.x(), 0, aMousePos.x(), aHeight);
+
+    // Position label on the top, to the right of the line
+    const QRect kFrequencyLabelRect(aMousePos.x() + 5, 5, 50, 10);
+
+    // Compute frequency at mouse X position
+    const float kHzPerBin = mController.GetHzPerBin();
+    const auto kFrequencyHz = static_cast<int32_t>(static_cast<float>(aMousePos.x()) * kHzPerBin);
+    const QString kFrequencyText = QString::number(kFrequencyHz) + " Hz";
+
+    const Marker kFrequencyMarker{ .line = kFrequencyLine,
+                                   .rect = kFrequencyLabelRect,
+                                   .text = kFrequencyText };
+
+    // Horizontal line for decibel level
+    const QLine kDecibelLine(0, aMousePos.y(), aWidth, aMousePos.y());
+
+    // Position label on the right side, above the line, to the left of dB scale
+    const QRect kDecibelLabelRect(aWidth - 100, aMousePos.y() - 18, 60, 15);
+
+    // Compute decibel value at mouse Y position
+    const auto& kSettings = mController.GetSettings();
+    const float kApertureMinDecibels = kSettings.GetApertureMinDecibels();
+    const float kApertureMaxDecibels = kSettings.GetApertureMaxDecibels();
+    const float kDecibelRange = kApertureMaxDecibels - kApertureMinDecibels;
+    const float kNormalizedY =
+      1.0f - (static_cast<float>(aMousePos.y()) / static_cast<float>(aHeight));
+    const float kDecibelValue = kApertureMinDecibels + (kNormalizedY * kDecibelRange);
+    const QString kDecibelText = QString::number(static_cast<int>(kDecibelValue)) + " dB";
+
+    const Marker kDecibelMarker{ .line = kDecibelLine,
+                                 .rect = kDecibelLabelRect,
+                                 .text = kDecibelText };
+
+    return { kFrequencyMarker, kDecibelMarker };
 }

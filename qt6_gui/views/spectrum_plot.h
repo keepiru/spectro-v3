@@ -56,27 +56,27 @@ class SpectrumPlot : public QWidget
         }
     };
 
+    // A single decibel scale marker (tick mark line and label)
     struct DecibelMarker
     {
         QLine line;   // Line for the tick mark
         QRect rect;   // Rectangle for the label position
         QString text; // Decibel value for the marker
 
-        friend bool operator==(const DecibelMarker& lhs, const DecibelMarker& rhs) = default;
-        friend std::ostream& operator<<(std::ostream& ostream, const DecibelMarker& marker)
+        friend bool operator==(const DecibelMarker& aLHS, const DecibelMarker& aRHS) = default;
+        friend std::ostream& operator<<(std::ostream& aOS, const DecibelMarker& aMarker)
         {
-            ostream << std::format(
-              "DecibelMarker(line=({}, {}, {}, {}),rect=({}, {}, {}, {}),'{}')",
-              marker.line.x1(),
-              marker.line.y1(),
-              marker.line.x2(),
-              marker.line.y2(),
-              marker.rect.x(),
-              marker.rect.y(),
-              marker.rect.width(),
-              marker.rect.height(),
-              marker.text.toStdString());
-            return ostream;
+            aOS << std::format("DecibelMarker(line=({}, {}, {}, {}),rect=({}, {}, {}, {}),'{}')",
+                               aMarker.line.x1(),
+                               aMarker.line.y1(),
+                               aMarker.line.x2(),
+                               aMarker.line.y2(),
+                               aMarker.rect.x(),
+                               aMarker.rect.y(),
+                               aMarker.rect.width(),
+                               aMarker.rect.height(),
+                               aMarker.text.toStdString());
+            return aOS;
         }
     };
 

@@ -120,6 +120,7 @@ SpectrumPlot::GenerateDecibelScaleMarkers(const int aWidth, const int aHeight) c
         return {};
     }
 
+    // Pixels per decibel - may be negative if min > max
     const float kPixelsPerDecibel =
       static_cast<float>(aHeight) / (kApertureMaxDecibels - kApertureMinDecibels);
 
@@ -128,10 +129,18 @@ SpectrumPlot::GenerateDecibelScaleMarkers(const int aWidth, const int aHeight) c
     constexpr std::array<int, 6> kPossibleSteps = { 1, 2, 5, 10, 20, 50 };
     int decibelStep = kPossibleSteps.back(); // Default to largest if none work
     for (const int step : kPossibleSteps) {
-        if (static_cast<float>(step) * kPixelsPerDecibel >= kMinSpacingPx) {
+        if (std::abs(static_cast<float>(step) * kPixelsPerDecibel) >= kMinSpacingPx) {
             decibelStep = step;
             break;
         }
+    }
+
+    // Step backwards if the scale is inverted.
+    // Note: decibelStep is intentionally allowed to be negative here so that
+    // subsequent calculations (kTopMarkerDecibels, kMarkerCount and the loop
+    // stepping by i * decibelStep) naturally handle an inverted decibel axis.
+    if (kPixelsPerDecibel < 0.0f) {
+        decibelStep = -decibelStep;
     }
 
     const float kTopMarkerDecibels =

@@ -179,8 +179,15 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         settings.SetApertureMinDecibels(0.0f);
         settings.SetApertureMaxDecibels(-60.0f);
 
-        // FIXME: Actually it doesn't handle this very well.  :)
-        const std::vector<SpectrumPlot::DecibelMarker> want = {};
+        const std::vector<SpectrumPlot::DecibelMarker> want = {
+            { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-60" },
+            { .line = QLine(190, 20, 200, 20), .rect = QRect(165, 15, 20, 10), .text = "-50" },
+            { .line = QLine(190, 40, 200, 40), .rect = QRect(165, 35, 20, 10), .text = "-40" },
+            { .line = QLine(190, 60, 200, 60), .rect = QRect(165, 55, 20, 10), .text = "-30" },
+            { .line = QLine(190, 80, 200, 80), .rect = QRect(165, 75, 20, 10), .text = "-20" },
+            { .line = QLine(190, 100, 200, 100), .rect = QRect(165, 95, 20, 10), .text = "-10" },
+            { .line = QLine(190, 120, 200, 120), .rect = QRect(165, 115, 20, 10), .text = "0" },
+        };
         REQUIRE(plot.GenerateDecibelScaleMarkers(200, 120) == want);
     }
 

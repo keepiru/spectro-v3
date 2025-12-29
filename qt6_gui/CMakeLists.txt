@@ -16,6 +16,10 @@ add_library(spectro_qt6_gui
     models/audio_recorder.h
     models/settings.cpp
     models/settings.h
+    models/audio_file_reader.cpp
+    models/audio_file_reader.h
+    controllers/audio_file.cpp
+    controllers/audio_file.h
     controllers/spectrogram_controller.cpp
     controllers/spectrogram_controller.h
     views/spectrogram_view.cpp

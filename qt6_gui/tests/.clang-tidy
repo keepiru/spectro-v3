@@ -5,3 +5,4 @@ Checks: >
   -readability-magic-numbers,
   -cppcoreguidelines-avoid-magic-numbers,
   -misc-include-cleaner,
+  -readability-function-cognitive-complexity,

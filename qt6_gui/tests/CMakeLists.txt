@@ -49,8 +49,10 @@ include(CTest)
 
 # Define all tests
 add_qt_test(test_audio_buffer)
+add_qt_test(test_audio_file)
 add_qt_test(test_audio_recorder)
 add_qt_test(test_settings)
+add_qt_test(test_audio_file_reader)
 add_qt_test(test_spectrogram_controller INCLUDE_DIR ${CMAKE_SOURCE_DIR}/dsp/tests)
 add_qt_test(test_spectrogram_view INCLUDE_DIR ${CMAKE_SOURCE_DIR}/dsp/tests)
 add_qt_test(test_scale_view INCLUDE_DIR ${CMAKE_SOURCE_DIR}/dsp/tests)

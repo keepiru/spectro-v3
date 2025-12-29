@@ -1,0 +1,53 @@
+#include "controllers/audio_file.h"
+#include "models/audio_file_reader.h"
+#include <cstddef>
+#include <vector>
+
+bool
+AudioFile::LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgressCallback)
+{
+    // Larger chunks cut down the overhead for AudioBuffer::AddSamples, but
+    // diminishing returns kick in pretty quickly.
+    constexpr size_t bufferFrames = 1024;
+
+    const int kChannelCount = aReader.GetChannelCount();
+    const int kSampleRate = aReader.GetSampleRate();
+    const size_t kTotalFrames = aReader.GetTotalFrames();
+    int lastProgress = 0;
+
+    mBuffer.Reset(static_cast<size_t>(kChannelCount), static_cast<size_t>(kSampleRate));
+
+    while (true) {
+        const std::vector<float> samples = aReader.ReadInterleaved(bufferFrames);
+        if (samples.empty()) {
+            break;
+        }
+        mBuffer.AddSamples(samples);
+
+        // Report progress
+
+        // Avoid division by zero for empty files.  This should never actually
+        // happen because we would have exited the loop above, but let's be
+        // safe and make sure we don't call the progress callback with Inf.
+        if (kTotalFrames == 0) {
+            continue;
+        }
+        const int kProgressPercent = static_cast<int>(static_cast<float>(mBuffer.NumSamples()) /
+                                                      static_cast<float>(kTotalFrames) * 100.0f);
+
+        // Throttle progress callbacks to only report when it changes.
+        if (kProgressPercent > lastProgress) {
+            lastProgress = kProgressPercent;
+            aProgressCallback(kProgressPercent);
+        }
+    }
+
+    // Ensure we report 100% progress at the end.  Normally this only happens if
+    // the file is empty.
+    constexpr int kFinalProgressPercent = 100;
+    if (lastProgress < kFinalProgressPercent) {
+        aProgressCallback(kFinalProgressPercent);
+    }
+
+    return true;
+}

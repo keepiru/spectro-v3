@@ -13,7 +13,8 @@ sudo apt install \
     libcatch2-dev \
     cmake \
     build-essential \
-    ninja-build
+    ninja-build \
+    libsndfile1-dev
 ```
 
 ## Build Instructions

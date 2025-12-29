@@ -1,5 +1,6 @@
 #pragma once
 
+#include "controllers/audio_file.h"
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
 #include "models/audio_recorder.h"
@@ -45,6 +46,7 @@ class MainWindow : public QMainWindow
     AudioBuffer mAudioBuffer;
     AudioRecorder mAudioRecorder;
     SpectrogramController mSpectrogramController;
+    AudioFile mAudioFile;
 
     // View widgets
     SpectrogramView mSpectrogramView;

@@ -208,18 +208,11 @@ class Settings : public QObject
     void FFTSettingsChanged();
 
     /**
-     * @brief Emitted when window scale changes
-     *
-     * Listeners (SpectrogramController) should update stride and snap view position.
-     */
-    void WindowScaleChanged();
-
-    /**
-     * @brief Emitted when aperture min or max decibel values change
+     * @brief Emitted when display-related settings change
      *
      * Listeners (SpectrogramView, SpectrumPlot) should redraw
      */
-    void ApertureSettingsChanged();
+    void DisplaySettingsChanged();
 
   private:
     static constexpr int64_t KDefaultFFTSize = 2048;

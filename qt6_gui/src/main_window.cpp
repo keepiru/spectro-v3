@@ -114,7 +114,20 @@ MainWindow::SetupConnections()
             &mSpectrumPlot,
             QOverload<>::of(&SpectrumPlot::update));
 
-    // Update ScaleView when FFT size changes
-    connect(
-      &mSettings, &Settings::FFTSettingsChanged, &mScaleView, QOverload<>::of(&ScaleView::update));
+    // Update views when display settings change
+    connect(&mSettings,
+            &Settings::DisplaySettingsChanged,
+            &mScaleView,
+            QOverload<>::of(&ScaleView::update));
+    connect(&mSettings,
+            &Settings::DisplaySettingsChanged,
+            &mSpectrumPlot,
+            QOverload<>::of(&SpectrumPlot::update));
+    connect(&mSettings,
+            &Settings::DisplaySettingsChanged,
+            &mSpectrogramView,
+            QOverload<>::of(&SpectrogramView::update));
+
+    // Stop recording when buffer is reset (e.g., when loading a new file)
+    connect(&mAudioBuffer, &AudioBuffer::BufferReset, &mAudioRecorder, &AudioRecorder::Stop);
 }

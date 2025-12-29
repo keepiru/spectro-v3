@@ -4,15 +4,17 @@
 #include <catch2/catch_test_macros.hpp>
 #include <fft_window.h>
 
-TEST_CASE("Settings::SetFFTSettings emits signal", "[settings]")
+TEST_CASE("Settings::SetFFTSettings emits signals", "[settings]")
 {
     Settings settings;
     settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
-    const QSignalSpy spy(&settings, &Settings::FFTSettingsChanged);
+    const QSignalSpy fftSpy(&settings, &Settings::FFTSettingsChanged);
+    const QSignalSpy displaySpy(&settings, &Settings::DisplaySettingsChanged);
 
     settings.SetFFTSettings(4096, FFTWindow::Type::Rectangular);
 
-    REQUIRE(spy.count() == 1);
+    REQUIRE(fftSpy.count() == 1);
+    REQUIRE(displaySpy.count() == 1);
     REQUIRE(settings.GetFFTSize() == 4096);
     REQUIRE(settings.GetWindowType() == FFTWindow::Type::Rectangular);
 }
@@ -20,13 +22,15 @@ TEST_CASE("Settings::SetFFTSettings emits signal", "[settings]")
 TEST_CASE("Settings::SetFFTSettings no signal if same values", "[settings]")
 {
     Settings settings;
-    const QSignalSpy spy(&settings, &Settings::FFTSettingsChanged);
+    const QSignalSpy fftSpy(&settings, &Settings::FFTSettingsChanged);
+    const QSignalSpy displaySpy(&settings, &Settings::DisplaySettingsChanged);
     const int64_t size = settings.GetFFTSize();
     const FFTWindow::Type type = settings.GetWindowType();
 
     settings.SetFFTSettings(size, type); // Set to default again
 
-    REQUIRE(spy.count() == 0);
+    REQUIRE(fftSpy.count() == 0);
+    REQUIRE(displaySpy.count() == 0);
 }
 
 TEST_CASE("Settings::SetFFTSettings throws on non-positive size", "[settings]")
@@ -44,10 +48,10 @@ TEST_CASE("Settings::SetFFTSettings throws on non-power of two size", "[settings
                       std::invalid_argument);
 }
 
-TEST_CASE("Settings::SetWindowStride emits signal", "[settings]")
+TEST_CASE("Settings::SetWindowScale emits signal", "[settings]")
 {
     Settings settings;
-    const QSignalSpy spy(&settings, &Settings::WindowScaleChanged);
+    const QSignalSpy spy(&settings, &Settings::DisplaySettingsChanged);
 
     settings.SetWindowScale(2);
 
@@ -144,8 +148,10 @@ TEST_CASE("Settings::GetColorMap", "[settings]")
         REQUIRE(settings.GetColorMap(ch) == Settings::ColorMapType::White);
     }
 
+    const QSignalSpy spy(&settings, &Settings::DisplaySettingsChanged);
     // Then change and confirm
     settings.SetColorMap(0, Settings::ColorMapType::Blue);
+    REQUIRE(spy.count() == 1);
     REQUIRE(settings.GetColorMap(0) == Settings::ColorMapType::Blue);
 }
 
@@ -160,7 +166,7 @@ TEST_CASE("Settings::GetColorMapValue out of range", "[settings]")
 TEST_CASE("Settings::SetAperture", "[settings]")
 {
     Settings settings;
-    const QSignalSpy spy(&settings, &Settings::ApertureSettingsChanged);
+    const QSignalSpy spy(&settings, &Settings::DisplaySettingsChanged);
 
     settings.SetApertureMinDecibels(-40.0f);
     settings.SetApertureMaxDecibels(20.0f);

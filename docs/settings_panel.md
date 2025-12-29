@@ -34,3 +34,12 @@ Audio controls are disabled (grayed out) while recording is active.
 - 6 pulldowns for colormaps:
   - Name
   - 128x16 Icon showing a sample of the gradient: setIconSize(QSize(128,16))
+
+## Open File button
+
+QPushButton("Open file");
+
+When clicked:
+- Choose file with QFileDialog
+- Create a QProgressDialog
+- Call AudioFile::LoadFile with the filename and progress callback lambda

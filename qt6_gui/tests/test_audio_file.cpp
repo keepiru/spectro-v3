@@ -96,11 +96,11 @@ TEST_CASE("AudioFile - load file", "[audio_file]")
 
     SECTION("incremental progress updates")
     {
-        // 10,000 samples, stereo = 5,000 frames
-        MockAudioFileReader mockReader(2, 44100, std::vector<float>(10000));
+        // 12,345,678 samples total, 2 channels = 6,172,839 frames
+        MockAudioFileReader mockReader(2, 44100, std::vector<float>(12345678));
 
         REQUIRE(audioFile.LoadFile(mockReader, progressCallback));
 
-        CHECK(progressCalls == std::vector<int>({ 20, 40, 61, 81, 100 }));
+        CHECK(progressCalls == std::vector<int>({ 16, 33, 50, 67, 84, 100 }));
     }
 }

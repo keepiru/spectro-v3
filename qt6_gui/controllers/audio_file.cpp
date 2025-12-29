@@ -6,9 +6,9 @@
 bool
 AudioFile::LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgressCallback)
 {
-    // Larger chunks cut down the overhead for AudioBuffer::AddSamples, but
-    // diminishing returns kick in pretty quickly.
-    constexpr size_t bufferFrames = 1024;
+    // Each chunk is passed to AddSamples, which will trigger a display refresh,
+    // so we want to keep these chunks fairly large for efficiency.
+    constexpr size_t kChunkSize = 1024L * 1024L;
 
     const int kChannelCount = aReader.GetChannelCount();
     const int kSampleRate = aReader.GetSampleRate();
@@ -18,7 +18,7 @@ AudioFile::LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgress
     mBuffer.Reset(static_cast<size_t>(kChannelCount), static_cast<size_t>(kSampleRate));
 
     while (true) {
-        const std::vector<float> samples = aReader.ReadInterleaved(bufferFrames);
+        const std::vector<float> samples = aReader.ReadInterleaved(kChunkSize);
         if (samples.empty()) {
             break;
         }

@@ -120,13 +120,13 @@ TEST_CASE("Settings default color maps", "[settings]")
 
     for (size_t i = 0; i < 256; i++) {
         const auto intensity = static_cast<uint8_t>(i);
-        // Channel 0: Cyan
-        REQUIRE(settings.GetColorMapValue(0, i).r == 0);
-        REQUIRE(settings.GetColorMapValue(0, i).g == intensity);
+        // Channel 0: Magenta
+        REQUIRE(settings.GetColorMapValue(0, i).r == intensity);
+        REQUIRE(settings.GetColorMapValue(0, i).g == 0);
         REQUIRE(settings.GetColorMapValue(0, i).b == intensity);
-        // Channel 1: Red
-        REQUIRE(settings.GetColorMapValue(1, i).r == intensity);
-        REQUIRE(settings.GetColorMapValue(1, i).g == 0);
+        // Channel 1: Green
+        REQUIRE(settings.GetColorMapValue(1, i).r == 0);
+        REQUIRE(settings.GetColorMapValue(1, i).g == intensity);
         REQUIRE(settings.GetColorMapValue(1, i).b == 0);
         // Rest of channels: White
         for (size_t ch = 2; ch < gkMaxChannels; ch++) {
@@ -142,8 +142,8 @@ TEST_CASE("Settings::GetColorMap", "[settings]")
     Settings settings;
 
     // Confirm default color maps
-    REQUIRE(settings.GetColorMap(0) == Settings::ColorMapType::Cyan);
-    REQUIRE(settings.GetColorMap(1) == Settings::ColorMapType::Red);
+    REQUIRE(settings.GetColorMap(0) == Settings::ColorMapType::Magenta);
+    REQUIRE(settings.GetColorMap(1) == Settings::ColorMapType::Green);
     for (size_t ch = 2; ch < gkMaxChannels; ch++) {
         REQUIRE(settings.GetColorMap(ch) == Settings::ColorMapType::White);
     }

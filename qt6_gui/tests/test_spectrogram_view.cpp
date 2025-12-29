@@ -121,8 +121,8 @@ TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
 
         const std::string kHave = QImageToString(view.GenerateSpectrogramImage(6, 4));
         const std::string kWant = "\n"
-                                  "000101 000202 000303 000404 000505 000000 \n"
-                                  "000909 000A0A 000B0B 000C0C 000D0D 000000 \n"
+                                  "010001 020002 030003 040004 050005 000000 \n"
+                                  "090009 0A000A 0B000B 0C000C 0D000D 000000 \n"
                                   "000000 000000 000000 000000 000000 000000 \n"
                                   "000000 000000 000000 000000 000000 000000 \n";
 

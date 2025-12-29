@@ -233,8 +233,8 @@ class Settings : public QObject
 
     // Default color maps for each channel.
     static constexpr std::array<ColorMapType, gkMaxChannels> KDefaultColorMaps = {
-        ColorMapType::Cyan,  ColorMapType::Red,   ColorMapType::White,
-        ColorMapType::White, ColorMapType::White, ColorMapType::White,
+        ColorMapType::Magenta, ColorMapType::Green, ColorMapType::White,
+        ColorMapType::White,   ColorMapType::White, ColorMapType::White,
     };
 
     // Color map lookup tables (LUTs) for each channel.  The simple nested array

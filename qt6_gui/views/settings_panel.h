@@ -11,6 +11,7 @@
 
 // Forward declarations
 class QLabel;
+class AudioFile;
 
 /**
  * @brief Configuration panel widget
@@ -24,11 +25,13 @@ class SettingsPanel : public QWidget
   public:
     explicit SettingsPanel(Settings& aSettings,
                            AudioRecorder& aAudioRecorder,
+                           AudioFile& aAudioFile,
                            QWidget* parent = nullptr);
     ~SettingsPanel() override = default;
 
   private:
     Settings* mSettings = nullptr;
+    AudioFile* mAudioFile = nullptr;
     AudioRecorder* mAudioRecorder = nullptr;
 
     // Control widgets
@@ -50,9 +53,13 @@ class SettingsPanel : public QWidget
     QSpinBox* mChannelCountSpinBox = nullptr;
     QPushButton* mRecordingButton = nullptr;
 
+    // File controls
+    QPushButton* mOpenFileButton = nullptr;
+
     // Helper methods
     void CreateLayout();
     void CreateAudioControls(class QFormLayout* aLayout);
+    void CreateOpenFileButton(class QFormLayout* aLayout);
     void CreateWindowTypeControl(class QFormLayout* aLayout);
     void CreateFFTSizeControl(class QFormLayout* aLayout);
     void CreateWindowScaleControl(class QFormLayout* aLayout);
@@ -66,4 +73,5 @@ class SettingsPanel : public QWidget
     void UpdateChannelRangeForDevice(const QAudioDevice& aDevice);
     void OnRecordingButtonClicked();
     void OnRecordingStateChanged(bool aIsRecording);
+    void OnOpenFileClicked();
 };

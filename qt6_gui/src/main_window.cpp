@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget* parent)
   , mSpectrogramView(mSpectrogramController, this)
   , mScaleView(mSpectrogramController, this)
   , mSpectrumPlot(mSpectrogramController, this)
-  , mSettingsPanel(mSettings, mAudioRecorder, this)
+  , mSettingsPanel(mSettings, mAudioRecorder, mAudioFile, this)
 {
     constexpr int kDefaultWindowWidth = 1400;
     constexpr int kDefaultWindowHeight = 800;

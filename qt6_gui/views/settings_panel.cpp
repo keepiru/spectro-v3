@@ -1,14 +1,20 @@
 #include "settings_panel.h"
+#include "controllers/audio_file.h"
 #include "fft_window.h"
 #include "include/global_constants.h"
+#include "models/audio_file_reader.h"
 #include "models/audio_recorder.h"
 #include "models/settings.h"
 #include <QAudioDevice>
 #include <QComboBox>
+#include <QCoreApplication>
+#include <QFileDialog>
 #include <QFormLayout>
 #include <QImage>
 #include <QLabel>
 #include <QMediaDevices>
+#include <QMessageBox>
+#include <QProgressDialog>
 #include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
@@ -21,14 +27,23 @@
 #include <cstdint>
 #include <format>
 #include <qrgb.h>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
 
-SettingsPanel::SettingsPanel(Settings& aSettings, AudioRecorder& aAudioRecorder, QWidget* parent)
+namespace {
+constexpr int KProgressMaximum = 100;
+} // namespace
+
+SettingsPanel::SettingsPanel(Settings& aSettings,
+                             AudioRecorder& aAudioRecorder,
+                             AudioFile& aAudioFile,
+                             QWidget* parent)
   : QWidget(parent)
   , mSettings(&aSettings)
   , mAudioRecorder(&aAudioRecorder)
+  , mAudioFile(&aAudioFile)
 {
     constexpr int kPanelWidth = 300;
     setFixedWidth(kPanelWidth);
@@ -60,6 +75,7 @@ SettingsPanel::CreateLayout()
     formLayout->setSpacing(kFormSpacing);
 
     CreateAudioControls(formLayout);
+    CreateOpenFileButton(formLayout);
     CreateWindowTypeControl(formLayout);
     CreateFFTSizeControl(formLayout);
     CreateWindowScaleControl(formLayout);
@@ -442,4 +458,55 @@ SettingsPanel::OnRecordingStateChanged(bool aIsRecording)
 {
     mRecordingButton->setText(aIsRecording ? "Stop Recording" : "Start Recording");
     UpdateRecordingControlsEnabled(aIsRecording);
+}
+
+void
+SettingsPanel::CreateOpenFileButton(QFormLayout* aLayout)
+{
+    mOpenFileButton = new QPushButton("Open File", this);
+    mOpenFileButton->setObjectName("openFileButton");
+
+    connect(mOpenFileButton, &QPushButton::clicked, this, &SettingsPanel::OnOpenFileClicked);
+
+    aLayout->addRow("", mOpenFileButton);
+}
+
+void
+SettingsPanel::OnOpenFileClicked()
+{
+    // Open file dialog to choose an audio file
+    const QString fileName =
+      QFileDialog::getOpenFileName(this,
+                                   tr("Open Audio File"),
+                                   QString(),
+                                   tr("Audio Files (*.wav *.aiff *.flac *.ogg);;All Files (*)"));
+
+    if (fileName.isEmpty()) {
+        return; // User canceled
+    }
+
+    // Create progress dialog
+    QProgressDialog progressDialog("Loading audio file...", "Cancel", 0, KProgressMaximum, this);
+    progressDialog.setWindowModality(Qt::WindowModal);
+    progressDialog.setMinimumDuration(0); // Show immediately
+
+    // Create progress callback
+    auto progressCallback = [&progressDialog](int aProgressPercent) {
+        progressDialog.setValue(aProgressPercent);
+    };
+
+    // Load the file
+    try {
+        AudioFileReader reader(fileName.toStdString());
+        const bool success = mAudioFile->LoadFile(reader, progressCallback);
+
+        if (!success) {
+            QMessageBox::warning(this, "Error", "Failed to load audio file.");
+        }
+    } catch (const std::runtime_error& e) {
+        QMessageBox::critical(
+          this, "Error", QString("Failed to load audio file: %1").arg(e.what()));
+    }
+
+    progressDialog.setValue(KProgressMaximum);
 }

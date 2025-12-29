@@ -1,3 +1,4 @@
+#include "controllers/audio_file.h"
 #include "include/global_constants.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
@@ -16,7 +17,8 @@ TEST_CASE("SettingsPanel constructor", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    const SettingsPanel panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    const SettingsPanel panel(settings, audioRecorder, audioFile);
     REQUIRE(panel.width() == 300);
 }
 
@@ -25,7 +27,8 @@ TEST_CASE("SettingsPanel window type control", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     auto* combo = panel.findChild<QComboBox*>("windowTypeCombo");
     REQUIRE(combo != nullptr);
@@ -48,7 +51,8 @@ TEST_CASE("SettingsPanel FFT size control", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     auto* combo = panel.findChild<QComboBox*>("fftSizeCombo");
     REQUIRE(combo != nullptr);
@@ -74,7 +78,8 @@ TEST_CASE("SettingsPanel window scale control", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     auto* slider = panel.findChild<QSlider*>("windowScaleSlider");
     auto* label = panel.findChild<QLabel*>("windowScaleLabel");
@@ -112,7 +117,8 @@ TEST_CASE("SettingsPanel aperture min control", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     auto* slider = panel.findChild<QSlider*>("apertureMinSlider");
     auto* label = panel.findChild<QLabel*>("apertureMinLabel");
@@ -138,7 +144,8 @@ TEST_CASE("SettingsPanel aperture max control", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     auto* slider = panel.findChild<QSlider*>("apertureMaxSlider");
     auto* label = panel.findChild<QLabel*>("apertureMaxLabel");
@@ -165,7 +172,8 @@ TEST_CASE("SettingsPanel color map controls", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     // Test all 6 color map combos
     for (size_t i = 0; i < 6; i++) {
@@ -208,7 +216,8 @@ TEST_CASE("SettingsPanel initial values", "[settings_panel]")
     // Create panel and verify controls reflect the settings
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     auto* windowTypeCombo = panel.findChild<QComboBox*>("windowTypeCombo");
     REQUIRE(windowTypeCombo->currentData().toInt() ==
@@ -236,7 +245,8 @@ TEST_CASE("SettingsPanel signal connections", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     // Test that signals are emitted when controls change
     QSignalSpy const fftSpy(&settings, &Settings::FFTSettingsChanged);
@@ -270,7 +280,8 @@ TEST_CASE("SettingsPanel audio device control", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     auto* combo = panel.findChild<QComboBox*>("audioDeviceCombo");
     REQUIRE(combo != nullptr);
@@ -285,7 +296,8 @@ TEST_CASE("SettingsPanel sample rate control", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     auto* combo = panel.findChild<QComboBox*>("sampleRateCombo");
     REQUIRE(combo != nullptr);
@@ -305,7 +317,8 @@ TEST_CASE("SettingsPanel channel count control", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     auto* spinBox = panel.findChild<QSpinBox*>("channelCountSpinBox");
     REQUIRE(spinBox != nullptr);
@@ -326,7 +339,8 @@ TEST_CASE("SettingsPanel recording button", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     auto* button = panel.findChild<QPushButton*>("recordingButton");
     REQUIRE(button != nullptr);
@@ -340,7 +354,8 @@ TEST_CASE("SettingsPanel controls disabled while recording", "[settings_panel]")
     Settings settings;
     AudioBuffer audioBuffer;
     AudioRecorder audioRecorder(audioBuffer);
-    SettingsPanel const panel(settings, audioRecorder);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
 
     auto* deviceCombo = panel.findChild<QComboBox*>("audioDeviceCombo");
     auto* sampleRateCombo = panel.findChild<QComboBox*>("sampleRateCombo");
@@ -374,4 +389,17 @@ TEST_CASE("SettingsPanel controls disabled while recording", "[settings_panel]")
     REQUIRE(sampleRateCombo->isEnabled());
     REQUIRE(channelSpinBox->isEnabled());
     REQUIRE(recordingButton->text() == QString("Start Recording"));
+}
+
+TEST_CASE("SettingsPanel open file button", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
+
+    auto* button = panel.findChild<QPushButton*>("openFileButton");
+    REQUIRE(button != nullptr);
+    REQUIRE(button->text() == QString("Open File"));
 }

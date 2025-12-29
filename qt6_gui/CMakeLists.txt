@@ -3,6 +3,10 @@
 # Find Qt6 packages
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia)
 
+# Find libsndfile
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SNDFILE REQUIRED sndfile)
+
 # Enable Qt MOC (Meta-Object Compiler) for this directory
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -38,11 +42,13 @@ target_link_libraries(spectro_qt6_gui
         Qt6::Core
         Qt6::Widgets
         Qt6::Multimedia
+        ${SNDFILE_LIBRARIES}
 )
 
 target_include_directories(spectro_qt6_gui
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${SNDFILE_INCLUDE_DIRS}
 )
 
 set_target_properties(spectro_qt6_gui PROPERTIES

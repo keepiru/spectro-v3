@@ -240,28 +240,29 @@ TEST_CASE("SettingsPanel signal connections", "[settings_panel]")
 
     // Test that signals are emitted when controls change
     QSignalSpy const fftSpy(&settings, &Settings::FFTSettingsChanged);
-    QSignalSpy const windowScaleSpy(&settings, &Settings::WindowScaleChanged);
-    QSignalSpy const apertureSpy(&settings, &Settings::ApertureSettingsChanged);
+    QSignalSpy const displaySpy(&settings, &Settings::DisplaySettingsChanged);
 
     auto* fftSizeCombo = panel.findChild<QComboBox*>("fftSizeCombo");
     fftSizeCombo->setCurrentIndex(0);
     REQUIRE(fftSpy.count() == 1);
+    REQUIRE(displaySpy.count() == 1);
 
     auto* windowTypeCombo = panel.findChild<QComboBox*>("windowTypeCombo");
     windowTypeCombo->setCurrentIndex(0);
     REQUIRE(fftSpy.count() == 2);
+    REQUIRE(displaySpy.count() == 2);
 
     auto* windowScaleSlider = panel.findChild<QSlider*>("windowScaleSlider");
     windowScaleSlider->setValue(4);
-    REQUIRE(windowScaleSpy.count() == 1);
+    REQUIRE(displaySpy.count() == 3);
 
     auto* apertureMinSlider = panel.findChild<QSlider*>("apertureMinSlider");
     apertureMinSlider->setValue(-40);
-    REQUIRE(apertureSpy.count() == 1);
+    REQUIRE(displaySpy.count() == 4);
 
     auto* apertureMaxSlider = panel.findChild<QSlider*>("apertureMaxSlider");
     apertureMaxSlider->setValue(15);
-    REQUIRE(apertureSpy.count() == 2);
+    REQUIRE(displaySpy.count() == 5);
 }
 
 TEST_CASE("SettingsPanel audio device control", "[settings_panel]")

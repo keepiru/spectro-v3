@@ -1,3 +1,6 @@
+If:
+  PathExclude: [build/.*, build-.*]
+
 Diagnostics:
   Suppress:
     - "*.moc"

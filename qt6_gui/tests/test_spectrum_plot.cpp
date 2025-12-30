@@ -36,26 +36,25 @@ TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
     settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
     settings.SetWindowScale(2); // Stride 4
 
-    auto fillBuffer = [&audioBuffer](size_t aChannelCount, size_t aSampleCount) {
-        audioBuffer.Reset(aChannelCount, 44100);
-        for (size_t i = 0; i < aSampleCount; ++i) {
+    auto fillBuffer = [&audioBuffer](size_t aFrameCount) {
+        audioBuffer.Reset(2, 44100);
+        for (size_t i = 0; i < aFrameCount; ++i) {
             audioBuffer.AddSamples({ static_cast<float>(2 * i), static_cast<float>((2 * i) + 1) });
         }
     };
 
     SECTION("returns correct values for last available stride")
     {
-        fillBuffer(2, 15);
+        fillBuffer(15);
 
-        // Check our assumptions.  15 samples loaded:
-        const int64_t kAvailableSampleCount = controller.GetAvailableSampleCount();
-        CHECK(kAvailableSampleCount == 15);
+        // Check our assumptions.  15 frames loaded:
+        const int64_t kAvailableFrameCount = controller.GetAvailableFrameCount();
+        CHECK(kAvailableFrameCount == 15);
 
-        // With window size 8 and stride 4, top of window should start at sample 4
-        const int64_t kTopSample = controller.CalculateTopOfWindow(kAvailableSampleCount);
-        CHECK(kTopSample == 4);
-
-        // Therefore, FFT window should cover samples 4-8:
+        // With window size 8 and stride 4, top of window should start at frame 4
+        const int64_t kTopFrame = controller.CalculateTopOfWindow(kAvailableFrameCount);
+        CHECK(kTopFrame == 4);
+        // Therefore, FFT window should cover frames 4-8:
         const std::vector<std::vector<float>> want = { { 8, 10, 12, 14, 16 },
                                                        { 9, 11, 13, 15, 17 } };
         CHECK(plot.GetDecibels(0) == want[0]);
@@ -64,7 +63,7 @@ TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
 
     SECTION("returns zeroed vector if insufficient samples")
     {
-        fillBuffer(2, 7); // Less than window size of 8
+        fillBuffer(7); // Less than window size of 8
         const std::vector<float> want = { 0, 0, 0, 0, 0 };
         CHECK(plot.GetDecibels(0) == want);
         CHECK(plot.GetDecibels(1) == want);
@@ -72,7 +71,7 @@ TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
 
     SECTION("throws out_of_range for invalid channel")
     {
-        fillBuffer(1, 20);
+        audioBuffer.Reset(1, 44100);
         REQUIRE_THROWS_MATCHES(plot.GetDecibels(1),
                                std::out_of_range,
                                Catch::Matchers::Message("Channel index out of range"));

@@ -116,13 +116,13 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
     const size_t kChannels = mController.GetChannelCount();
     const int64_t kStride = kSettings.GetWindowStride();
 
-    // Determine the top sample to start rendering from.
-    // The scrollbar value represents the sample position at the bottom of the view.
-    // Calculate top sample by going back (height * stride) samples from the bottom.
-    const int64_t kBottomSample = mVerticalScrollBar->value();
-    const int64_t kTopSampleUnaligned = kBottomSample - (kStride * static_cast<int64_t>(aHeight));
-    const int64_t kTopSampleAligned = mController.CalculateTopOfWindow(kTopSampleUnaligned);
-    const int64_t kTopSample = kTopSampleAligned < 0 ? 0 : kTopSampleAligned;
+    // Determine the top frame to start rendering from.
+    // The scrollbar value represents the frame position at the bottom of the view.
+    // Calculate top frame by going back (height * stride) frames from the bottom.
+    const int64_t kBottomFrame = mVerticalScrollBar->value();
+    const int64_t kTopFrameUnaligned = kBottomFrame - (kStride * static_cast<int64_t>(aHeight));
+    const int64_t kTopFrameAligned = mController.CalculateTopOfWindow(kTopFrameUnaligned);
+    const int64_t kTopFrame = kTopFrameAligned < 0 ? 0 : kTopFrameAligned;
 
     // Validate channel count.  This should never happen because AudioBuffer
     // enforces channel count limits, but let's be safe.  This guards against
@@ -136,7 +136,7 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
 
     return RenderConfig{ .channels = kChannels,
                          .stride = kStride,
-                         .top_sample = kTopSample,
+                         .top_frame = kTopFrame,
                          .min_decibels = kMinDecibels,
                          .max_decibels = kMaxDecibels,
                          .decibel_range = kDecibelRange,
@@ -162,7 +162,7 @@ SpectrogramView::GenerateSpectrogramImage(size_t aWidth, size_t aHeight)
     std::vector<std::vector<std::vector<float>>> decibelsChannelRowBin(renderConfig.channels);
 
     for (size_t ch = 0; ch < renderConfig.channels; ch++) {
-        decibelsChannelRowBin[ch] = mController.GetRows(ch, renderConfig.top_sample, aHeight);
+        decibelsChannelRowBin[ch] = mController.GetRows(ch, renderConfig.top_frame, aHeight);
     }
 
     // Determine max X to render, lesser of view width or data width

@@ -8,7 +8,6 @@
 #include <fft_processor.h>
 #include <fft_window.h>
 #include <memory>
-#include <sample_buffer.h>
 #include <span>
 #include <stdexcept>
 #include <utility>
@@ -94,7 +93,7 @@ SpectrogramController::GetRow(size_t aChannel, int64_t aFirstSample) const
     }
 
     const int64_t kSampleCount = mFFTWindows.at(aChannel)->GetSize();
-    const int64_t kAvailableSamples = GetAvailableSampleCount();
+    const int64_t kAvailableSamples = GetAvailableFrameCount();
     const int64_t kLastNeededSample = aFirstSample + kSampleCount;
 
     // Check if the requested window is within available data, else return zeroed row
@@ -133,15 +132,9 @@ SpectrogramController::ComputeFFT(size_t aChannel, int64_t aFirstSample) const
 }
 
 int64_t
-SpectrogramController::GetAvailableSampleCount() const
+SpectrogramController::GetAvailableFrameCount() const
 {
-    if (mAudioBuffer.GetChannelCount() == 0) {
-        return 0;
-    }
-
-    // We currently assume all channels have the same sample count.
-    // TODO: Maybe delegate to AudioBuffer in the future
-    return mAudioBuffer.GetChannelBuffer(0).NumSamples();
+    return mAudioBuffer.FrameCount();
 }
 
 size_t
@@ -151,18 +144,18 @@ SpectrogramController::GetChannelCount() const
 }
 
 int64_t
-SpectrogramController::CalculateTopOfWindow(int64_t aCursorSample) const
+SpectrogramController::CalculateTopOfWindow(int64_t aCursorFrame) const
 {
-    const int64_t kUnalignedSample = aCursorSample - mSettings.GetFFTSize();
-    return RoundToStride(kUnalignedSample);
+    const int64_t kUnalignedFrame = aCursorFrame - mSettings.GetFFTSize();
+    return RoundToStride(kUnalignedFrame);
 }
 
 int64_t
-SpectrogramController::RoundToStride(int64_t aSample) const
+SpectrogramController::RoundToStride(int64_t aFrame) const
 {
     const int64_t kStride = mSettings.GetWindowStride();
 
-    // Calculate floor(aSample / kStride) for both positive and negative values.
+    // Calculate floor(aFrame / kStride) for both positive and negative values.
     // For positive values, this is just integer division.
     // For negative values, division truncates toward zero, so we use:
     //      ceil(n / d) == ( n + d - 1) / d
@@ -170,7 +163,7 @@ SpectrogramController::RoundToStride(int64_t aSample) const
     //     floor(n / d) == -ceil(-n / d)
     //                  == -((-n + d - 1) / d)
     const int64_t kStrideIndex =
-      aSample >= 0 ? aSample / kStride : -((-aSample + kStride - 1) / kStride);
+      aFrame >= 0 ? aFrame / kStride : -((-aFrame + kStride - 1) / kStride);
     return kStrideIndex * kStride;
 }
 

@@ -92,10 +92,10 @@ class SpectrogramController : public QObject
     [[nodiscard]] std::vector<float> ComputeFFT(size_t aChannel, int64_t aFirstSample) const;
 
     /**
-     * @brief Get the number of available samples
-     * @return Number of samples currently available in the audio buffer
+     * @brief Get the number of available frames
+     * @return Number of frames currently available in the audio buffer
      */
-    [[nodiscard]] int64_t GetAvailableSampleCount() const;
+    [[nodiscard]] int64_t GetAvailableFrameCount() const;
 
     /**
      * @brief Get the number of available channels
@@ -119,19 +119,19 @@ class SpectrogramController : public QObject
     [[nodiscard]] const Settings& GetSettings() const { return mSettings; }
 
     /**
-     * @brief Calculate the first sample in the stride-aligned window containing aCursorSample
-     * @param aCursorSample Cursor sample index
-     * @return First sample index of the stride-aligned window containing aCursorSample
-     * @note Returns a negative value if aCursorSample is less than one transform window
+     * @brief Calculate the first frame in the stride-aligned window containing aCursorFrame
+     * @param aCursorFrame Cursor frame index
+     * @return First frame index of the stride-aligned window containing aCursorFrame
+     * @note Returns a negative value if aCursorFrame is less than one transform window
      */
-    [[nodiscard]] int64_t CalculateTopOfWindow(int64_t aCursorSample) const;
+    [[nodiscard]] int64_t CalculateTopOfWindow(int64_t aCursorFrame) const;
 
     /**
-     * @brief round a sample index down to nearest window stride
-     * @param aSample Sample index
-     * @return Sample index rounded down to nearest window stride
+     * @brief round a frame index down to nearest window stride
+     * @param aFrame Frame index
+     * @return Frame index rounded down to nearest window stride
      */
-    [[nodiscard]] int64_t RoundToStride(int64_t aSample) const;
+    [[nodiscard]] int64_t RoundToStride(int64_t aFrame) const;
 
     /**
      * @brief Get frequency resolution in Hz per FFT bin

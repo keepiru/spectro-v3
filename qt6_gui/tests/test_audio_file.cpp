@@ -64,7 +64,7 @@ TEST_CASE("AudioFile - load file", "[audio_file]")
     buffer.Reset(1, 44100);
     AudioFile audioFile(buffer);
     std::vector<int> progressCalls;
-    AudioFile::ProgressCallback progressCallback = [&](int aProgressPercent) {
+    const AudioFile::ProgressCallback progressCallback = [&](int aProgressPercent) {
         progressCalls.push_back(aProgressPercent);
     };
 
@@ -76,7 +76,7 @@ TEST_CASE("AudioFile - load file", "[audio_file]")
 
         CHECK(buffer.GetSampleRate() == 22050);
         CHECK(buffer.GetChannelCount() == 2);
-        CHECK(buffer.NumSamples() == 3);
+        CHECK(buffer.FrameCount() == 3);
         CHECK(buffer.GetSamples(0, 0, 3) == std::vector<float>({ 0, 2, 4 }));
         CHECK(buffer.GetSamples(1, 0, 3) == std::vector<float>({ 1, 3, 5 }));
         CHECK(progressCalls == std::vector<int>({ 100 }));
@@ -90,7 +90,7 @@ TEST_CASE("AudioFile - load file", "[audio_file]")
 
         CHECK(buffer.GetSampleRate() == 8000);
         CHECK(buffer.GetChannelCount() == 1);
-        CHECK(buffer.NumSamples() == 0);
+        CHECK(buffer.FrameCount() == 0);
         CHECK(progressCalls == std::vector<int>({ 100 }));
     }
 

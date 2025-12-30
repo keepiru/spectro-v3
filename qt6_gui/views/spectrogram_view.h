@@ -16,7 +16,7 @@ struct RenderConfig
 {
     size_t channels;
     int64_t stride;
-    int64_t top_sample;
+    int64_t top_frame;
     float min_decibels;
     float max_decibels;
     float decibel_range;
@@ -33,12 +33,12 @@ struct RenderConfig
     friend std::string ToString(const RenderConfig& config)
     {
         return std::format(
-          "RenderConfig{{\n channels={}\n stride={}\n top_sample={}\n "
+          "RenderConfig{{\n channels={}\n stride={}\n top_frame={}\n "
           "min_decibels={}\n max_decibels={}\n decibel_range={}\n inverse_decibel_range={}\n "
           "color_map_lut_ref=<ptr:{}>}}",
           config.channels,
           config.stride,
-          config.top_sample,
+          config.top_frame,
           config.min_decibels,
           config.max_decibels,
           config.decibel_range,
@@ -83,7 +83,7 @@ class SpectrogramView : public QWidget
 
     /**
      * @brief Gather configuration needed for rendering
-     * @param aHeight Height in pixels (needed for topSample calculation)
+     * @param aHeight Height in pixels (needed for topFrame calculation)
      * @return RenderConfig struct with all settings and precomputed values
      */
     [[nodiscard]] RenderConfig GetRenderConfig(size_t aHeight) const;

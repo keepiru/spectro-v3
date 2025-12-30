@@ -1,6 +1,7 @@
 #pragma once
 
 #include "models/settings.h"
+#include <QAbstractScrollArea>
 #include <QScrollBar>
 #include <QWidget>
 #include <cstddef>
@@ -60,7 +61,7 @@ struct RenderConfig
  * - dB scale display
  * - Zoom/pan controls
  */
-class SpectrogramView : public QWidget
+class SpectrogramView : public QAbstractScrollArea
 {
     Q_OBJECT
 
@@ -106,8 +107,4 @@ class SpectrogramView : public QWidget
 
   private:
     const SpectrogramController& mController;
-
-    // The vertical scrollbar is for navigating through time.  The value is in
-    // frames, representing the last frame visible at the bottom of the view.
-    QScrollBar* mVerticalScrollBar;
 };

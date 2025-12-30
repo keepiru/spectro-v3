@@ -32,7 +32,7 @@ AudioFile::LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgress
         if (kTotalFrames == 0) {
             continue;
         }
-        const int kProgressPercent = static_cast<int>(static_cast<float>(mBuffer.NumSamples()) /
+        const int kProgressPercent = static_cast<int>(static_cast<float>(mBuffer.FrameCount()) /
                                                       static_cast<float>(kTotalFrames) * 100.0f);
 
         // Throttle progress callbacks to only report when it changes.

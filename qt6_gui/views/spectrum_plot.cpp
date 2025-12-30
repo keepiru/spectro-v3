@@ -27,9 +27,9 @@ SpectrumPlot::SpectrumPlot(const SpectrogramController& aController, QWidget* pa
 std::vector<float>
 SpectrumPlot::GetDecibels(const size_t aChannel) const
 {
-    const int64_t kAvailableSampleCount = mController.GetAvailableSampleCount();
-    const int64_t kTopSample = mController.CalculateTopOfWindow(kAvailableSampleCount);
-    return mController.GetRow(aChannel, kTopSample);
+    const int64_t kAvailableFrameCount = mController.GetAvailableFrameCount();
+    const int64_t kTopFrame = mController.CalculateTopOfWindow(kAvailableFrameCount);
+    return mController.GetRow(aChannel, kTopFrame);
 }
 
 QPolygonF

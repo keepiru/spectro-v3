@@ -246,7 +246,7 @@ TEST_CASE("SpectrogramController::GetAvailableSampleCount", "[spectrogram_contro
 
     buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
     const auto kExpectedSampleCount = 5; // 10 samples / 2 channels
-    REQUIRE(controller.GetAvailableSampleCount() == kExpectedSampleCount);
+    REQUIRE(controller.GetAvailableFrameCount() == kExpectedSampleCount);
 }
 
 TEST_CASE("SpectrogramController::GetChannelCount", "[spectrogram_controller]")

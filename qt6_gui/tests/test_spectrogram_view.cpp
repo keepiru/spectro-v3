@@ -196,7 +196,7 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
         RenderConfig want{
             .channels = 2,
             .stride = 1024,
-            .top_sample = 0,
+            .top_frame = 0,
             .min_decibels = -100.0f,
             .max_decibels = 0.0f,
             .decibel_range = 100.0f,
@@ -214,7 +214,7 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
         {
             view.UpdateScrollbarRange(2000000);
 
-            want.top_sample = 1735680; // 2000000 - (1024 * 256), aligned down
+            want.top_frame = 1735680; // 2000000 - (1024 * 256), aligned down
             const RenderConfig have = view.GetRenderConfig(height);
             REQUIRE(ToString(have) == ToString(want));
         }

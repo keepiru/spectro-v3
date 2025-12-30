@@ -76,12 +76,21 @@ class AudioBuffer : public QObject
      */
     [[nodiscard]] const SampleBuffer& GetChannelBuffer(size_t aChannelIndex) const;
 
-    // Get the number of samples
-    [[nodiscard]] int64_t NumSamples() const { return mChannelBuffers[0]->NumSamples(); }
+    /**
+     * @brief Get the total number of frames available
+     * @return Frame count
+     */
+    [[nodiscard]] int64_t FrameCount() const
+    {
+        if (mChannelBuffers.empty()) {
+            return 0;
+        }
+        return mChannelBuffers[0]->NumSamples();
+    }
 
   signals:
     /**
-     * @brief Emitted when new audio samples are added
+     * @brief Emitted when new audio frames are added
      * @param aTotalFrameCount Total number of frames available per channel
      */
     void DataAvailable(int64_t aTotalFrameCount);

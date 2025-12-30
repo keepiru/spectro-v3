@@ -57,7 +57,7 @@ AudioRecorder::Start(const QAudioDevice& aQAudioDevice,
         return false;
     }
 
-    // How many samples the source should buffer before triggering readyRead.
+    // How many bytes the source should buffer before triggering readyRead.
     // 44100Hz sample rate * 2 channels * 4 bytes per sample / 60Hz display rate
     // gives us 5880 bytes.  We'll choose something smaller than that to keep
     // the updates coming quickly even if the sample rate is lower.  In

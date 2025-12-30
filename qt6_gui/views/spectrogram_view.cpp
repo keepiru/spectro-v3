@@ -1,7 +1,9 @@
 #include "spectrogram_view.h"
 #include "controllers/spectrogram_controller.h"
 #include "include/global_constants.h"
+#include <QAbstractScrollArea>
 #include <QCursor>
+#include <QEvent>
 #include <QHBoxLayout>
 #include <QImage>
 #include <QOverload>
@@ -21,30 +23,23 @@
 #include <vector>
 
 SpectrogramView::SpectrogramView(const SpectrogramController& aController, QWidget* parent)
-  : QWidget(parent)
+  : QAbstractScrollArea(parent)
   , mController(aController)
-  , mVerticalScrollBar(new QScrollBar(Qt::Vertical, this))
 {
     constexpr int kMinWidth = 400;
     constexpr int kMinHeight = 300;
     setMinimumSize(kMinWidth, kMinHeight);
 
-    // Set up layout with scrollbar on the right
-    auto* layout = new QHBoxLayout(this);
-    layout->addStretch(1);
-    layout->addWidget(mVerticalScrollBar);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
-
     // Initialize scrollbar settings.
-    mVerticalScrollBar->setObjectName("SpectrogramViewVerticalScrollBar");
-    mVerticalScrollBar->setMinimum(0);
-    mVerticalScrollBar->setMaximum(0);
-    mVerticalScrollBar->setSingleStep(1);
+    verticalScrollBar()->setObjectName("SpectrogramViewVerticalScrollBar");
+    verticalScrollBar()->setMinimum(0);
+    verticalScrollBar()->setMaximum(0);
+    verticalScrollBar()->setSingleStep(1);
 
     // Repaint when scrollbar value changes, either due to user interaction or
     // when UpdateScrollbarRange is called.
-    connect(mVerticalScrollBar, &QScrollBar::valueChanged, this, QOverload<>::of(&QWidget::update));
+    connect(
+      verticalScrollBar(), &QScrollBar::valueChanged, this, QOverload<>::of(&QWidget::update));
 }
 
 void
@@ -65,23 +60,22 @@ SpectrogramView::UpdateScrollbarRange(int64_t aAvailableFrames)
 
     // Safety check for overflow.  This would only happen with an absurdly large
     // view height, but let's be safe.
-    if (height() > std::numeric_limits<int>::max() / kStride / 2) {
+    if (viewport()->height() > std::numeric_limits<int>::max() / kStride / 2) {
         throw std::overflow_error(
           std::format("{}: scroll page step exceeds int max", __PRETTY_FUNCTION__));
     }
 
-    const auto kScrollPageStep = static_cast<int>(kStride) * height();
+    const auto kScrollPageStep = static_cast<int>(kStride) * viewport()->height();
 
     // Check if we're currently at the maximum (live mode)
-    const bool kIsAtMaximum = (mVerticalScrollBar->value() == mVerticalScrollBar->maximum());
+    const bool kIsAtMaximum = (verticalScrollBar()->value() == verticalScrollBar()->maximum());
 
     // Update scrollbar range
-    mVerticalScrollBar->setMaximum(static_cast<int>(kScrollMaximum));
-    mVerticalScrollBar->setPageStep(kScrollPageStep);
-
+    verticalScrollBar()->setMaximum(static_cast<int>(kScrollMaximum));
+    verticalScrollBar()->setPageStep(kScrollPageStep);
     // If we were at the maximum, stay at the new maximum (follow live audio)
     if (kIsAtMaximum) {
-        mVerticalScrollBar->setValue(static_cast<int>(kScrollMaximum));
+        verticalScrollBar()->setValue(static_cast<int>(kScrollMaximum));
     }
     // Otherwise, preserve the current scroll position (user is viewing history)
 }
@@ -89,9 +83,9 @@ SpectrogramView::UpdateScrollbarRange(int64_t aAvailableFrames)
 void
 SpectrogramView::paintEvent(QPaintEvent* /*event*/)
 {
-    QPainter painter(this);
+    QPainter painter(viewport());
 
-    auto image = GenerateSpectrogramImage(width(), height());
+    auto image = GenerateSpectrogramImage(viewport()->width(), viewport()->height());
 
     // blit the result
     painter.drawImage(0, 0, image);
@@ -101,7 +95,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
     const auto kMousePos = mapFromGlobal(QCursor::pos());
     const float kCrosshairPenWidth = 0.5f;
     painter.setPen(QPen(Qt::yellow, kCrosshairPenWidth, Qt::DashLine));
-    painter.drawLine(kMousePos.x(), 0, kMousePos.x(), height());
+    painter.drawLine(kMousePos.x(), 0, kMousePos.x(), viewport()->height());
 }
 
 RenderConfig
@@ -119,7 +113,7 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
     // Determine the top frame to start rendering from.
     // The scrollbar value represents the frame position at the bottom of the view.
     // Calculate top frame by going back (height * stride) frames from the bottom.
-    const int64_t kBottomFrame = mVerticalScrollBar->value();
+    const int64_t kBottomFrame = verticalScrollBar()->value();
     const int64_t kTopFrameUnaligned = kBottomFrame - (kStride * static_cast<int64_t>(aHeight));
     const int64_t kTopFrameAligned = mController.CalculateTopOfWindow(kTopFrameUnaligned);
     const int64_t kTopFrame = kTopFrameAligned < 0 ? 0 : kTopFrameAligned;

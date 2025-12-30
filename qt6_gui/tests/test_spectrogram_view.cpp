@@ -1,6 +1,7 @@
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
 #include "views/spectrogram_view.h"
+#include <QSignalSpy>
 #include <catch2/catch_all.hpp>
 #include <mock_fft_processor.h>
 #include <vector>
@@ -181,7 +182,7 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
     Settings settings;
     const AudioBuffer audioBuffer;
     const SpectrogramController controller(settings, audioBuffer);
-    const SpectrogramView view(controller);
+    SpectrogramView view(controller);
 
     SECTION("returns correct RenderConfig values")
     {
@@ -192,11 +193,9 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
         settings.SetWindowScale(2); // stride = 1024
 
         constexpr size_t height = 256;
-        const RenderConfig have = view.GetRenderConfig(height);
-        const RenderConfig want{
+        RenderConfig want{
             .channels = 2,
             .stride = 1024,
-            .available_sample_count = 0,
             .top_sample = 0,
             .min_decibels = -100.0f,
             .max_decibels = 0.0f,
@@ -204,7 +203,21 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
             .inverse_decibel_range = 2.55f,
             .color_map_lut = settings.GetColorMapLUTs(),
         };
-        REQUIRE(ToString(have) == ToString(want));
+
+        SECTION("with scrollbar at zero")
+        {
+            const RenderConfig have = view.GetRenderConfig(height);
+            REQUIRE(ToString(have) == ToString(want));
+        }
+
+        SECTION("with scrollbar at non-zero")
+        {
+            view.UpdateScrollbarRange(2000000);
+
+            want.top_sample = 1735680; // 2000000 - (1024 * 256), aligned down
+            const RenderConfig have = view.GetRenderConfig(height);
+            REQUIRE(ToString(have) == ToString(want));
+        }
     }
 
     SECTION("throws on invalid channel count")
@@ -221,5 +234,82 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
         REQUIRE_THROWS_MATCHES(mockView.GetRenderConfig(256),
                                std::runtime_error,
                                MessageMatches(ContainsSubstring("out of range")));
+    }
+}
+
+TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
+{
+    Settings settings;
+    const AudioBuffer audioBuffer;
+    const SpectrogramController controller(settings, audioBuffer);
+    SpectrogramView view(controller);
+
+    // Set up FFT settings with known stride
+    settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
+    settings.SetWindowScale(2); // stride = 1024
+
+    auto* scrollBar = view.findChild<QScrollBar*>("SpectrogramViewVerticalScrollBar");
+    REQUIRE(scrollBar != nullptr);
+
+    SECTION("scrollbar is initialized on construction")
+    {
+        CHECK(scrollBar->orientation() == Qt::Vertical);
+        CHECK(scrollBar->minimum() == 0);
+        CHECK(scrollBar->maximum() == 0);
+        CHECK(scrollBar->value() == 0);
+    }
+
+    SECTION("throws when overflowing scrollbar maximum")
+    {
+        const int64_t kMaxAllowed = (1LL << 31) - 1;
+        REQUIRE_NOTHROW(view.UpdateScrollbarRange(kMaxAllowed));
+
+        const int64_t kTooLarge = kMaxAllowed + 1;
+        REQUIRE_THROWS_MATCHES(view.UpdateScrollbarRange(kTooLarge),
+                               std::overflow_error,
+                               MessageMatches(ContainsSubstring("exceeds int max")));
+    }
+
+    SECTION("UpdateScrollbarRange updates scrollbar maximum")
+    {
+        view.UpdateScrollbarRange(10000);
+        REQUIRE(scrollBar->maximum() == 10000);
+    }
+
+    SECTION("UpdateScrollbarRange preserves scroll position when not at max")
+    {
+        // Set initial range and position
+        view.UpdateScrollbarRange(10000);
+        scrollBar->setValue(5000); // Set to middle position
+
+        // Add more data
+        view.UpdateScrollbarRange(20000);
+
+        // Position should be preserved
+        REQUIRE(scrollBar->value() == 5000);
+    }
+
+    SECTION("UpdateScrollbarRange follows live data when at maximum")
+    {
+        // Set initial range and position at max (live mode)
+        view.UpdateScrollbarRange(10000);
+        scrollBar->setValue(scrollBar->maximum());
+
+        // Add more data
+        view.UpdateScrollbarRange(20000);
+
+        // Position should follow to new maximum (implicit live mode)
+        REQUIRE(scrollBar->value() == scrollBar->maximum());
+        REQUIRE(scrollBar->maximum() == 20000);
+    }
+
+    SECTION("UpdateScrollbarRange emits valueChanged signal to trigger repaint")
+    {
+        // We can't directly test paintEvent, but we can at least verify that
+        // the scrollbar's valueChanged signal is emitted.
+        QSignalSpy spy(scrollBar, &QScrollBar::valueChanged);
+        view.UpdateScrollbarRange(10000);
+        REQUIRE(spy.count() == 1);
+        REQUIRE(spy.takeFirst().takeFirst().toInt() == 10000);
     }
 }

@@ -66,7 +66,7 @@ TEST_CASE("AudioBuffer::AddSamples emits signal", "[audio_buffer]")
 
     REQUIRE(spy.count() == 1);
     auto firstCallArgs = spy.takeFirst();
-    auto have = firstCallArgs.takeFirst().value<size_t>();
+    auto have = firstCallArgs.takeFirst().value<int64_t>();
     REQUIRE(have == 2);
 }
 

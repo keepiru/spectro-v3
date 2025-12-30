@@ -1,6 +1,7 @@
 #pragma once
 
 #include "models/settings.h"
+#include <QScrollBar>
 #include <QWidget>
 #include <cstddef>
 #include <cstdint>
@@ -15,7 +16,6 @@ struct RenderConfig
 {
     size_t channels;
     int64_t stride;
-    int64_t available_sample_count;
     int64_t top_sample;
     float min_decibels;
     float max_decibels;
@@ -33,12 +33,11 @@ struct RenderConfig
     friend std::string ToString(const RenderConfig& config)
     {
         return std::format(
-          "RenderConfig{{\n channels={}\n stride={}\n available_sample_count={}\n top_sample={}\n "
+          "RenderConfig{{\n channels={}\n stride={}\n top_sample={}\n "
           "min_decibels={}\n max_decibels={}\n decibel_range={}\n inverse_decibel_range={}\n "
           "color_map_lut_ref=<ptr:{}>}}",
           config.channels,
           config.stride,
-          config.available_sample_count,
           config.top_sample,
           config.min_decibels,
           config.max_decibels,
@@ -89,9 +88,26 @@ class SpectrogramView : public QWidget
      */
     [[nodiscard]] RenderConfig GetRenderConfig(size_t aHeight) const;
 
+    /**
+     * @brief Update scrollbar range based on available audio data
+     *
+     * Called when new audio data arrives. Updates the scrollbar's maximum to
+     * reflect the total available frames. If the scrollbar is currently at its
+     * maximum (live mode), it will be updated to the new maximum to continue
+     * following live audio. Otherwise, the scroll position is preserved to
+     * maintain the user's historical viewing position.
+     *
+     * @param aAvailableFrames Total number of frames available in the buffer
+     */
+    void UpdateScrollbarRange(int64_t aAvailableFrames);
+
   protected:
     void paintEvent(QPaintEvent* event) override;
 
   private:
     const SpectrogramController& mController;
+
+    // The vertical scrollbar is for navigating through time.  The value is in
+    // frames, representing the last frame visible at the bottom of the view.
+    QScrollBar* mVerticalScrollBar;
 };

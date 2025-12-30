@@ -82,9 +82,9 @@ class AudioBuffer : public QObject
   signals:
     /**
      * @brief Emitted when new audio samples are added
-     * @param aSampleCount Number of samples added per channel
+     * @param aTotalFrameCount Total number of frames available per channel
      */
-    void DataAvailable(size_t aSampleCount);
+    void DataAvailable(int64_t aTotalFrameCount);
 
     /**
      * @brief Emitted when the buffer is reset

@@ -102,11 +102,11 @@ MainWindow::SetupConnections()
     // Future: Connect signals/slots between AudioBuffer, SpectrogramController,
     // and view widgets
 
-    // Update SpectrogramView when new audio data is available
+    // Update SpectrogramView scrollbar when new audio data is available
     connect(&mAudioBuffer,
             &AudioBuffer::DataAvailable,
             &mSpectrogramView,
-            QOverload<>::of(&SpectrogramView::update));
+            &SpectrogramView::UpdateScrollbarRange);
 
     // Also update SpectrumPlot
     connect(&mAudioBuffer,
@@ -130,4 +130,9 @@ MainWindow::SetupConnections()
 
     // Stop recording when buffer is reset (e.g., when loading a new file)
     connect(&mAudioBuffer, &AudioBuffer::BufferReset, &mAudioRecorder, &AudioRecorder::Stop);
+
+    // Reset scrollbar when buffer is reset
+    connect(&mAudioBuffer, &AudioBuffer::BufferReset, [&]() {
+        mSpectrogramView.UpdateScrollbarRange(0);
+    });
 }

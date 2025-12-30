@@ -2,10 +2,13 @@
 #include "controllers/spectrogram_controller.h"
 #include "include/global_constants.h"
 #include <QCursor>
+#include <QHBoxLayout>
 #include <QImage>
+#include <QOverload>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QRgb>
+#include <QScrollBar>
 #include <QWidget>
 #include <Qt>
 #include <algorithm>
@@ -20,10 +23,67 @@
 SpectrogramView::SpectrogramView(const SpectrogramController& aController, QWidget* parent)
   : QWidget(parent)
   , mController(aController)
+  , mVerticalScrollBar(new QScrollBar(Qt::Vertical, this))
 {
     constexpr int kMinWidth = 400;
     constexpr int kMinHeight = 300;
     setMinimumSize(kMinWidth, kMinHeight);
+
+    // Set up layout with scrollbar on the right
+    auto* layout = new QHBoxLayout(this);
+    layout->addStretch(1);
+    layout->addWidget(mVerticalScrollBar);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+
+    // Initialize scrollbar settings.
+    mVerticalScrollBar->setObjectName("SpectrogramViewVerticalScrollBar");
+    mVerticalScrollBar->setMinimum(0);
+    mVerticalScrollBar->setMaximum(0);
+    mVerticalScrollBar->setSingleStep(1);
+
+    // Repaint when scrollbar value changes, either due to user interaction or
+    // when UpdateScrollbarRange is called.
+    connect(mVerticalScrollBar, &QScrollBar::valueChanged, this, QOverload<>::of(&QWidget::update));
+}
+
+void
+SpectrogramView::UpdateScrollbarRange(int64_t aAvailableFrames)
+{
+    // The scrollbar's maximum is the total available frames.
+    const int64_t kScrollMaximum = aAvailableFrames;
+
+    // Safety check for overflow.  Scrollbar values must fit in int.
+    if (kScrollMaximum > std::numeric_limits<int>::max()) {
+        throw std::overflow_error(std::format("{}: maximum scroll position {} exceeds int max {}",
+                                              __PRETTY_FUNCTION__,
+                                              kScrollMaximum,
+                                              std::numeric_limits<int>::max()));
+    }
+
+    const int64_t kStride = mController.GetSettings().GetWindowStride();
+
+    // Safety check for overflow.  This would only happen with an absurdly large
+    // view height, but let's be safe.
+    if (height() > std::numeric_limits<int>::max() / kStride / 2) {
+        throw std::overflow_error(
+          std::format("{}: scroll page step exceeds int max", __PRETTY_FUNCTION__));
+    }
+
+    const auto kScrollPageStep = static_cast<int>(kStride) * height();
+
+    // Check if we're currently at the maximum (live mode)
+    const bool kIsAtMaximum = (mVerticalScrollBar->value() == mVerticalScrollBar->maximum());
+
+    // Update scrollbar range
+    mVerticalScrollBar->setMaximum(static_cast<int>(kScrollMaximum));
+    mVerticalScrollBar->setPageStep(kScrollPageStep);
+
+    // If we were at the maximum, stay at the new maximum (follow live audio)
+    if (kIsAtMaximum) {
+        mVerticalScrollBar->setValue(static_cast<int>(kScrollMaximum));
+    }
+    // Otherwise, preserve the current scroll position (user is viewing history)
 }
 
 void
@@ -55,13 +115,12 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
     const float kInverseDecibelRange = kColorMapMaxIndex / kDecibelRange;
     const size_t kChannels = mController.GetChannelCount();
     const int64_t kStride = kSettings.GetWindowStride();
-    const int64_t kAvailableSampleCount = mController.GetAvailableSampleCount();
 
     // Determine the top sample to start rendering from.
-    // Go back kStride strides, then round down to nearest stride.
-    // Default to 0 if the window is larger than available samples.
-    const int64_t kTopSampleUnaligned =
-      kAvailableSampleCount - (kStride * static_cast<int64_t>(aHeight));
+    // The scrollbar value represents the sample position at the bottom of the view.
+    // Calculate top sample by going back (height * stride) samples from the bottom.
+    const int64_t kBottomSample = mVerticalScrollBar->value();
+    const int64_t kTopSampleUnaligned = kBottomSample - (kStride * static_cast<int64_t>(aHeight));
     const int64_t kTopSampleAligned = mController.CalculateTopOfWindow(kTopSampleUnaligned);
     const int64_t kTopSample = kTopSampleAligned < 0 ? 0 : kTopSampleAligned;
 
@@ -77,7 +136,6 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
 
     return RenderConfig{ .channels = kChannels,
                          .stride = kStride,
-                         .available_sample_count = kAvailableSampleCount,
                          .top_sample = kTopSample,
                          .min_decibels = kMinDecibels,
                          .max_decibels = kMaxDecibels,

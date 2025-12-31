@@ -22,7 +22,7 @@ class IAudioFileReader
 
     /// @brief Get the number of channels in the audio file
     /// @return Number of channels
-    [[nodiscard]] virtual int GetChannelCount() const = 0;
+    [[nodiscard]] virtual ChannelCount GetChannelCount() const = 0;
 
     /// @brief Get the total number of frames in the audio file
     /// @return Total frames
@@ -41,7 +41,7 @@ class AudioFileReader : public IAudioFileReader
     ~AudioFileReader() override = default;
     [[nodiscard]] std::vector<float> ReadInterleaved(size_t aFrames) override;
     [[nodiscard]] SampleRate GetSampleRate() const override { return mSfInfo.samplerate; }
-    [[nodiscard]] int GetChannelCount() const override { return mSfInfo.channels; }
+    [[nodiscard]] ChannelCount GetChannelCount() const override { return mSfInfo.channels; }
     [[nodiscard]] size_t GetTotalFrames() const override
     {
         return static_cast<size_t>(mSfInfo.frames);

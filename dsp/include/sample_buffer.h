@@ -12,11 +12,13 @@
 class SampleBuffer
 {
   public:
+    using SampleRate = int32_t;
+
     /**
      * @brief Construct a SampleBuffer.
      * @param aSampleRate Sample rate in Hz.
      */
-    explicit SampleBuffer(size_t aSampleRate)
+    explicit SampleBuffer(SampleRate aSampleRate)
       : mSampleRate(aSampleRate)
 
     {
@@ -26,7 +28,7 @@ class SampleBuffer
      * @brief Get the sample rate.
      * @return Sample rate in Hz.
      */
-    size_t GetSampleRate() const { return mSampleRate; }
+    SampleRate GetSampleRate() const { return mSampleRate; }
 
     /**
      * @brief Get the total number of samples stored.
@@ -51,6 +53,6 @@ class SampleBuffer
 
   private:
     mutable std::mutex mMutex;
-    size_t mSampleRate;
+    SampleRate mSampleRate;
     std::vector<float> mData;
 };

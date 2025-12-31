@@ -1,5 +1,6 @@
 #pragma once
 
+#include "include/global_constants.h"
 #include <QLine>
 #include <QObject>
 #include <QRect>
@@ -90,7 +91,7 @@ class SpectrumPlot : public QWidget
      * @return std::vector<float> Vector of decibel values for the current FFT window
      * @throws std::out_of_range if aChannel is out of range
      */
-    [[nodiscard]] std::vector<float> GetDecibels(size_t aChannel) const;
+    [[nodiscard]] std::vector<float> GetDecibels(ChannelCount aChannel) const;
 
     /**
      * @brief Compute the points for plotting from decibel values

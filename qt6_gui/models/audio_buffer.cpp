@@ -14,20 +14,20 @@ AudioBuffer::AudioBuffer(QObject* aParent)
   , mSampleRate()
 
 {
-    constexpr size_t kDefaultChannelCount = 2;
+    constexpr ChannelCount kDefaultChannelCount = 2;
     constexpr size_t kDefaultSampleRate = 44100;
     InitializeChannelBuffers(kDefaultChannelCount, kDefaultSampleRate);
 }
 
 void
-AudioBuffer::InitializeChannelBuffers(size_t aChannelCount, size_t aSampleRate)
+AudioBuffer::InitializeChannelBuffers(ChannelCount aChannelCount, size_t aSampleRate)
 {
     if (aChannelCount == 0) {
         throw std::invalid_argument(
           std::format("{}: Channel count must be > 0", __PRETTY_FUNCTION__));
     }
 
-    if (aChannelCount > gkMaxChannels) {
+    if (aChannelCount > GKMaxChannels) {
         throw std::invalid_argument(
           std::format("{}: Channel count exceeds maximum supported channels", __PRETTY_FUNCTION__));
     }
@@ -52,7 +52,7 @@ AudioBuffer::InitializeChannelBuffers(size_t aChannelCount, size_t aSampleRate)
 }
 
 void
-AudioBuffer::Reset(size_t aChannelCount, size_t aSampleRate)
+AudioBuffer::Reset(ChannelCount aChannelCount, size_t aSampleRate)
 {
     InitializeChannelBuffers(aChannelCount, aSampleRate);
 
@@ -86,7 +86,7 @@ AudioBuffer::AddSamples(const std::vector<float>& aSamples)
 }
 
 std::vector<float>
-AudioBuffer::GetSamples(const size_t aChannelIndex,
+AudioBuffer::GetSamples(const ChannelCount aChannelIndex,
                         const size_t aStartSample,
                         const size_t aSampleCount) const
 {
@@ -98,7 +98,7 @@ AudioBuffer::GetSamples(const size_t aChannelIndex,
 }
 
 const SampleBuffer&
-AudioBuffer::GetChannelBuffer(size_t aChannelIndex) const
+AudioBuffer::GetChannelBuffer(ChannelCount aChannelIndex) const
 {
     if (aChannelIndex >= mChannelCount) {
         throw std::out_of_range("AudioBuffer::GetChannelBuffer: Channel index out of range");

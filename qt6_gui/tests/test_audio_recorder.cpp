@@ -67,8 +67,8 @@ TEST_CASE("AudioRecorder::Start throws with invalid arguments", "[audio_recorder
     REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), -1, 48000), std::invalid_argument);
     REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), 0, 48000), std::invalid_argument);
     recorder.Start(QAudioDevice(), 1, 48000);             // Does not throw
-    recorder.Start(QAudioDevice(), gkMaxChannels, 48000); // Does not throw
-    REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), gkMaxChannels + 1, 48000),
+    recorder.Start(QAudioDevice(), GKMaxChannels, 48000); // Does not throw
+    REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), GKMaxChannels + 1, 48000),
                       std::invalid_argument);
 
     // Invalid sample rate

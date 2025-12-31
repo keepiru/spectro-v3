@@ -1,5 +1,6 @@
 #include "spectrum_plot.h"
 #include "controllers/spectrogram_controller.h"
+#include "include/global_constants.h"
 #include <QCursor>
 #include <QLine>
 #include <QPaintEvent>
@@ -25,7 +26,7 @@ SpectrumPlot::SpectrumPlot(const SpectrogramController& aController, QWidget* pa
 }
 
 std::vector<float>
-SpectrumPlot::GetDecibels(const size_t aChannel) const
+SpectrumPlot::GetDecibels(const ChannelCount aChannel) const
 {
     const int64_t kAvailableFrameCount = mController.GetAvailableFrameCount();
     const int64_t kTopFrame = mController.CalculateTopOfWindow(kAvailableFrameCount);
@@ -68,9 +69,9 @@ SpectrumPlot::paintEvent(QPaintEvent* event)
     painter.fillRect(event->rect(), Qt::black);
 
     // Draw the spectrum for each channel
-    const size_t kChannels = mController.GetChannelCount();
+    const ChannelCount kChannels = mController.GetChannelCount();
 
-    for (size_t ch = 0; ch < kChannels; ch++) {
+    for (ChannelCount ch = 0; ch < kChannels; ch++) {
         switch (ch) {
             case 0:
                 painter.setPen(Qt::magenta);

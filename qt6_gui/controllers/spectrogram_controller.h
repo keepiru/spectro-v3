@@ -64,7 +64,7 @@ class SpectrogramController : public QObject
      *
      * Each row represents one time window in the spectrogram.
      */
-    [[nodiscard]] std::vector<std::vector<float>> GetRows(size_t aChannel,
+    [[nodiscard]] std::vector<std::vector<float>> GetRows(ChannelCount aChannel,
                                                           int64_t aFirstSample,
                                                           size_t aRowCount) const;
 
@@ -78,7 +78,7 @@ class SpectrogramController : public QObject
      * @note If ANY samples in the requested window are not available, returns a
      * vector of zeros.
      */
-    [[nodiscard]] std::vector<float> GetRow(size_t aChannel, int64_t aFirstSample) const;
+    [[nodiscard]] std::vector<float> GetRow(ChannelCount aChannel, int64_t aFirstSample) const;
 
     /**
      * @brief Compute FFT for a channel at a specific sample position
@@ -89,7 +89,7 @@ class SpectrogramController : public QObject
      * @throws std::out_of_range if requested samples are not available
      * @note Does not use caching; called internally by GetRow
      */
-    [[nodiscard]] std::vector<float> ComputeFFT(size_t aChannel, int64_t aFirstSample) const;
+    [[nodiscard]] std::vector<float> ComputeFFT(ChannelCount aChannel, int64_t aFirstSample) const;
 
     /**
      * @brief Get the number of available frames
@@ -101,7 +101,7 @@ class SpectrogramController : public QObject
      * @brief Get the number of available channels
      * @return Number of audio channels
      */
-    [[nodiscard]] virtual size_t GetChannelCount() const;
+    [[nodiscard]] virtual ChannelCount GetChannelCount() const;
 
     /**
      * @brief Reset FFT processing components

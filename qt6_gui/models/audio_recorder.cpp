@@ -28,11 +28,11 @@ AudioRecorder::~AudioRecorder()
 
 bool
 AudioRecorder::Start(const QAudioDevice& aQAudioDevice,
-                     int aChannelCount,
+                     ChannelCount aChannelCount,
                      int aSampleRate,
                      QIODevice* aMockQIODevice)
 {
-    if (aChannelCount <= 0 || aChannelCount > gkMaxChannels) {
+    if (aChannelCount == 0 || aChannelCount > GKMaxChannels) {
         throw std::invalid_argument(
           std::format("{}: Invalid channel count {}", __PRETTY_FUNCTION__, aChannelCount));
     }

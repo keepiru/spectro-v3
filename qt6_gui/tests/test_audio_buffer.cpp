@@ -2,7 +2,6 @@
 #include "models/audio_buffer.h"
 #include <QSignalSpy>
 #include <catch2/catch_test_macros.hpp>
-#include <cstddef>
 #include <stdexcept>
 #include <vector>
 
@@ -19,7 +18,7 @@ TEST_CASE("AudioBuffer::Reset throws on invalid arguments", "[audio_buffer]")
 
     REQUIRE_THROWS_AS(buffer.Reset(-1, 44100), std::invalid_argument);
     REQUIRE_THROWS_AS(buffer.Reset(0, 44100), std::invalid_argument);
-    REQUIRE_THROWS_AS(buffer.Reset(gkMaxChannels + 1, 44100), std::invalid_argument);
+    REQUIRE_THROWS_AS(buffer.Reset(GKMaxChannels + 1, 44100), std::invalid_argument);
     REQUIRE_THROWS_AS(buffer.Reset(2, 0), std::invalid_argument);
 }
 

@@ -278,7 +278,7 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
         }
 
         // Set initial value if within channel range
-        if (i < gkMaxChannels) {
+        if (i < GKMaxChannels) {
             const int currentIndex = combo->findData(static_cast<int>(mSettings->GetColorMap(i)));
             if (currentIndex >= 0) {
                 combo->setCurrentIndex(currentIndex);
@@ -288,7 +288,7 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
         // Connect to settings
         const size_t channelIndex = i;
         connect(combo, &QComboBox::currentIndexChanged, this, [this, channelIndex](int /*aIndex*/) {
-            if (channelIndex < gkMaxChannels) {
+            if (channelIndex < GKMaxChannels) {
                 const auto selectedType = static_cast<Settings::ColorMapType>(
                   mColorMapCombos.at(channelIndex)->currentData().toInt());
                 mSettings->SetColorMap(channelIndex, selectedType);
@@ -362,7 +362,7 @@ SettingsPanel::CreateAudioControls(QFormLayout* aLayout)
     // Channel Count selection
     mChannelCountSpinBox = new QSpinBox(this);
     mChannelCountSpinBox->setObjectName("channelCountSpinBox");
-    mChannelCountSpinBox->setRange(1, static_cast<int>(gkMaxChannels));
+    mChannelCountSpinBox->setRange(1, static_cast<int>(GKMaxChannels));
     mChannelCountSpinBox->setValue(2); // Default to stereo
 
     // Update range based on default device capabilities
@@ -414,7 +414,7 @@ SettingsPanel::UpdateChannelRangeForDevice(const QAudioDevice& aDevice)
     const int actualChannels = preferredFormat.channelCount();
 
     // Allow from 1 up to the device's actual channel count, clamped to our app max
-    const int effectiveMax = std::min(actualChannels, static_cast<int>(gkMaxChannels));
+    const int effectiveMax = std::min(actualChannels, static_cast<int>(GKMaxChannels));
 
     // Preserve current value if possible, otherwise clamp it
     const int currentValue = mChannelCountSpinBox->value();

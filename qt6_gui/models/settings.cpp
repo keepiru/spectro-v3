@@ -13,7 +13,7 @@ Settings::Settings(QObject* aParent)
   , mColorMapLUTs()
 {
     // Initialize default color maps
-    for (size_t ch = 0; ch < gkMaxChannels; ch++) {
+    for (ChannelCount ch = 0; ch < GKMaxChannels; ch++) {
         SetColorMap(ch, KDefaultColorMaps.at(ch));
     }
 }
@@ -46,7 +46,7 @@ Settings::SetWindowScale(const size_t aScale)
 }
 
 void
-Settings::SetColorMap(size_t aChannel, ColorMapType aType)
+Settings::SetColorMap(ChannelCount aChannel, ColorMapType aType)
 {
     // Helper to set a gradient color map
     auto setGradientColorMap = [this, aChannel](bool enableRed, bool enableGreen, bool enableBlue) {

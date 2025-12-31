@@ -49,7 +49,7 @@ class AudioRecorder : public QObject
     /// @return true if capture started successfully, false otherwise.
     bool Start(const QAudioDevice& aQAudioDevice,
                ChannelCount aChannelCount,
-               int aSampleRate,
+               SampleRate aSampleRate,
                QIODevice* aMockQIODevice = nullptr);
 
     /// @brief Stops audio capture.

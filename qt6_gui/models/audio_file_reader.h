@@ -1,5 +1,6 @@
 #pragma once
 
+#include "include/global_constants.h"
 #include <memory>
 #include <sndfile.h>
 #include <vector>
@@ -17,7 +18,7 @@ class IAudioFileReader
 
     /// @brief Get the sample rate of the audio file
     /// @return Sample rate in Hz
-    [[nodiscard]] virtual int GetSampleRate() const = 0;
+    [[nodiscard]] virtual SampleRate GetSampleRate() const = 0;
 
     /// @brief Get the number of channels in the audio file
     /// @return Number of channels
@@ -39,7 +40,7 @@ class AudioFileReader : public IAudioFileReader
 
     ~AudioFileReader() override = default;
     [[nodiscard]] std::vector<float> ReadInterleaved(size_t aFrames) override;
-    [[nodiscard]] int GetSampleRate() const override { return mSfInfo.samplerate; }
+    [[nodiscard]] SampleRate GetSampleRate() const override { return mSfInfo.samplerate; }
     [[nodiscard]] int GetChannelCount() const override { return mSfInfo.channels; }
     [[nodiscard]] size_t GetTotalFrames() const override
     {

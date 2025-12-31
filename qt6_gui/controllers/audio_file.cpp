@@ -1,4 +1,5 @@
 #include "controllers/audio_file.h"
+#include "include/global_constants.h"
 #include "models/audio_file_reader.h"
 #include <cstddef>
 #include <vector>
@@ -11,11 +12,11 @@ AudioFile::LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgress
     constexpr size_t kChunkSize = 1024L * 1024L;
 
     const int kChannelCount = aReader.GetChannelCount();
-    const int kSampleRate = aReader.GetSampleRate();
+    const SampleRate kSampleRate = aReader.GetSampleRate();
     const size_t kTotalFrames = aReader.GetTotalFrames();
     int lastProgress = 0;
 
-    mBuffer.Reset(static_cast<size_t>(kChannelCount), static_cast<size_t>(kSampleRate));
+    mBuffer.Reset(static_cast<size_t>(kChannelCount), kSampleRate);
 
     while (true) {
         const std::vector<float> samples = aReader.ReadInterleaved(kChunkSize);

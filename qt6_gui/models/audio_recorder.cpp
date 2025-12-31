@@ -29,7 +29,7 @@ AudioRecorder::~AudioRecorder()
 bool
 AudioRecorder::Start(const QAudioDevice& aQAudioDevice,
                      ChannelCount aChannelCount,
-                     int aSampleRate,
+                     SampleRate aSampleRate,
                      QIODevice* aMockQIODevice)
 {
     if (aChannelCount == 0 || aChannelCount > GKMaxChannels) {

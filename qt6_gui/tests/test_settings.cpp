@@ -129,7 +129,7 @@ TEST_CASE("Settings default color maps", "[settings]")
         REQUIRE(settings.GetColorMapValue(1, i).g == intensity);
         REQUIRE(settings.GetColorMapValue(1, i).b == 0);
         // Rest of channels: White
-        for (size_t ch = 2; ch < gkMaxChannels; ch++) {
+        for (ChannelCount ch = 2; ch < GKMaxChannels; ch++) {
             REQUIRE(settings.GetColorMapValue(ch, i).r == intensity);
             REQUIRE(settings.GetColorMapValue(ch, i).g == intensity);
             REQUIRE(settings.GetColorMapValue(ch, i).b == intensity);
@@ -144,7 +144,7 @@ TEST_CASE("Settings::GetColorMap", "[settings]")
     // Confirm default color maps
     REQUIRE(settings.GetColorMap(0) == Settings::ColorMapType::Magenta);
     REQUIRE(settings.GetColorMap(1) == Settings::ColorMapType::Green);
-    for (size_t ch = 2; ch < gkMaxChannels; ch++) {
+    for (ChannelCount ch = 2; ch < GKMaxChannels; ch++) {
         REQUIRE(settings.GetColorMap(ch) == Settings::ColorMapType::White);
     }
 
@@ -160,7 +160,7 @@ TEST_CASE("Settings::GetColorMapValue out of range", "[settings]")
     const Settings settings;
 
     // Index out of range should throw
-    REQUIRE_THROWS_AS((void)settings.GetColorMapValue(gkMaxChannels, 0), std::out_of_range);
+    REQUIRE_THROWS_AS((void)settings.GetColorMapValue(GKMaxChannels, 0), std::out_of_range);
 }
 
 TEST_CASE("Settings::SetAperture", "[settings]")

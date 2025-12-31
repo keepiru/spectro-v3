@@ -1,5 +1,6 @@
 #pragma once
 
+#include "include/global_constants.h"
 #include <QAudioFormat>
 #include <QAudioSource>
 #include <QIODevice>
@@ -47,7 +48,7 @@ class AudioRecorder : public QObject
     /// @param aMockQIODevice Mock audio IO device for testing.  (optional)
     /// @return true if capture started successfully, false otherwise.
     bool Start(const QAudioDevice& aQAudioDevice,
-               int aChannelCount,
+               ChannelCount aChannelCount,
                int aSampleRate,
                QIODevice* aMockQIODevice = nullptr);
 

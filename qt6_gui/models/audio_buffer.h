@@ -1,4 +1,5 @@
 #pragma once
+#include "include/global_constants.h"
 #include <QObject>
 #include <cstddef>
 #include <memory>
@@ -29,13 +30,13 @@ class AudioBuffer : public QObject
      * @throws std::invalid_argument if aChannelCount or aSampleRate is invalid
      * @note Intended to be used when starting recording or loading a file.
      */
-    void Reset(size_t aChannelCount, size_t aSampleRate);
+    void Reset(ChannelCount aChannelCount, size_t aSampleRate);
 
     /**
      * @brief Get the number of channels
      * @return Channel count
      */
-    [[nodiscard]] size_t GetChannelCount() const { return mChannelCount; }
+    [[nodiscard]] ChannelCount GetChannelCount() const { return mChannelCount; }
 
     /**
      * @brief Get the sample rate
@@ -64,7 +65,7 @@ class AudioBuffer : public QObject
      * @throws std::out_of_range if aChannelIndex >= channel count, or if there
      * aren't enough samples to fill the request.
      */
-    [[nodiscard]] std::vector<float> GetSamples(size_t aChannelIndex,
+    [[nodiscard]] std::vector<float> GetSamples(ChannelCount aChannelIndex,
                                                 size_t aStartSample,
                                                 size_t aSampleCount) const;
 
@@ -74,7 +75,7 @@ class AudioBuffer : public QObject
      * @return Reference to the SampleBuffer for the channel
      * @throws std::out_of_range if aChannelIndex >= channel count
      */
-    [[nodiscard]] const SampleBuffer& GetChannelBuffer(size_t aChannelIndex) const;
+    [[nodiscard]] const SampleBuffer& GetChannelBuffer(ChannelCount aChannelIndex) const;
 
     /**
      * @brief Get the total number of frames available
@@ -110,9 +111,9 @@ class AudioBuffer : public QObject
      * @throws std::invalid_argument if aChannelCount or aSampleRate is invalid
      * @note This is a helper function used by the constructor and Reset() method.
      */
-    void InitializeChannelBuffers(size_t aChannelCount, size_t aSampleRate);
+    void InitializeChannelBuffers(ChannelCount aChannelCount, size_t aSampleRate);
 
-    size_t mChannelCount;
+    ChannelCount mChannelCount;
     size_t mSampleRate;
     std::vector<std::unique_ptr<SampleBuffer>> mChannelBuffers;
 };

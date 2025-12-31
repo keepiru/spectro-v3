@@ -193,7 +193,7 @@ TEST_CASE("SettingsPanel color map controls", "[settings_panel]")
         }
 
         // Test changing color map (only for valid channels)
-        if (i < gkMaxChannels) {
+        if (i < GKMaxChannels) {
             combo->setCurrentIndex(static_cast<int>(Settings::ColorMapType::Red));
             REQUIRE(settings.GetColorMap(i) == Settings::ColorMapType::Red);
 
@@ -323,8 +323,8 @@ TEST_CASE("SettingsPanel channel count control", "[settings_panel]")
     auto* spinBox = panel.findChild<QSpinBox*>("channelCountSpinBox");
     REQUIRE(spinBox != nullptr);
 
-    // Check that max is clamped to application's gkMaxChannels
-    REQUIRE(spinBox->maximum() <= static_cast<int>(gkMaxChannels));
+    // Check that max is clamped to application's GKMaxChannels
+    REQUIRE(spinBox->maximum() <= static_cast<int>(GKMaxChannels));
 
     // Check that minimum is at least 1
     REQUIRE(spinBox->minimum() >= 1);

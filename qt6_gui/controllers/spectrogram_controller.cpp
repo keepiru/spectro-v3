@@ -1,5 +1,6 @@
 #include "controllers/spectrogram_controller.h"
 #include "ifft_processor.h"
+#include "include/global_constants.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
 #include <QObject>
@@ -65,7 +66,7 @@ SpectrogramController::ResetFFT()
 }
 
 std::vector<std::vector<float>>
-SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRowCount) const
+SpectrogramController::GetRows(ChannelCount aChannel, int64_t aFirstSample, size_t aRowCount) const
 {
     if (aChannel >= mAudioBuffer.GetChannelCount()) {
         throw std::out_of_range("Channel index out of range");
@@ -86,7 +87,7 @@ SpectrogramController::GetRows(size_t aChannel, int64_t aFirstSample, size_t aRo
 }
 
 std::vector<float>
-SpectrogramController::GetRow(size_t aChannel, int64_t aFirstSample) const
+SpectrogramController::GetRow(ChannelCount aChannel, int64_t aFirstSample) const
 {
     if (aChannel >= mAudioBuffer.GetChannelCount()) {
         throw std::out_of_range("Channel index out of range");
@@ -120,7 +121,7 @@ SpectrogramController::GetRow(size_t aChannel, int64_t aFirstSample) const
 }
 
 std::vector<float>
-SpectrogramController::ComputeFFT(size_t aChannel, int64_t aFirstSample) const
+SpectrogramController::ComputeFFT(ChannelCount aChannel, int64_t aFirstSample) const
 {
     const int64_t kSampleCount = mFFTWindows.at(aChannel)->GetSize();
     // Future performance optimization: grab the entire needed range once
@@ -137,7 +138,7 @@ SpectrogramController::GetAvailableFrameCount() const
     return mAudioBuffer.FrameCount();
 }
 
-size_t
+ChannelCount
 SpectrogramController::GetChannelCount() const
 {
     return mAudioBuffer.GetChannelCount();

@@ -73,7 +73,7 @@ class Settings : public QObject
         uint8_t b;
     };
 
-    using ColorMapLUTs = std::array<std::array<ColorMapEntry, KColorMapLUTSize>, gkMaxChannels>;
+    using ColorMapLUTs = std::array<std::array<ColorMapEntry, KColorMapLUTSize>, GKMaxChannels>;
 
     explicit Settings(QObject* aParent = nullptr);
 
@@ -177,7 +177,7 @@ class Settings : public QObject
      * This is used to test LUT generation.  Prod code accesses the array
      * directly for performance.
      */
-    [[nodiscard]] ColorMapEntry GetColorMapValue(size_t aChannel, uint8_t aIndex) const
+    [[nodiscard]] ColorMapEntry GetColorMapValue(ChannelCount aChannel, uint8_t aIndex) const
     {
         return mColorMapLUTs.at(aChannel).at(aIndex);
     }
@@ -187,14 +187,14 @@ class Settings : public QObject
      * @param aChannel Channel index (0-based)
      * @param aType Color map type
      */
-    void SetColorMap(size_t aChannel, ColorMapType aType);
+    void SetColorMap(ChannelCount aChannel, ColorMapType aType);
 
     /**
      * @brief Get the color map type for a channel
      * @param aChannel Channel index (0-based)
      * @return Current color map type
      */
-    [[nodiscard]] ColorMapType GetColorMap(size_t aChannel) const
+    [[nodiscard]] ColorMapType GetColorMap(ChannelCount aChannel) const
     {
         return mSelectedColorMaps.at(aChannel);
     }
@@ -232,7 +232,7 @@ class Settings : public QObject
     float mApertureMaxDecibels = KDefaultApertureMaxDecibels;
 
     // Default color maps for each channel.
-    static constexpr std::array<ColorMapType, gkMaxChannels> KDefaultColorMaps = {
+    static constexpr std::array<ColorMapType, GKMaxChannels> KDefaultColorMaps = {
         ColorMapType::Magenta, ColorMapType::Green, ColorMapType::White,
         ColorMapType::White,   ColorMapType::White, ColorMapType::White,
     };
@@ -242,5 +242,5 @@ class Settings : public QObject
     ColorMapLUTs mColorMapLUTs;
 
     // Selected color maps for each channel.
-    std::array<ColorMapType, gkMaxChannels> mSelectedColorMaps = KDefaultColorMaps;
+    std::array<ColorMapType, GKMaxChannels> mSelectedColorMaps = KDefaultColorMaps;
 };

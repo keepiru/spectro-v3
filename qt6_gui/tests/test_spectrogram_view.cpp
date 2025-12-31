@@ -67,7 +67,7 @@ TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
         {
           public:
             using SpectrogramController::SpectrogramController;
-            size_t GetChannelCount() const override { return GENERATE(0, gkMaxChannels + 1); }
+            ChannelCount GetChannelCount() const override { return GENERATE(0, GKMaxChannels + 1); }
         };
         const MockController mockController(settings, audioBuffer);
         SpectrogramView mockView(mockController);
@@ -227,7 +227,7 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
         {
           public:
             using SpectrogramController::SpectrogramController;
-            size_t GetChannelCount() const override { return GENERATE(0, gkMaxChannels + 1); }
+            ChannelCount GetChannelCount() const override { return GENERATE(0, GKMaxChannels + 1); }
         };
         const MockController mockController(settings, audioBuffer);
         const SpectrogramView mockView(mockController);

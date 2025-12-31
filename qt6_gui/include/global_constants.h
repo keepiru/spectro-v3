@@ -1,6 +1,8 @@
 #pragma once
 
-#include <cstddef>
+#include <cstdint>
+
+using ChannelCount = uint8_t;
 
 // Maximum number of audio channels supported by the application
-inline constexpr size_t gkMaxChannels = 6;
+inline constexpr ChannelCount GKMaxChannels = 6;

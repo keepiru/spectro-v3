@@ -107,7 +107,7 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
     const float kDecibelRange = kMaxDecibels - kMinDecibels;
     constexpr auto kColorMapMaxIndex = static_cast<float>(Settings::KColorMapLUTSize - 1);
     const float kInverseDecibelRange = kColorMapMaxIndex / kDecibelRange;
-    const size_t kChannels = mController.GetChannelCount();
+    const ChannelCount kChannels = mController.GetChannelCount();
     const int64_t kStride = kSettings.GetWindowStride();
 
     // Determine the top frame to start rendering from.
@@ -121,11 +121,11 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
     // Validate channel count.  This should never happen because AudioBuffer
     // enforces channel count limits, but let's be safe.  This guards against
     // out-of-bounds access into the color map LUTs array.
-    if (kChannels > gkMaxChannels || kChannels < 1) {
+    if (kChannels > GKMaxChannels || kChannels < 1) {
         throw std::runtime_error(std::format("{}: channel count {} out of range [1, {}]",
                                              __PRETTY_FUNCTION__,
                                              kChannels,
-                                             gkMaxChannels));
+                                             GKMaxChannels));
     }
 
     return RenderConfig{ .channels = kChannels,
@@ -189,7 +189,7 @@ SpectrogramView::GenerateSpectrogramImage(size_t aWidth, size_t aHeight)
                 colorMapIndex = std::clamp(colorMapIndex, 0.0f, kColorMapMaxIndex);
                 // Don't use .at() here for performance in the hot path.  ch is
                 // guaranteed to be in range because it's from 0 to kChannels-1,
-                // and kChannels is asserted above to be <= gkMaxChannels.
+                // and kChannels is asserted above to be <= GKMaxChannels.
                 // colorMapIndex is clamped to 0-255 above, and the static_cast
                 // to uint8_t guarantees that as well.
                 const Settings::ColorMapEntry kColor =

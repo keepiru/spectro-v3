@@ -1,5 +1,6 @@
 #include "main_window.h"
 #include "controllers/spectrogram_controller.h"
+#include "include/global_constants.h"
 #include "models/audio_buffer.h"
 #include "models/audio_recorder.h"
 #include "models/settings.h"
@@ -18,7 +19,7 @@
 #include <cstddef>
 
 namespace {
-constexpr size_t KDefaultChannelCount = 2;
+constexpr ChannelCount KDefaultChannelCount = 2;
 constexpr size_t KDefaultSampleRate = 44100;
 }
 

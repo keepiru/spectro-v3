@@ -15,7 +15,7 @@ class SpectrogramController;
  */
 struct RenderConfig
 {
-    size_t channels;
+    ChannelCount channels;
     int64_t stride;
     int64_t top_frame;
     float min_decibels;

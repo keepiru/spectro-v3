@@ -1,5 +1,4 @@
 #include <catch2/catch_test_macros.hpp>
-#include <cstddef>
 #include <sample_buffer.h>
 #include <stdexcept>
 #include <thread>
@@ -7,7 +6,7 @@
 
 TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
 {
-    const size_t kSampleRate = 44100;
+    const SampleBuffer::SampleRate kSampleRate = 44100;
     SampleBuffer buffer(kSampleRate);
 
     std::vector<float> kSamples = { 0.1f, 0.2f, 0.3f, 0.4f };

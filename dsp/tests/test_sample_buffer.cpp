@@ -6,7 +6,7 @@
 
 TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
 {
-    const SampleBuffer::SampleRate kSampleRate = 44100;
+    const SampleRate kSampleRate = 44100;
     SampleBuffer buffer(kSampleRate);
 
     std::vector<float> kSamples = { 0.1f, 0.2f, 0.3f, 0.4f };

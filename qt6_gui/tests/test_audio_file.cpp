@@ -12,7 +12,7 @@ class MockAudioFileReader : public IAudioFileReader
     /// @param channelCount Number of channels
     /// @param sampleRate Sample rate in Hz
     /// @param samples Interleaved audio samples to return
-    MockAudioFileReader(int channelCount, int sampleRate, std::vector<float> samples)
+    MockAudioFileReader(int channelCount, SampleRate sampleRate, std::vector<float> samples)
       : mChannelCount(channelCount)
       , mSampleRate(sampleRate)
       , mSamples(std::move(samples))
@@ -36,7 +36,7 @@ class MockAudioFileReader : public IAudioFileReader
 
     /// @brief Get the sample rate of the simulated audio file
     /// @return Sample rate in Hz
-    [[nodiscard]] int GetSampleRate() const override { return mSampleRate; }
+    [[nodiscard]] SampleRate GetSampleRate() const override { return mSampleRate; }
 
     /// @brief Get the number of channels in the simulated audio file
     /// @return Number of channels
@@ -48,7 +48,7 @@ class MockAudioFileReader : public IAudioFileReader
 
   private:
     std::vector<float> mSamples;
-    int mSampleRate;
+    SampleRate mSampleRate;
     int mChannelCount;
 };
 

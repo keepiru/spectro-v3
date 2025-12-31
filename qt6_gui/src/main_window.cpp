@@ -20,7 +20,7 @@
 
 namespace {
 constexpr ChannelCount KDefaultChannelCount = 2;
-constexpr size_t KDefaultSampleRate = 44100;
+constexpr SampleRate KDefaultSampleRate = 44100;
 }
 
 MainWindow::MainWindow(QWidget* parent)

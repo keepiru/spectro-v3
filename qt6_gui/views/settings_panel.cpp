@@ -386,14 +386,14 @@ SettingsPanel::UpdateSampleRatesForDevice(const QAudioDevice& aDevice)
     mSampleRateCombo->clear();
 
     // Common sample rates to offer
-    constexpr int kDefaultSampleRate = 44100;
-    static const std::array<int, 5> CommonRates = { 22050, 44100, 48000, 88200, 96000 };
+    constexpr SampleRate kDefaultSampleRate = 44100;
+    static const std::array<SampleRate, 5> CommonRates = { 22050, 44100, 48000, 88200, 96000 };
 
-    const int minRate = aDevice.minimumSampleRate();
-    const int maxRate = aDevice.maximumSampleRate();
+    const SampleRate minRate = aDevice.minimumSampleRate();
+    const SampleRate maxRate = aDevice.maximumSampleRate();
 
     int defaultIndex = 0;
-    for (const int rate : CommonRates) {
+    for (const SampleRate rate : CommonRates) {
         if (rate >= minRate && rate <= maxRate) {
             mSampleRateCombo->addItem(QString::number(rate) + " Hz", rate);
             if (rate == kDefaultSampleRate) {
@@ -446,7 +446,7 @@ SettingsPanel::OnRecordingButtonClicked()
         mAudioRecorder->Stop();
     } else {
         const auto device = mAudioDeviceCombo->currentData().value<QAudioDevice>();
-        const int sampleRate = mSampleRateCombo->currentData().toInt();
+        const SampleRate sampleRate = mSampleRateCombo->currentData().toInt();
         const int channelCount = mChannelCountSpinBox->value();
 
         mAudioRecorder->Start(device, channelCount, sampleRate);

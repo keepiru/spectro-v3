@@ -171,7 +171,7 @@ SpectrogramController::RoundToStride(int64_t aFrame) const
 float
 SpectrogramController::GetHzPerBin() const
 {
-    const size_t kSampleRate = mAudioBuffer.GetSampleRate();
+    const SampleRate kSampleRate = mAudioBuffer.GetSampleRate();
     const size_t kFFTSize = mSettings.GetFFTSize();
     return static_cast<float>(kSampleRate) / static_cast<float>(kFFTSize);
 }

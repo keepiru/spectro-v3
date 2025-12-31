@@ -30,7 +30,7 @@ class AudioBuffer : public QObject
      * @throws std::invalid_argument if aChannelCount or aSampleRate is invalid
      * @note Intended to be used when starting recording or loading a file.
      */
-    void Reset(ChannelCount aChannelCount, size_t aSampleRate);
+    void Reset(ChannelCount aChannelCount, SampleRate aSampleRate);
 
     /**
      * @brief Get the number of channels
@@ -42,7 +42,7 @@ class AudioBuffer : public QObject
      * @brief Get the sample rate
      * @return Sample rate in Hz
      */
-    [[nodiscard]] size_t GetSampleRate() const { return mSampleRate; }
+    [[nodiscard]] SampleRate GetSampleRate() const { return mSampleRate; }
 
     /**
      * @brief Add interleaved audio samples to all channels
@@ -111,9 +111,9 @@ class AudioBuffer : public QObject
      * @throws std::invalid_argument if aChannelCount or aSampleRate is invalid
      * @note This is a helper function used by the constructor and Reset() method.
      */
-    void InitializeChannelBuffers(ChannelCount aChannelCount, size_t aSampleRate);
+    void InitializeChannelBuffers(ChannelCount aChannelCount, SampleRate aSampleRate);
 
     ChannelCount mChannelCount;
-    size_t mSampleRate;
+    SampleRate mSampleRate;
     std::vector<std::unique_ptr<SampleBuffer>> mChannelBuffers;
 };

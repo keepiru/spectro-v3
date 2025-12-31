@@ -15,12 +15,12 @@ AudioBuffer::AudioBuffer(QObject* aParent)
 
 {
     constexpr ChannelCount kDefaultChannelCount = 2;
-    constexpr size_t kDefaultSampleRate = 44100;
+    constexpr SampleRate kDefaultSampleRate = 44100;
     InitializeChannelBuffers(kDefaultChannelCount, kDefaultSampleRate);
 }
 
 void
-AudioBuffer::InitializeChannelBuffers(ChannelCount aChannelCount, size_t aSampleRate)
+AudioBuffer::InitializeChannelBuffers(ChannelCount aChannelCount, SampleRate aSampleRate)
 {
     if (aChannelCount == 0) {
         throw std::invalid_argument(
@@ -32,7 +32,7 @@ AudioBuffer::InitializeChannelBuffers(ChannelCount aChannelCount, size_t aSample
           std::format("{}: Channel count exceeds maximum supported channels", __PRETTY_FUNCTION__));
     }
 
-    if (aSampleRate == 0) {
+    if (aSampleRate <= 0) {
         throw std::invalid_argument(
           std::format("{}: Sample rate must be > 0", __PRETTY_FUNCTION__));
     }
@@ -52,7 +52,7 @@ AudioBuffer::InitializeChannelBuffers(ChannelCount aChannelCount, size_t aSample
 }
 
 void
-AudioBuffer::Reset(ChannelCount aChannelCount, size_t aSampleRate)
+AudioBuffer::Reset(ChannelCount aChannelCount, SampleRate aSampleRate)
 {
     InitializeChannelBuffers(aChannelCount, aSampleRate);
 

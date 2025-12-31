@@ -1,4 +1,5 @@
 #pragma once
+#include "audio_types.h"
 #include <cstddef>
 #include <mutex>
 #include <vector>
@@ -12,8 +13,6 @@
 class SampleBuffer
 {
   public:
-    using SampleRate = int32_t;
-
     /**
      * @brief Construct a SampleBuffer.
      * @param aSampleRate Sample rate in Hz.

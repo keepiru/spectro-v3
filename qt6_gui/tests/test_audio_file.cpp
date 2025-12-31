@@ -1,4 +1,5 @@
 #include "controllers/audio_file.h"
+#include "include/global_constants.h"
 #include "models/audio_file_reader.h"
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
@@ -12,7 +13,9 @@ class MockAudioFileReader : public IAudioFileReader
     /// @param channelCount Number of channels
     /// @param sampleRate Sample rate in Hz
     /// @param samples Interleaved audio samples to return
-    MockAudioFileReader(int channelCount, SampleRate sampleRate, std::vector<float> samples)
+    MockAudioFileReader(ChannelCount channelCount,
+                        SampleRate sampleRate,
+                        std::vector<float> samples)
       : mChannelCount(channelCount)
       , mSampleRate(sampleRate)
       , mSamples(std::move(samples))
@@ -40,7 +43,7 @@ class MockAudioFileReader : public IAudioFileReader
 
     /// @brief Get the number of channels in the simulated audio file
     /// @return Number of channels
-    [[nodiscard]] int GetChannelCount() const override { return mChannelCount; }
+    [[nodiscard]] ChannelCount GetChannelCount() const override { return mChannelCount; }
 
     /// @brief Get the total number of frames in the simulated audio file
     /// @return Total frames
@@ -49,7 +52,7 @@ class MockAudioFileReader : public IAudioFileReader
   private:
     std::vector<float> mSamples;
     SampleRate mSampleRate;
-    int mChannelCount;
+    ChannelCount mChannelCount;
 };
 
 TEST_CASE("AudioFile - construction", "[audio_file]")

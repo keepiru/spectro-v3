@@ -22,8 +22,8 @@ Settings::Settings(QObject* aParent)
 void
 Settings::SetFFTSettings(const FFTSize aTransformSize, const FFTWindow::Type aWindowType)
 {
-    if (aTransformSize <= 0 || (aTransformSize & (aTransformSize - 1)) != 0) {
-        throw std::invalid_argument("FFT size must be a power of two and greater than zero");
+    if (!IsPowerOf2(aTransformSize)) {
+        throw std::invalid_argument("FFT size must be a positive power of two");
     }
 
     if (mFFTSize != aTransformSize || mWindowType != aWindowType) {

@@ -13,7 +13,7 @@ AudioFile::LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgress
 
     const ChannelCount kChannelCount = aReader.GetChannelCount();
     const SampleRate kSampleRate = aReader.GetSampleRate();
-    const FrameCount kTotalFrames = aReader.GetTotalFrames();
+    const FrameCount kTotalFrames = aReader.GetFrameCount();
     int lastProgress = 0;
 
     mBuffer.Reset(kChannelCount, kSampleRate);

@@ -47,7 +47,7 @@ class MockAudioFileReader : public IAudioFileReader
 
     /// @brief Get the total number of frames in the simulated audio file
     /// @return Total frames
-    [[nodiscard]] size_t GetTotalFrames() const override { return mSamples.size() / mChannelCount; }
+    [[nodiscard]] size_t GetFrameCount() const override { return mSamples.size() / mChannelCount; }
 
   private:
     std::vector<float> mSamples;

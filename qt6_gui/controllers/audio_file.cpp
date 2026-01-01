@@ -1,7 +1,7 @@
 #include "controllers/audio_file.h"
+#include "include/global_constants.h"
 #include "models/audio_file_reader.h"
 #include <audio_types.h>
-#include <cstddef>
 #include <vector>
 
 bool
@@ -9,14 +9,14 @@ AudioFile::LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgress
 {
     // Each chunk is passed to AddSamples, which will trigger a display refresh,
     // so we want to keep these chunks fairly large for efficiency.
-    constexpr size_t kChunkSize = 1024L * 1024L;
+    constexpr FrameCount kChunkSize = 1024L * 1024L;
 
-    const int kChannelCount = aReader.GetChannelCount();
+    const ChannelCount kChannelCount = aReader.GetChannelCount();
     const SampleRate kSampleRate = aReader.GetSampleRate();
-    const size_t kTotalFrames = aReader.GetTotalFrames();
+    const FrameCount kTotalFrames = aReader.GetTotalFrames();
     int lastProgress = 0;
 
-    mBuffer.Reset(static_cast<size_t>(kChannelCount), kSampleRate);
+    mBuffer.Reset(kChannelCount, kSampleRate);
 
     while (true) {
         const std::vector<float> samples = aReader.ReadInterleaved(kChunkSize);
@@ -33,7 +33,7 @@ AudioFile::LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgress
         if (kTotalFrames == 0) {
             continue;
         }
-        const int kProgressPercent = static_cast<int>(static_cast<float>(mBuffer.FrameCount()) /
+        const int kProgressPercent = static_cast<int>(static_cast<float>(mBuffer.GetFrameCount()) /
                                                       static_cast<float>(kTotalFrames) * 100.0f);
 
         // Throttle progress callbacks to only report when it changes.

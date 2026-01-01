@@ -14,6 +14,7 @@
 #include <QWidget>
 #include <Qt>
 #include <algorithm>
+#include <audio_types.h>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -43,10 +44,10 @@ SpectrogramView::SpectrogramView(const SpectrogramController& aController, QWidg
 }
 
 void
-SpectrogramView::UpdateScrollbarRange(int64_t aAvailableFrames)
+SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
 {
     // The scrollbar's maximum is the total available frames.
-    const int64_t kScrollMaximum = aAvailableFrames;
+    const FrameCount kScrollMaximum = aAvailableFrames;
 
     // Safety check for overflow.  Scrollbar values must fit in int.
     if (kScrollMaximum > std::numeric_limits<int>::max()) {
@@ -56,7 +57,7 @@ SpectrogramView::UpdateScrollbarRange(int64_t aAvailableFrames)
                                               std::numeric_limits<int>::max()));
     }
 
-    const int64_t kStride = mController.GetSettings().GetWindowStride();
+    const FFTSize kStride = mController.GetSettings().GetWindowStride();
 
     // Safety check for overflow.  This would only happen with an absurdly large
     // view height, but let's be safe.
@@ -108,15 +109,16 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
     constexpr auto kColorMapMaxIndex = static_cast<float>(Settings::KColorMapLUTSize - 1);
     const float kInverseDecibelRange = kColorMapMaxIndex / kDecibelRange;
     const ChannelCount kChannels = mController.GetChannelCount();
-    const int64_t kStride = kSettings.GetWindowStride();
+    const FFTSize kStride = kSettings.GetWindowStride();
 
     // Determine the top frame to start rendering from.
     // The scrollbar value represents the frame position at the bottom of the view.
     // Calculate top frame by going back (height * stride) frames from the bottom.
-    const int64_t kBottomFrame = verticalScrollBar()->value();
-    const int64_t kTopFrameUnaligned = kBottomFrame - (kStride * static_cast<int64_t>(aHeight));
-    const int64_t kTopFrameAligned = mController.CalculateTopOfWindow(kTopFrameUnaligned);
-    const int64_t kTopFrame = kTopFrameAligned < 0 ? 0 : kTopFrameAligned;
+    const FrameOffset kBottomFrame = verticalScrollBar()->value();
+    const FrameOffset kTopFrameUnaligned =
+      kBottomFrame - (kStride * static_cast<FrameOffset>(aHeight));
+    const FrameOffset kTopFrameAligned = mController.CalculateTopOfWindow(kTopFrameUnaligned);
+    const FrameOffset kTopFrame = kTopFrameAligned < 0 ? 0 : kTopFrameAligned;
 
     // Validate channel count.  This should never happen because AudioBuffer
     // enforces channel count limits, but let's be safe.  This guards against

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "include/global_constants.h"
+#include <audio_types.h>
 #include <memory>
 #include <sndfile.h>
 #include <vector>
@@ -14,7 +15,7 @@ class IAudioFileReader
     /// @brief Read interleaved audio samples
     /// @param aFrames Number of frames to read
     /// @return Vector of interleaved audio samples
-    [[nodiscard]] virtual std::vector<float> ReadInterleaved(size_t aFrames) = 0;
+    [[nodiscard]] virtual std::vector<float> ReadInterleaved(FrameCount aFrames) = 0;
 
     /// @brief Get the sample rate of the audio file
     /// @return Sample rate in Hz
@@ -26,7 +27,7 @@ class IAudioFileReader
 
     /// @brief Get the total number of frames in the audio file
     /// @return Total frames
-    [[nodiscard]] virtual size_t GetTotalFrames() const = 0;
+    [[nodiscard]] virtual FrameCount GetTotalFrames() const = 0;
 };
 
 /// @brief Audio file reader implementation using libsndfile
@@ -39,12 +40,12 @@ class AudioFileReader : public IAudioFileReader
     explicit AudioFileReader(const std::string& aFilePath);
 
     ~AudioFileReader() override = default;
-    [[nodiscard]] std::vector<float> ReadInterleaved(size_t aFrames) override;
+    [[nodiscard]] std::vector<float> ReadInterleaved(FrameCount aFrames) override;
     [[nodiscard]] SampleRate GetSampleRate() const override { return mSfInfo.samplerate; }
     [[nodiscard]] ChannelCount GetChannelCount() const override { return mSfInfo.channels; }
-    [[nodiscard]] size_t GetTotalFrames() const override
+    [[nodiscard]] FrameCount GetTotalFrames() const override
     {
-        return static_cast<size_t>(mSfInfo.frames);
+        return static_cast<FrameCount>(mSfInfo.frames);
     }
 
   private:

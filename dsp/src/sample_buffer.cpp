@@ -1,20 +1,15 @@
-#include <cstddef>
-#include <cstdint>
+#include "audio_types.h"
 #include <format>
-#include <limits>
 #include <mutex>
 #include <sample_buffer.h>
 #include <stdexcept>
 #include <vector>
 
-int64_t
-SampleBuffer::NumSamples() const
+SampleCount
+SampleBuffer::GetSampleCount() const
 {
     std::lock_guard<std::mutex> const kLock(mMutex);
-    if (mData.size() > static_cast<size_t>(std::numeric_limits<int64_t>::max())) {
-        throw std::overflow_error("SampleBuffer::NumSamples: sample count exceeds int64_t maximum");
-    }
-    return static_cast<int64_t>(mData.size());
+    return mData.size();
 }
 
 void
@@ -25,7 +20,7 @@ SampleBuffer::AddSamples(const std::vector<float>& aSamples)
 }
 
 std::vector<float>
-SampleBuffer::GetSamples(size_t aStartSample, size_t aSampleCount) const
+SampleBuffer::GetSamples(SampleIndex aStartSample, SampleCount aSampleCount) const
 {
     std::lock_guard<std::mutex> const kLock(mMutex);
     if (aStartSample > mData.size() || aSampleCount > (mData.size() - aStartSample)) {

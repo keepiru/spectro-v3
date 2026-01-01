@@ -1,9 +1,9 @@
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
+#include <audio_types.h>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include <cstddef>
 #include <fft_window.h>
 #include <ifft_processor.h>
 #include <memory>
@@ -198,8 +198,8 @@ TEST_CASE("SpectrogramController::GetRows with negative start sample returns zer
     REQUIRE(controller->GetRow(0, -2) == kWant[0]);
     REQUIRE(controller->GetRow(0, 6) == kWant[1]);
 
-    // And with ComputeFFT
-    REQUIRE_THROWS_AS((void)controller->ComputeFFT(0, -2), std::out_of_range);
+    // ComputeFFT takes FrameIndex (unsigned), so negative values cannot be passed
+    // The validation happens in GetRow which calls ToFrameIndex before ComputeFFT
     REQUIRE(controller->ComputeFFT(0, 6) == kWant[1]);
 }
 

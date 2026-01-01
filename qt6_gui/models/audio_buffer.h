@@ -1,7 +1,6 @@
 #pragma once
 #include "include/global_constants.h"
 #include <QObject>
-#include <cstddef>
 #include <memory>
 #include <sample_buffer.h>
 #include <vector>
@@ -66,8 +65,8 @@ class AudioBuffer : public QObject
      * aren't enough samples to fill the request.
      */
     [[nodiscard]] std::vector<float> GetSamples(ChannelCount aChannelIndex,
-                                                size_t aStartSample,
-                                                size_t aSampleCount) const;
+                                                SampleIndex aStartSample,
+                                                SampleCount aSampleCount) const;
 
     /**
      * @brief Get the underlying SampleBuffer for a specific channel
@@ -81,12 +80,12 @@ class AudioBuffer : public QObject
      * @brief Get the total number of frames available
      * @return Frame count
      */
-    [[nodiscard]] int64_t FrameCount() const
+    [[nodiscard]] FrameCount GetFrameCount() const
     {
         if (mChannelBuffers.empty()) {
             return 0;
         }
-        return mChannelBuffers[0]->NumSamples();
+        return mChannelBuffers[0]->GetSampleCount();
     }
 
   signals:
@@ -94,7 +93,7 @@ class AudioBuffer : public QObject
      * @brief Emitted when new audio frames are added
      * @param aTotalFrameCount Total number of frames available per channel
      */
-    void DataAvailable(int64_t aTotalFrameCount);
+    void DataAvailable(FrameCount aTotalFrameCount);
 
     /**
      * @brief Emitted when the buffer is reset

@@ -1,6 +1,7 @@
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
 #include "views/spectrum_plot.h"
+#include <audio_types.h>
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
@@ -48,11 +49,11 @@ TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
         fillBuffer(15);
 
         // Check our assumptions.  15 frames loaded:
-        const int64_t kAvailableFrameCount = controller.GetAvailableFrameCount();
+        const FrameCount kAvailableFrameCount = controller.GetAvailableFrameCount();
         CHECK(kAvailableFrameCount == 15);
 
         // With window size 8 and stride 4, top of window should start at frame 4
-        const int64_t kTopFrame = controller.CalculateTopOfWindow(kAvailableFrameCount);
+        const FrameOffset kTopFrame = controller.CalculateTopOfWindow(static_cast<FrameOffset>(kAvailableFrameCount));
         CHECK(kTopFrame == 4);
         // Therefore, FFT window should cover frames 4-8:
         const std::vector<std::vector<float>> want = { { 8, 10, 12, 14, 16 },

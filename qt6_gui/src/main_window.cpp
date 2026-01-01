@@ -15,6 +15,7 @@
 #include <QOverload>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <audio_types.h>
 #include <cmath>
 #include <cstddef>
 

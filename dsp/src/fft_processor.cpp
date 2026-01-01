@@ -10,14 +10,6 @@
 #include <string>
 #include <vector>
 
-namespace {
-bool
-IsPowerOf2(uint32_t n)
-{
-    return (n > 0) && ((n & (n - 1)) == 0);
-}
-}
-
 FFTProcessor::FFTProcessor(FFTSize aTransformSize)
   : mTransformSize(aTransformSize)
   , mFFTPlan(nullptr)

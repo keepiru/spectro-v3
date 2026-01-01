@@ -1,9 +1,9 @@
 #include "models/settings.h"
-#include <audio_types.h>
 #include "include/global_constants.h"
 #include <QObject>
 #include <algorithm>
 #include <array>
+#include <audio_types.h>
 #include <cstddef>
 #include <cstdint>
 #include <fft_window.h>
@@ -35,11 +35,10 @@ Settings::SetFFTSettings(const FFTSize aTransformSize, const FFTWindow::Type aWi
 }
 
 void
-Settings::SetWindowScale(const size_t aScale)
+Settings::SetWindowScale(const WindowScale aScale)
 {
-    const std::array<size_t, 5> validScales{ 1, 2, 4, 8, 16 };
-    if (std::ranges::find(validScales, aScale) == validScales.end()) {
-        throw std::invalid_argument("Window scale must be one of: 1, 2, 4, 8, or 16");
+    if (std::ranges::find(KValidWindowScales, aScale) == KValidWindowScales.end()) {
+        throw std::invalid_argument("Invalid window scale");
     }
 
     mWindowScale = aScale;

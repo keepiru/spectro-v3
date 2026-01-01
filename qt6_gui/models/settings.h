@@ -23,6 +23,7 @@ class Settings : public QObject
 
   public:
     static constexpr size_t KColorMapLUTSize = 256;
+    static constexpr std::array<WindowScale, 5> KValidWindowScales{ 1, 2, 4, 8, 16 };
 
     // Linter complains because of the Last sentinel.  Ignore that.
     // NOLINTNEXTLINE(readability-enum-initial-value)
@@ -114,22 +115,19 @@ class Settings : public QObject
      * @param aScale New window scale (1, 2, 4, 8, or 16)
      * @throws std::invalid_argument if aScale is not valid
      */
-    void SetWindowScale(size_t aScale);
+    void SetWindowScale(WindowScale aScale);
 
     /**
      * @brief Get the window scale
      * @return Current window scale
      */
-    [[nodiscard]] size_t GetWindowScale() const { return mWindowScale; }
+    [[nodiscard]] WindowScale GetWindowScale() const { return mWindowScale; }
 
     /**
      * @brief Get the window stride based on current FFT size and window scale
      * @return Current window stride (FFT size / window scale)
      */
-    [[nodiscard]] FFTSize GetWindowStride() const
-    {
-        return mFFTSize / static_cast<FFTSize>(mWindowScale);
-    }
+    [[nodiscard]] FFTSize GetWindowStride() const { return mFFTSize / mWindowScale; }
 
     /**
      ** Display settings - Aperture (decibel range)
@@ -222,8 +220,8 @@ class Settings : public QObject
 
     // The window scale is the divisor applied to the FFT size to determine
     // the hop size (stride) between successive FFT windows.
-    static constexpr size_t KDefaultWindowScale = 2;
-    size_t mWindowScale = KDefaultWindowScale;
+    static constexpr WindowScale KDefaultWindowScale = 2;
+    WindowScale mWindowScale = KDefaultWindowScale;
 
     // The aperture is the visible decibel range in the spectrogram and spectrum
     // plot.

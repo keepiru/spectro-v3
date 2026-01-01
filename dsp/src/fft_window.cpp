@@ -1,8 +1,8 @@
 #include <algorithm>
+#include <audio_types.h>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
-#include <cstdint>
 #include <fft_window.h>
 #include <numbers>
 #include <span>
@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-FFTWindow::FFTWindow(int64_t aSize, FFTWindow::Type aType)
+FFTWindow::FFTWindow(FFTSize aSize, FFTWindow::Type aType)
   : mSize(aSize)
   , mType(aType)
 {

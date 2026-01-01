@@ -23,6 +23,7 @@
 #include <Qt>
 #include <algorithm>
 #include <array>
+#include <audio_types.h>
 #include <cstddef>
 #include <cstdint>
 #include <format>
@@ -118,7 +119,7 @@ SettingsPanel::CreateFFTSizeControl(QFormLayout* aLayout)
     mFFTSizeCombo->setObjectName("fftSizeCombo");
 
     // Add FFT size options
-    const std::array<size_t, 5> fftSizes{ 512, 1024, 2048, 4096, 8192 };
+    const std::array<FFTSize, 5> fftSizes{ 512, 1024, 2048, 4096, 8192 };
     for (const auto size : fftSizes) {
         mFFTSizeCombo->addItem(QString::number(size), QVariant::fromValue(size));
     }
@@ -131,7 +132,7 @@ SettingsPanel::CreateFFTSizeControl(QFormLayout* aLayout)
 
     // Connect to settings
     connect(mFFTSizeCombo, &QComboBox::currentIndexChanged, this, [this](int /*aIndex*/) {
-        const int64_t selectedSize = mFFTSizeCombo->currentData().toLongLong();
+        const FFTSize selectedSize = mFFTSizeCombo->currentData().toInt();
         mSettings->SetFFTSettings(selectedSize, mSettings->GetWindowType());
     });
 

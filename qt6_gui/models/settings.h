@@ -3,6 +3,7 @@
 #include "include/global_constants.h"
 #include <QObject>
 #include <array>
+#include <audio_types.h>
 #include <cstddef>
 #include <fft_window.h>
 #include <string_view>
@@ -90,13 +91,13 @@ class Settings : public QObject
      * These are set together because changing either requires recreating
      * FFT and window objects.
      */
-    void SetFFTSettings(int64_t aTransformSize, FFTWindow::Type aWindowType);
+    void SetFFTSettings(FFTSize aTransformSize, FFTWindow::Type aWindowType);
 
     /**
      * @brief Get the FFT size
      * @return Current FFT size
      */
-    [[nodiscard]] int64_t GetFFTSize() const { return mFFTSize; }
+    [[nodiscard]] FFTSize GetFFTSize() const { return mFFTSize; }
 
     /**
      * @brief Get the window function type
@@ -125,9 +126,9 @@ class Settings : public QObject
      * @brief Get the window stride based on current FFT size and window scale
      * @return Current window stride (FFT size / window scale)
      */
-    [[nodiscard]] int64_t GetWindowStride() const
+    [[nodiscard]] FFTSize GetWindowStride() const
     {
-        return mFFTSize / static_cast<int64_t>(mWindowScale);
+        return mFFTSize / static_cast<FFTSize>(mWindowScale);
     }
 
     /**
@@ -215,8 +216,8 @@ class Settings : public QObject
     void DisplaySettingsChanged();
 
   private:
-    static constexpr int64_t KDefaultFFTSize = 2048;
-    int64_t mFFTSize = KDefaultFFTSize;
+    static constexpr FFTSize KDefaultFFTSize = 2048;
+    FFTSize mFFTSize = KDefaultFFTSize;
     FFTWindow::Type mWindowType = FFTWindow::Type::Hann;
 
     // The window scale is the divisor applied to the FFT size to determine

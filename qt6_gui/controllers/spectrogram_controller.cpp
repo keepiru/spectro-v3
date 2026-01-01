@@ -4,6 +4,7 @@
 #include "models/audio_buffer.h"
 #include "models/settings.h"
 #include <QObject>
+#include <audio_types.h>
 #include <cstddef>
 #include <cstdint>
 #include <fft_processor.h>
@@ -27,11 +28,11 @@ SpectrogramController::SpectrogramController(const Settings& aSettings,
 {
     // Provide default factories if none supplied
     if (!mFFTProcessorFactory) {
-        mFFTProcessorFactory = [](size_t size) { return std::make_unique<FFTProcessor>(size); };
+        mFFTProcessorFactory = [](FFTSize size) { return std::make_unique<FFTProcessor>(size); };
     }
 
     if (!mFFTWindowFactory) {
-        mFFTWindowFactory = [](size_t size, FFTWindow::Type type) {
+        mFFTWindowFactory = [](FFTSize size, FFTWindow::Type type) {
             return std::make_unique<FFTWindow>(size, type);
         };
     }
@@ -75,7 +76,7 @@ SpectrogramController::GetRows(ChannelCount aChannel, int64_t aFirstSample, size
     std::vector<std::vector<float>> spectrogram;
     spectrogram.reserve(aRowCount);
 
-    const int64_t kWindowStride = mSettings.GetWindowStride();
+    const FFTSize kWindowStride = mSettings.GetWindowStride();
 
     for (size_t row = 0; row < aRowCount; row++) {
         const int64_t kWindowFirstSample =
@@ -154,7 +155,7 @@ SpectrogramController::CalculateTopOfWindow(int64_t aCursorFrame) const
 int64_t
 SpectrogramController::RoundToStride(int64_t aFrame) const
 {
-    const int64_t kStride = mSettings.GetWindowStride();
+    const FFTSize kStride = mSettings.GetWindowStride();
 
     // Calculate floor(aFrame / kStride) for both positive and negative values.
     // For positive values, this is just integer division.
@@ -172,6 +173,6 @@ float
 SpectrogramController::GetHzPerBin() const
 {
     const SampleRate kSampleRate = mAudioBuffer.GetSampleRate();
-    const size_t kFFTSize = mSettings.GetFFTSize();
+    const FFTSize kFFTSize = mSettings.GetFFTSize();
     return static_cast<float>(kSampleRate) / static_cast<float>(kFFTSize);
 }

@@ -24,14 +24,14 @@ TEST_CASE("SpectrogramController constructor", "[spectrogram_controller]")
 
 TEST_CASE("SpectrogramController::SetFFTSettings", "[spectrogram_controller]")
 {
-    std::vector<size_t> procCalls;
-    const IFFTProcessorFactory procSpy = [&procCalls](size_t size) {
+    std::vector<FFTSize> procCalls;
+    const IFFTProcessorFactory procSpy = [&procCalls](FFTSize size) {
         procCalls.emplace_back(size);
         return std::make_unique<MockFFTProcessor>(size);
     };
 
-    std::vector<std::pair<size_t, FFTWindow::Type>> windowCalls;
-    const FFTWindowFactory windowSpy = [&windowCalls](size_t size, FFTWindow::Type type) {
+    std::vector<std::pair<FFTSize, FFTWindow::Type>> windowCalls;
+    const FFTWindowFactory windowSpy = [&windowCalls](FFTSize size, FFTWindow::Type type) {
         windowCalls.emplace_back(size, type);
         return std::make_unique<FFTWindow>(size, type);
     };
@@ -41,9 +41,9 @@ TEST_CASE("SpectrogramController::SetFFTSettings", "[spectrogram_controller]")
     const SpectrogramController controller(settings, audioBuffer, procSpy, windowSpy);
 
     // Constructor calls with defaults
-    REQUIRE(procCalls == (std::vector<size_t>{ SpectrogramController::KDefaultFftSize,
-                                               SpectrogramController::KDefaultFftSize }));
-    REQUIRE(windowCalls == (std::vector<std::pair<size_t, FFTWindow::Type>>{
+    REQUIRE(procCalls == (std::vector<FFTSize>{ SpectrogramController::KDefaultFftSize,
+                                                SpectrogramController::KDefaultFftSize }));
+    REQUIRE(windowCalls == (std::vector<std::pair<FFTSize, FFTWindow::Type>>{
                              std::make_pair(SpectrogramController::KDefaultFftSize,
                                             SpectrogramController::KDefaultWindowType),
                              std::make_pair(SpectrogramController::KDefaultFftSize,
@@ -53,11 +53,11 @@ TEST_CASE("SpectrogramController::SetFFTSettings", "[spectrogram_controller]")
     settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
 
     // SetFFTSettings calls again with new settings
-    REQUIRE(procCalls == (std::vector<size_t>{ SpectrogramController::KDefaultFftSize,
-                                               SpectrogramController::KDefaultFftSize,
-                                               1024,
-                                               1024 }));
-    REQUIRE(windowCalls == (std::vector<std::pair<size_t, FFTWindow::Type>>{
+    REQUIRE(procCalls == (std::vector<FFTSize>{ SpectrogramController::KDefaultFftSize,
+                                                SpectrogramController::KDefaultFftSize,
+                                                1024,
+                                                1024 }));
+    REQUIRE(windowCalls == (std::vector<std::pair<FFTSize, FFTWindow::Type>>{
                              std::make_pair(SpectrogramController::KDefaultFftSize,
                                             SpectrogramController::KDefaultWindowType),
                              std::make_pair(SpectrogramController::KDefaultFftSize,

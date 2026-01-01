@@ -1,4 +1,5 @@
 #pragma once
+#include <audio_types.h>
 #include <cstddef>
 #include <ifft_processor.h>
 #include <memory>
@@ -19,12 +20,12 @@ class MockFFTProcessor : public IFFTProcessor
     /**
      * @brief Constructor
      */
-    MockFFTProcessor(uint32_t aTransformSize)
+    MockFFTProcessor(FFTSize aTransformSize)
       : mTransformSize(aTransformSize)
     {
     }
 
-    [[nodiscard]] uint32_t GetTransformSize() const noexcept override { return mTransformSize; }
+    [[nodiscard]] FFTSize GetTransformSize() const noexcept override { return mTransformSize; }
 
     /**
      * @brief Return predefined complex FFT results
@@ -80,9 +81,9 @@ class MockFFTProcessor : public IFFTProcessor
      */
     [[nodiscard]] static IFFTProcessorFactory GetFactory()
     {
-        return [](size_t size) { return std::make_unique<MockFFTProcessor>(size); };
+        return [](FFTSize size) { return std::make_unique<MockFFTProcessor>(size); };
     }
 
   private:
-    uint32_t mTransformSize;
+    FFTSize mTransformSize;
 };

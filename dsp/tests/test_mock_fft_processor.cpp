@@ -1,15 +1,15 @@
 #include "ifft_processor.h"
 #include "mock_fft_processor.h"
+#include <audio_types.h>
 #include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <cstddef>
-#include <cstdint>
 #include <stdexcept>
 #include <vector>
 
 TEST_CASE("MockFFTProcessor returns fixed values", "[MockFFTProcessor]")
 {
-    const uint32_t kTransformSize = 8;
+    const FFTSize kTransformSize = 8;
     MockFFTProcessor const kMockFFT(kTransformSize);
 
     std::vector<float> samples = { 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f };
@@ -65,7 +65,7 @@ TEST_CASE("MockFFTProcessor::GetFactory", "[MockFFTProcessor]")
 
     SECTION("Factory creates MockFFTProcessor instances")
     {
-        const uint32_t kTransformSize = 32;
+        const FFTSize kTransformSize = 32;
         auto processor = factory(kTransformSize);
         REQUIRE(processor != nullptr);
         REQUIRE(processor->GetTransformSize() == kTransformSize);

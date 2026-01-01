@@ -1,10 +1,10 @@
+#include <audio_types.h>
 #include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <cmath>
 #include <cstddef>
-#include <cstdint>
 #include <fft_processor.h>
 #include <limits>
 #include <numbers>
@@ -15,7 +15,7 @@
 
 TEST_CASE("Constructor succeeds", "[fft]")
 {
-    const uint32_t kTransformSize = 1024;
+    const FFTSize kTransformSize = 1024;
     FFTProcessor const kProcessor(kTransformSize);
 
     REQUIRE(kProcessor.GetTransformSize() == kTransformSize);
@@ -37,7 +37,7 @@ TEST_CASE("Constructor succeeds", "[fft]")
 
 TEST_CASE("FFTProcessor move/copy semantics", "[fft]")
 {
-    const uint32_t kTransformSize = 512;
+    const FFTSize kTransformSize = 512;
     FFTProcessor processor1(kTransformSize);
 
     FFTProcessor processor2(std::move(processor1));
@@ -55,7 +55,7 @@ TEST_CASE("FFTProcessor move/copy semantics", "[fft]")
 
 TEST_CASE("FFTProcessor#ComputeComplex", "[fft]")
 {
-    const uint32_t kTransformSize = 8; // Small for testing
+    const FFTSize kTransformSize = 8; // Small for testing
     FFTProcessor const kProcessor(kTransformSize);
 
     SECTION("Throws on input size mismatch", "[fft]")
@@ -85,7 +85,7 @@ TEST_CASE("FFTProcessor#ComputeComplex", "[fft]")
 
 TEST_CASE("FFTProcessor#ComputeMagnitudes", "[fft]")
 {
-    const uint32_t kTransformSize = 8; // Small for testing
+    const FFTSize kTransformSize = 8; // Small for testing
     FFTProcessor const kProcessor(kTransformSize);
 
     SECTION("Throws on input size mismatch", "[fft]")
@@ -126,7 +126,7 @@ TEST_CASE("FFTProcessor#ComputeMagnitudes", "[fft]")
 
 TEST_CASE("FFTProcessor#ComputeDecibels", "[fft]")
 {
-    const uint32_t kTransformSize = 8; // Small for testing
+    const FFTSize kTransformSize = 8; // Small for testing
     FFTProcessor const kProcessor(kTransformSize);
 
     SECTION("Throws on input size mismatch", "[fft]")

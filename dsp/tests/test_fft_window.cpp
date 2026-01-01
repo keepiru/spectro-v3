@@ -1,9 +1,9 @@
+#include <audio_types.h>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <cmath>
 #include <cstddef>
-#include <cstdint>
 #include <fft_processor.h>
 #include <fft_window.h>
 #include <numbers>
@@ -68,7 +68,7 @@ TEST_CASE("FFTWindow#Apply", "[fft_window]")
 
     SECTION("Big kHann Window")
     {
-        const uint32_t kSize = 1024;
+        const FFTSize kSize = 1024;
         FFTWindow const window(kSize, FFTWindow::Type::Hann);
         std::vector<float> input(kSize, 1.0f); // All ones
         auto output = window.Apply(input);
@@ -95,7 +95,7 @@ TEST_CASE("FFTWindow#Apply", "[fft_window]")
 
 TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
 {
-    const uint32_t kTransformSize = 1024;
+    const FFTSize kTransformSize = 1024;
     const float kFrequency = 12.5; // Frequency in bins, not an integer divisor of bins
     FFTProcessor const kProcessor(kTransformSize);
 

@@ -24,7 +24,7 @@ TEST_CASE("Settings::SetFFTSettings no signal if same values", "[settings]")
     Settings settings;
     const QSignalSpy fftSpy(&settings, &Settings::FFTSettingsChanged);
     const QSignalSpy displaySpy(&settings, &Settings::DisplaySettingsChanged);
-    const int64_t size = settings.GetFFTSize();
+    const FFTSize size = settings.GetFFTSize();
     const FFTWindow::Type type = settings.GetWindowType();
 
     settings.SetFFTSettings(size, type); // Set to default again

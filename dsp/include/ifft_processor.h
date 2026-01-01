@@ -1,5 +1,5 @@
 #pragma once
-#include <cstdint>
+#include <audio_types.h>
 #include <functional>
 #include <memory>
 #include <span>
@@ -24,7 +24,7 @@ class IFFTProcessor
      * @brief Get the FFT transform size
      * @return Transform size (number of input samples) configured for this processor
      */
-    [[nodiscard]] virtual uint32_t GetTransformSize() const noexcept = 0;
+    [[nodiscard]] virtual FFTSize GetTransformSize() const noexcept = 0;
 
     /**
      * @brief Compute the complex FFT from audio samples
@@ -67,4 +67,4 @@ class IFFTProcessor
  * The function takes a transform size (number of input samples) and returns a
  * std::unique_ptr<IFFTProcessor> configured for that size.
  */
-using IFFTProcessorFactory = std::function<std::unique_ptr<IFFTProcessor>(size_t)>;
+using IFFTProcessorFactory = std::function<std::unique_ptr<IFFTProcessor>(FFTSize)>;

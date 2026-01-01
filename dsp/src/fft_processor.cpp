@@ -1,3 +1,4 @@
+#include "audio_types.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -17,7 +18,7 @@ IsPowerOf2(uint32_t n)
 }
 }
 
-FFTProcessor::FFTProcessor(int32_t aTransformSize)
+FFTProcessor::FFTProcessor(FFTSize aTransformSize)
   : mTransformSize(aTransformSize)
   , mFFTPlan(nullptr)
   , mFFTInput(nullptr)

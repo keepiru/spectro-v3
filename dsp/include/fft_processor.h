@@ -1,5 +1,5 @@
 #pragma once
-#include <cstdint>
+#include <audio_types.h>
 #include <ifft_processor.h>
 #include <memory>
 #include <span>
@@ -22,7 +22,7 @@ class FFTProcessor : public IFFTProcessor
      * @param aTransformSize FFT transform size (number of input samples, must be power of 2)
      * @throws std::invalid_argument if aTransformSize is not a power of 2
      */
-    explicit FFTProcessor(int32_t aTransformSize);
+    explicit FFTProcessor(FFTSize aTransformSize);
 
     /**
      * @brief Destructor
@@ -39,7 +39,7 @@ class FFTProcessor : public IFFTProcessor
      * @brief Get the FFT transform size
      * @return Transform size (number of input samples) configured for this processor
      */
-    [[nodiscard]] uint32_t GetTransformSize() const noexcept override { return mTransformSize; }
+    [[nodiscard]] FFTSize GetTransformSize() const noexcept override { return mTransformSize; }
 
     /**
      * @brief Compute the complex FFT from audio samples
@@ -83,7 +83,7 @@ class FFTProcessor : public IFFTProcessor
         void operator()(FftwfComplex* ptr) const;
     };
 
-    int32_t mTransformSize;
+    FFTSize mTransformSize;
     using FFTWPlanPtr = std::unique_ptr<std::remove_pointer_t<FftwfPlan>, FFTWDeleter>;
     using FFTWRealPtr = std::unique_ptr<float, FFTWDeleter>;
     using FFTWComplexPtr = std::unique_ptr<FftwfComplex, FFTWDeleter>;

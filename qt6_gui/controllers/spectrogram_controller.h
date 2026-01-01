@@ -1,4 +1,5 @@
 #pragma once
+#include <audio_types.h>
 #include "models/audio_buffer.h"
 #include "models/settings.h"
 #include <QObject>
@@ -21,7 +22,7 @@ class SpectrogramController : public QObject
     Q_OBJECT
 
   public:
-    static constexpr size_t KDefaultFftSize = 2048;
+    static constexpr FFTSize KDefaultFftSize = 2048;
     static constexpr auto KDefaultWindowType = FFTWindow::Type::Hann;
 
     /**

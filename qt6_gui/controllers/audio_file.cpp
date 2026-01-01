@@ -1,6 +1,6 @@
 #include "controllers/audio_file.h"
-#include "include/global_constants.h"
 #include "models/audio_file_reader.h"
+#include <audio_types.h>
 #include <cstddef>
 #include <vector>
 

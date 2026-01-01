@@ -1,6 +1,7 @@
 #include "audio_buffer.h"
 #include "include/global_constants.h"
 #include <QObject>
+#include <audio_types.h>
 #include <cstddef>
 #include <format>
 #include <memory>

@@ -1,6 +1,5 @@
 #pragma once
 #include "audio_types.h"
-#include <cstddef>
 #include <mutex>
 #include <vector>
 
@@ -33,7 +32,7 @@ class SampleBuffer
      * @brief Get the total number of samples stored.
      * @return Number of samples.
      */
-    int64_t NumSamples() const;
+    [[nodiscard]] SampleCount GetSampleCount() const;
 
     /**
      * @brief Add audio samples to buffer.
@@ -48,7 +47,7 @@ class SampleBuffer
      * @return Vector of samples.
      * @throws std::out_of_range if there aren't enough samples to fill the request.
      */
-    std::vector<float> GetSamples(size_t aStartSample, size_t aSampleCount) const;
+    [[nodiscard]] std::vector<float> GetSamples(SampleIndex aStartSample, SampleCount aSampleCount) const;
 
   private:
     mutable std::mutex mMutex;

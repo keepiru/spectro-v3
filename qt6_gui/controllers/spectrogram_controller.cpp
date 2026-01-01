@@ -5,8 +5,8 @@
 #include "models/settings.h"
 #include <QObject>
 #include <audio_types.h>
+#include <cassert>
 #include <cstddef>
-#include <cstdint>
 #include <fft_processor.h>
 #include <fft_window.h>
 #include <memory>
@@ -67,7 +67,9 @@ SpectrogramController::ResetFFT()
 }
 
 std::vector<std::vector<float>>
-SpectrogramController::GetRows(ChannelCount aChannel, int64_t aFirstSample, size_t aRowCount) const
+SpectrogramController::GetRows(ChannelCount aChannel,
+                               SampleOffset aFirstSample,
+                               size_t aRowCount) const
 {
     if (aChannel >= mAudioBuffer.GetChannelCount()) {
         throw std::out_of_range("Channel index out of range");
@@ -79,8 +81,8 @@ SpectrogramController::GetRows(ChannelCount aChannel, int64_t aFirstSample, size
     const FFTSize kWindowStride = mSettings.GetWindowStride();
 
     for (size_t row = 0; row < aRowCount; row++) {
-        const int64_t kWindowFirstSample =
-          aFirstSample + (static_cast<int64_t>(row) * kWindowStride);
+        const FrameOffset kWindowFirstSample =
+          aFirstSample + (static_cast<FrameOffset>(row) * kWindowStride);
         const auto kSpectrum = GetRow(aChannel, kWindowFirstSample);
         spectrogram.push_back(kSpectrum);
     }
@@ -88,23 +90,23 @@ SpectrogramController::GetRows(ChannelCount aChannel, int64_t aFirstSample, size
 }
 
 std::vector<float>
-SpectrogramController::GetRow(ChannelCount aChannel, int64_t aFirstSample) const
+SpectrogramController::GetRow(ChannelCount aChannel, SampleOffset aFirstSample) const
 {
     if (aChannel >= mAudioBuffer.GetChannelCount()) {
         throw std::out_of_range("Channel index out of range");
     }
 
-    const int64_t kSampleCount = mFFTWindows.at(aChannel)->GetSize();
-    const int64_t kAvailableSamples = GetAvailableFrameCount();
-    const int64_t kLastNeededSample = aFirstSample + kSampleCount;
+    const FFTSize kFFTSize = mFFTWindows.at(aChannel)->GetSize();
+    const SampleCount kAvailableSamples = GetAvailableFrameCount();
+    const SampleOffset kLastNeededSample = aFirstSample + kFFTSize;
 
     // Check if the requested window is within available data, else return zeroed row
     if (aFirstSample < 0 || kLastNeededSample > kAvailableSamples) {
-        return std::vector<float>((kSampleCount / 2) + 1, 0.0f);
+        return std::vector<float>((kFFTSize / 2) + 1, 0.0f);
     }
 
     // Check cache first
-    const std::pair<size_t, int64_t> cacheKey = { aChannel, aFirstSample };
+    const std::pair<ChannelCount, SampleIndex> cacheKey = { aChannel, aFirstSample };
 
     const auto cacheIt = mSpectrogramRowCache.find(cacheKey);
     if (cacheIt != mSpectrogramRowCache.end()) {
@@ -113,7 +115,7 @@ SpectrogramController::GetRow(ChannelCount aChannel, int64_t aFirstSample) const
     }
 
     // Not in cache, compute it
-    const auto kSpectrum = ComputeFFT(aChannel, aFirstSample);
+    const auto kSpectrum = ComputeFFT(aChannel, ToSampleIndex(aFirstSample));
 
     // Store in cache
     mSpectrogramRowCache.emplace(cacheKey, kSpectrum);
@@ -122,21 +124,21 @@ SpectrogramController::GetRow(ChannelCount aChannel, int64_t aFirstSample) const
 }
 
 std::vector<float>
-SpectrogramController::ComputeFFT(ChannelCount aChannel, int64_t aFirstSample) const
+SpectrogramController::ComputeFFT(ChannelCount aChannel, SampleIndex aFirstSample) const
 {
-    const int64_t kSampleCount = mFFTWindows.at(aChannel)->GetSize();
+    const FFTSize kFFTSize = mFFTWindows.at(aChannel)->GetSize();
     // Future performance optimization: grab the entire needed range once
     // before the loop to minimize locking and copy overhead.
-    const auto kSamples = mAudioBuffer.GetSamples(aChannel, aFirstSample, kSampleCount);
+    const auto kSamples = mAudioBuffer.GetSamples(aChannel, aFirstSample, kFFTSize);
     auto windowedSamples = mFFTWindows[aChannel]->Apply(kSamples);
     auto windowedSpan = std::span<float>(windowedSamples);
     return mFFTProcessors[aChannel]->ComputeDecibels(windowedSpan);
 }
 
-int64_t
+FrameCount
 SpectrogramController::GetAvailableFrameCount() const
 {
-    return mAudioBuffer.FrameCount();
+    return mAudioBuffer.GetFrameCount();
 }
 
 ChannelCount
@@ -145,15 +147,15 @@ SpectrogramController::GetChannelCount() const
     return mAudioBuffer.GetChannelCount();
 }
 
-int64_t
-SpectrogramController::CalculateTopOfWindow(int64_t aCursorFrame) const
+FrameOffset
+SpectrogramController::CalculateTopOfWindow(FrameOffset aCursorFrame) const
 {
-    const int64_t kUnalignedFrame = aCursorFrame - mSettings.GetFFTSize();
+    const FrameOffset kUnalignedFrame = aCursorFrame - mSettings.GetFFTSize();
     return RoundToStride(kUnalignedFrame);
 }
 
-int64_t
-SpectrogramController::RoundToStride(int64_t aFrame) const
+FrameOffset
+SpectrogramController::RoundToStride(FrameOffset aFrame) const
 {
     const FFTSize kStride = mSettings.GetWindowStride();
 
@@ -164,7 +166,7 @@ SpectrogramController::RoundToStride(int64_t aFrame) const
     //     ceil(-n / d) == (-n + d - 1) / d
     //     floor(n / d) == -ceil(-n / d)
     //                  == -((-n + d - 1) / d)
-    const int64_t kStrideIndex =
+    const FrameOffset kStrideIndex =
       aFrame >= 0 ? aFrame / kStride : -((-aFrame + kStride - 1) / kStride);
     return kStrideIndex * kStride;
 }

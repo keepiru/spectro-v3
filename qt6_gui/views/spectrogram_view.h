@@ -4,8 +4,7 @@
 #include <QAbstractScrollArea>
 #include <QScrollBar>
 #include <QWidget>
-#include <cstddef>
-#include <cstdint>
+#include <audio_types.h>
 
 // Forward declarations
 class SpectrogramController;
@@ -16,8 +15,8 @@ class SpectrogramController;
 struct RenderConfig
 {
     ChannelCount channels;
-    int64_t stride;
-    int64_t top_frame;
+    FFTSize stride;
+    FrameOffset top_frame;
     float min_decibels;
     float max_decibels;
     float decibel_range;
@@ -100,7 +99,7 @@ class SpectrogramView : public QAbstractScrollArea
      *
      * @param aAvailableFrames Total number of frames available in the buffer
      */
-    void UpdateScrollbarRange(int64_t aAvailableFrames);
+    void UpdateScrollbarRange(FrameCount aAvailableFrames);
 
   protected:
     void paintEvent(QPaintEvent* event) override;

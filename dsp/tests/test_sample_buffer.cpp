@@ -16,7 +16,7 @@ TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
     SECTION("Check properties")
     {
         REQUIRE(buffer.GetSampleRate() == kSampleRate);
-        REQUIRE(buffer.NumSamples() == kSamples.size());
+        REQUIRE(buffer.GetSampleCount() == kSamples.size());
     }
 
     SECTION("Retrieve all samples")
@@ -59,7 +59,7 @@ TEST_CASE("SampleBuffer concurrent access", "[SampleBuffer][concurrency]")
 
     auto reader = [&buffer]() {
         for (int i = 0; i < 1000; ++i) {
-            volatile auto samples = buffer.GetSamples(0, buffer.NumSamples());
+            volatile auto samples = buffer.GetSamples(0, buffer.GetSampleCount());
         }
     };
 
@@ -71,5 +71,5 @@ TEST_CASE("SampleBuffer concurrent access", "[SampleBuffer][concurrency]")
     thread2.join();
     thread3.join();
 
-    REQUIRE(buffer.NumSamples() == 1000);
+    REQUIRE(buffer.GetSampleCount() == 1000);
 }

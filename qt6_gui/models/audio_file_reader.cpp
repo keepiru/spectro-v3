@@ -1,4 +1,5 @@
 #include "audio_file_reader.h"
+#include "audio_types.h"
 #include <cstddef>
 #include <format>
 #include <sndfile.h>
@@ -19,7 +20,7 @@ AudioFileReader::AudioFileReader(const std::string& aFilePath)
 }
 
 std::vector<float>
-AudioFileReader::ReadInterleaved(size_t aFrames)
+AudioFileReader::ReadInterleaved(FrameCount aFrames)
 {
     // Read interleaved audio samples from the file
     std::vector<float> buffer(aFrames * mSfInfo.channels);

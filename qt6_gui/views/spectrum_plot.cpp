@@ -11,6 +11,7 @@
 #include <QtTypes>
 #include <algorithm>
 #include <array>
+#include <audio_types.h>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -28,8 +29,10 @@ SpectrumPlot::SpectrumPlot(const SpectrogramController& aController, QWidget* pa
 std::vector<float>
 SpectrumPlot::GetDecibels(const ChannelCount aChannel) const
 {
-    const int64_t kAvailableFrameCount = mController.GetAvailableFrameCount();
-    const int64_t kTopFrame = mController.CalculateTopOfWindow(kAvailableFrameCount);
+    const FrameCount kAvailableFrameCount = mController.GetAvailableFrameCount();
+    // This casting friction should be fixed after we implement cursors correctly.
+    const FrameOffset kTopFrame =
+      mController.CalculateTopOfWindow(static_cast<FrameOffset>(kAvailableFrameCount));
     return mController.GetRow(aChannel, kTopFrame);
 }
 

@@ -149,8 +149,8 @@ SettingsPanel::CreateWindowScaleControl(QFormLayout* aLayout)
     mWindowScaleSlider->setTickInterval(1);
 
     // Set initial value
-    const std::array<size_t, 5> scaleValues{ 1, 2, 4, 8, 16 };
-    const size_t currentScale = mSettings->GetWindowScale();
+    const std::array<WindowScale, 5> scaleValues{ 1, 2, 4, 8, 16 };
+    const WindowScale currentScale = mSettings->GetWindowScale();
     for (size_t i = 0; i < scaleValues.size(); i++) {
         if (scaleValues.at(i) == currentScale) {
             mWindowScaleSlider->setValue(static_cast<int>(i));
@@ -164,7 +164,7 @@ SettingsPanel::CreateWindowScaleControl(QFormLayout* aLayout)
 
     // Connect to settings
     connect(mWindowScaleSlider, &QSlider::valueChanged, this, [this](int aValue) {
-        const std::array<size_t, 5> scaleValues{ 1, 2, 4, 8, 16 };
+        const std::array<WindowScale, 5> scaleValues{ 1, 2, 4, 8, 16 };
         mSettings->SetWindowScale(scaleValues.at(static_cast<size_t>(aValue)));
         UpdateWindowScaleLabel();
     });

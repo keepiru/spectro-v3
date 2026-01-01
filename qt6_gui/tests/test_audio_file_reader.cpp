@@ -35,9 +35,9 @@ TEST_CASE("AudioFileReader", "[audio_file_reader]")
         REQUIRE(reader.GetChannelCount() == 1);
     }
 
-    SECTION("GetTotalFrames returns correct value")
+    SECTION("GetFrameCount returns correct value")
     {
-        REQUIRE(reader.GetTotalFrames() == 4410);
+        REQUIRE(reader.GetFrameCount() == 4410);
     }
 
     SECTION("reads correct samples")

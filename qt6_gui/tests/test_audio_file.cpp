@@ -28,7 +28,7 @@ class MockAudioFileReader : public IAudioFileReader
     /// @brief Read interleaved audio samples
     /// @param aFrames Number of frames to read
     /// @return Vector of interleaved audio samples
-    [[nodiscard]] std::vector<float> ReadInterleaved(size_t aFrames) override
+    [[nodiscard]] std::vector<float> ReadInterleaved(FrameCount aFrames) override
     {
         const size_t samplesToRead = std::min(aFrames * mChannelCount, mSamples.size());
         const auto end = std::next(mSamples.begin(), static_cast<std::ptrdiff_t>(samplesToRead));
@@ -47,7 +47,10 @@ class MockAudioFileReader : public IAudioFileReader
 
     /// @brief Get the total number of frames in the simulated audio file
     /// @return Total frames
-    [[nodiscard]] size_t GetFrameCount() const override { return mSamples.size() / mChannelCount; }
+    [[nodiscard]] FrameCount GetFrameCount() const override
+    {
+        return mSamples.size() / mChannelCount;
+    }
 
   private:
     std::vector<float> mSamples;

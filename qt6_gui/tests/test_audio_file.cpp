@@ -1,5 +1,4 @@
 #include "controllers/audio_file.h"
-#include "include/global_constants.h"
 #include "models/audio_file_reader.h"
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>

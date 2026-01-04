@@ -1,5 +1,4 @@
 #pragma once
-#include "include/global_constants.h"
 #include <QObject>
 #include <memory>
 #include <sample_buffer.h>

@@ -23,9 +23,9 @@ std::vector<float>
 AudioFileReader::ReadInterleaved(FrameCount aFrames)
 {
     // Read interleaved audio samples from the file
-    std::vector<float> buffer(aFrames * mSfInfo.channels);
+    std::vector<float> buffer(aFrames * ChannelCount(mSfInfo.channels));
     const sf_count_t framesRead =
-      sf_readf_float(mSndFile.get(), buffer.data(), static_cast<sf_count_t>(aFrames));
+      sf_readf_float(mSndFile.get(), buffer.data(), aFrames.ToSfCountT());
     buffer.resize(static_cast<size_t>(framesRead) * mSfInfo.channels);
     return buffer;
 }

@@ -1,6 +1,5 @@
 #include "spectrum_plot.h"
 #include "controllers/spectrogram_controller.h"
-#include "include/global_constants.h"
 #include <QCursor>
 #include <QLine>
 #include <QPaintEvent>
@@ -31,8 +30,7 @@ SpectrumPlot::GetDecibels(const ChannelCount aChannel) const
 {
     const FrameCount kAvailableFrameCount = mController.GetAvailableFrameCount();
     // This casting friction should be fixed after we implement cursors correctly.
-    const FrameOffset kTopFrame =
-      mController.CalculateTopOfWindow(static_cast<FrameOffset>(kAvailableFrameCount));
+    const FrameOffset kTopFrame = mController.CalculateTopOfWindow(kAvailableFrameCount.AsOffset());
     return mController.GetRow(aChannel, kTopFrame);
 }
 

@@ -109,7 +109,8 @@ class FrameCount : public Count<size_t, TagFrame>
 };
 
 /// Index into audio timeline (0-based frame position)
-using FrameIndex = size_t;
+// Currently unused
+// using FrameIndex = size_t;
 
 // === Conversion helpers ===
 

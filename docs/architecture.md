@@ -10,7 +10,6 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
 
 - **`AudioBuffer`**: Append-only multi-channel audio sample storage
   - Wraps multiple `SampleBuffer` from DSP library
-  - Thread-safe for concurrent writes (audio capture) and reads (FFT computation)
   - Emits `samplesAdded(count)` signal when new audio arrives
   - Source of truth for all audio data
 
@@ -111,16 +110,6 @@ SpectrogramView.paint()
     → Controller.GetRows() recomputes with new settings
     → render spectrogram
 ```
-
-## Threading Model
-
-**Single-threaded**: All components (views, controllers, models, audio capture) run on Qt's main event loop thread.
-
-**Thread Safety**:
-- `AudioBuffer` uses mutex for thread-safe read/write
-- `SpectrogramController` accesses `AudioBuffer` via `SampleBuffer` (mutex-protected reads)
-- `mSpectrogramRowCache` is accessed only from main thread (no locking needed)
-- Controllers and views run on main thread only
 
 ## Component Responsibilities
 

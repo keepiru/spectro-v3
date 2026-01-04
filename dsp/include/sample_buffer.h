@@ -1,13 +1,11 @@
 #pragma once
 #include "audio_types.h"
-#include <mutex>
 #include <vector>
 
 /**
- * @brief A thread-safe audio sample storage.
+ * @brief Audio sample storage.
  *
  * Stores single-channel audio.  Supports random access for scrubbing.
- * Thread-safe for concurrent reads and writes.
  */
 class SampleBuffer
 {
@@ -47,10 +45,10 @@ class SampleBuffer
      * @return Vector of samples.
      * @throws std::out_of_range if there aren't enough samples to fill the request.
      */
-    [[nodiscard]] std::vector<float> GetSamples(SampleIndex aStartSample, SampleCount aSampleCount) const;
+    [[nodiscard]] std::vector<float> GetSamples(SampleIndex aStartSample,
+                                                SampleCount aSampleCount) const;
 
   private:
-    mutable std::mutex mMutex;
     SampleRate mSampleRate;
     std::vector<float> mData;
 };

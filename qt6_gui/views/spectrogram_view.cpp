@@ -49,14 +49,6 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
     // The scrollbar's maximum is the total available frames.
     const FrameCount kScrollMaximum = aAvailableFrames;
 
-    // Safety check for overflow.  Scrollbar values must fit in int.
-    if (kScrollMaximum > std::numeric_limits<int>::max()) {
-        throw std::overflow_error(std::format("{}: maximum scroll position {} exceeds int max {}",
-                                              __PRETTY_FUNCTION__,
-                                              kScrollMaximum,
-                                              std::numeric_limits<int>::max()));
-    }
-
     const FFTSize kStride = mController.GetSettings().GetWindowStride();
 
     // Safety check for overflow.  This would only happen with an absurdly large
@@ -72,11 +64,11 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
     const bool kIsAtMaximum = (verticalScrollBar()->value() == verticalScrollBar()->maximum());
 
     // Update scrollbar range
-    verticalScrollBar()->setMaximum(static_cast<int>(kScrollMaximum));
+    verticalScrollBar()->setMaximum(kScrollMaximum.ToIntChecked());
     verticalScrollBar()->setPageStep(kScrollPageStep);
     // If we were at the maximum, stay at the new maximum (follow live audio)
     if (kIsAtMaximum) {
-        verticalScrollBar()->setValue(static_cast<int>(kScrollMaximum));
+        verticalScrollBar()->setValue(kScrollMaximum.ToIntChecked());
     }
     // Otherwise, preserve the current scroll position (user is viewing history)
 }

@@ -97,7 +97,8 @@ SpectrogramController::GetRow(ChannelCount aChannel, SampleOffset aFirstSample) 
     }
 
     const FFTSize kFFTSize = mFFTWindows.at(aChannel)->GetSize();
-    const SampleCount kAvailableSamples = GetAvailableFrameCount();
+    // We want the number of samples in single channel
+    const SampleCount kAvailableSamples = GetAvailableFrameCount() * ChannelCount(1);
     const SampleOffset kLastNeededSample = aFirstSample + kFFTSize;
 
     // Check if the requested window is within available data, else return zeroed row

@@ -1,5 +1,4 @@
 #include "controllers/audio_file.h"
-#include "include/global_constants.h"
 #include "models/audio_file_reader.h"
 #include <audio_types.h>
 #include <vector>
@@ -33,8 +32,9 @@ AudioFile::LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgress
         if (kTotalFrames == 0) {
             continue;
         }
-        const int kProgressPercent = static_cast<int>(static_cast<float>(mBuffer.GetFrameCount()) /
-                                                      static_cast<float>(kTotalFrames) * 100.0f);
+        const int kProgressPercent =
+          static_cast<int>(static_cast<float>(mBuffer.GetFrameCount().Get()) /
+                           static_cast<float>(kTotalFrames.Get()) * 100.0f);
 
         // Throttle progress callbacks to only report when it changes.
         if (kProgressPercent > lastProgress) {

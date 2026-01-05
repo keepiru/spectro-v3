@@ -212,7 +212,7 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
 
         SECTION("with scrollbar at non-zero")
         {
-            view.UpdateScrollbarRange(2000000);
+            view.UpdateScrollbarRange(FrameCount(2000000));
 
             want.top_frame = 1735680; // 2000000 - (1024 * 256), aligned down
             const RenderConfig have = view.GetRenderConfig(height);
@@ -262,28 +262,28 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
     SECTION("throws when overflowing scrollbar maximum")
     {
         const int64_t kMaxAllowed = (1LL << 31) - 1;
-        REQUIRE_NOTHROW(view.UpdateScrollbarRange(kMaxAllowed));
+        REQUIRE_NOTHROW(view.UpdateScrollbarRange(FrameCount(kMaxAllowed)));
 
         const int64_t kTooLarge = kMaxAllowed + 1;
-        REQUIRE_THROWS_MATCHES(view.UpdateScrollbarRange(kTooLarge),
+        REQUIRE_THROWS_MATCHES(view.UpdateScrollbarRange(FrameCount(kTooLarge)),
                                std::overflow_error,
                                MessageMatches(ContainsSubstring("exceeds int max")));
     }
 
     SECTION("UpdateScrollbarRange updates scrollbar maximum")
     {
-        view.UpdateScrollbarRange(10000);
+        view.UpdateScrollbarRange(FrameCount(10000));
         REQUIRE(scrollBar->maximum() == 10000);
     }
 
     SECTION("UpdateScrollbarRange preserves scroll position when not at max")
     {
         // Set initial range and position
-        view.UpdateScrollbarRange(10000);
+        view.UpdateScrollbarRange(FrameCount(10000));
         scrollBar->setValue(5000); // Set to middle position
 
         // Add more data
-        view.UpdateScrollbarRange(20000);
+        view.UpdateScrollbarRange(FrameCount(20000));
 
         // Position should be preserved
         REQUIRE(scrollBar->value() == 5000);
@@ -292,11 +292,11 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
     SECTION("UpdateScrollbarRange follows live data when at maximum")
     {
         // Set initial range and position at max (live mode)
-        view.UpdateScrollbarRange(10000);
+        view.UpdateScrollbarRange(FrameCount(10000));
         scrollBar->setValue(scrollBar->maximum());
 
         // Add more data
-        view.UpdateScrollbarRange(20000);
+        view.UpdateScrollbarRange(FrameCount(20000));
 
         // Position should follow to new maximum (implicit live mode)
         REQUIRE(scrollBar->value() == scrollBar->maximum());
@@ -308,7 +308,7 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
         // We can't directly test paintEvent, but we can at least verify that
         // the scrollbar's valueChanged signal is emitted.
         QSignalSpy spy(scrollBar, &QScrollBar::valueChanged);
-        view.UpdateScrollbarRange(10000);
+        view.UpdateScrollbarRange(FrameCount(10000));
         REQUIRE(spy.count() == 1);
         REQUIRE(spy.takeFirst().takeFirst().toInt() == 10000);
     }

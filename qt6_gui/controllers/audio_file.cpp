@@ -8,7 +8,7 @@ AudioFile::LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgress
 {
     // Each chunk is passed to AddSamples, which will trigger a display refresh,
     // so we want to keep these chunks fairly large for efficiency.
-    constexpr FrameCount kChunkSize = 1024L * 1024L;
+    constexpr FrameCount kChunkSize(1024L * 1024L);
 
     const ChannelCount kChannelCount = aReader.GetChannelCount();
     const SampleRate kSampleRate = aReader.GetSampleRate();
@@ -29,7 +29,7 @@ AudioFile::LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgress
         // Avoid division by zero for empty files.  This should never actually
         // happen because we would have exited the loop above, but let's be
         // safe and make sure we don't call the progress callback with Inf.
-        if (kTotalFrames == 0) {
+        if (kTotalFrames == FrameCount(0)) {
             continue;
         }
         const int kProgressPercent =

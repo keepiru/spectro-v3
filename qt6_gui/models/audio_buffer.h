@@ -82,9 +82,9 @@ class AudioBuffer : public QObject
     [[nodiscard]] FrameCount GetFrameCount() const
     {
         if (mChannelBuffers.empty()) {
-            return 0;
+            return FrameCount(0);
         }
-        return mChannelBuffers[0]->GetSampleCount();
+        return FrameCount(mChannelBuffers[0]->GetSampleCount());
     }
 
   signals:

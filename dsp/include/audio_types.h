@@ -26,7 +26,7 @@ class Count
     {
     }
 
-    constexpr Count(T aValue)
+    explicit constexpr Count(T aValue)
       : mValue(aValue)
     {
     }

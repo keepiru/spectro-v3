@@ -50,7 +50,7 @@ TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
 
         // Check our assumptions.  15 frames loaded:
         const FrameCount kAvailableFrameCount = controller.GetAvailableFrameCount();
-        CHECK(kAvailableFrameCount == 15);
+        CHECK(kAvailableFrameCount == FrameCount(15));
 
         // With window size 8 and stride 4, top of window should start at frame 4
         const FrameOffset kTopFrame =

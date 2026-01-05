@@ -84,13 +84,13 @@ TEST_CASE("AudioRecorder::Start resets audio buffer", "[audio_recorder]")
 
     // Add some samples to the buffer first
     buffer.AddSamples({ 0.1f, 0.2f, 0.3f, 0.4f });
-    REQUIRE(buffer.GetFrameCount() == 2);
+    REQUIRE(buffer.GetFrameCount() == FrameCount(2));
     REQUIRE(buffer.GetSampleRate() == 44100);
 
     recorder.Start(QAudioDevice(), 2, 48000, &ioDevice);
 
     // Buffer should be reset
-    REQUIRE(buffer.GetFrameCount() == 0);
+    REQUIRE(buffer.GetFrameCount() == FrameCount(0));
     REQUIRE(buffer.GetSampleRate() == 48000);
 }
 
@@ -148,7 +148,7 @@ TEST_CASE("AudioRecorder audio data written to buffer", "[audio_recorder]")
     ioDevice.SimulateAudioData({ 0.1, 0.2, 0.3, 0.4 });
 
     // ... then see if it comes back.
-    REQUIRE(buffer.GetFrameCount() == 2);
+    REQUIRE(buffer.GetFrameCount() == FrameCount(2));
     REQUIRE(buffer.GetSamples(0, 0, 2) == std::vector<float>({ 0.1, 0.3 }));
     REQUIRE(buffer.GetSamples(1, 0, 2) == std::vector<float>({ 0.2, 0.4 }));
 
@@ -156,7 +156,7 @@ TEST_CASE("AudioRecorder audio data written to buffer", "[audio_recorder]")
     ioDevice.SimulateAudioData({ 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 });
 
     // ... And it should all be there.
-    REQUIRE(buffer.GetFrameCount() == 5);
+    REQUIRE(buffer.GetFrameCount() == FrameCount(5));
     REQUIRE(buffer.GetSamples(0, 0, 5) == std::vector<float>({ 0.1, 0.3, 0.5, 0.7, 0.9 }));
     REQUIRE(buffer.GetSamples(1, 0, 5) == std::vector<float>({ 0.2, 0.4, 0.6, 0.8, 1.0 }));
 }

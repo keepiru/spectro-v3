@@ -66,7 +66,7 @@ TEST_CASE("AudioBuffer::AddSamples emits signal", "[audio_buffer]")
     REQUIRE(spy.count() == 1);
     auto firstCallArgs = spy.takeFirst();
     auto have = firstCallArgs.takeFirst().value<FrameCount>();
-    REQUIRE(have == 2);
+    REQUIRE(have == FrameCount(2));
 }
 
 TEST_CASE("AudioBuffer::Reset clears samples", "[audio_buffer]")
@@ -74,17 +74,17 @@ TEST_CASE("AudioBuffer::Reset clears samples", "[audio_buffer]")
     AudioBuffer buffer;
     buffer.AddSamples({ 1, 2, 3, 4 });
 
-    REQUIRE(buffer.GetFrameCount() == 2);
+    REQUIRE(buffer.GetFrameCount() == FrameCount(2));
 
     buffer.Reset(2, 44100);
-    REQUIRE(buffer.GetFrameCount() == 0);
+    REQUIRE(buffer.GetFrameCount() == FrameCount(0));
     REQUIRE_THROWS_AS((void)buffer.GetSamples(0, 0, 1), std::out_of_range);
 
     // Also test after changing channel count
     buffer.AddSamples({ 5, 6, 7, 8 });
     buffer.Reset(1, 44100);
 
-    REQUIRE(buffer.GetFrameCount() == 0);
+    REQUIRE(buffer.GetFrameCount() == FrameCount(0));
 }
 
 TEST_CASE("AudioBuffer::Reset changes channel count and sample rate", "[audio_buffer]")

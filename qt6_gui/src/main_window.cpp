@@ -135,6 +135,6 @@ MainWindow::SetupConnections()
 
     // Reset scrollbar when buffer is reset
     connect(&mAudioBuffer, &AudioBuffer::BufferReset, [&]() {
-        mSpectrogramView.UpdateScrollbarRange(0);
+        mSpectrogramView.UpdateScrollbarRange(FrameCount(0));
     });
 }

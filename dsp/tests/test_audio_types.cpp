@@ -98,11 +98,11 @@ TEST_CASE("FrameCount", "[audio_types]")
         CHECK(kHave == kWant);
     }
 
-    SECTION("AsOffset conversion")
+    SECTION("AsPosition conversion")
     {
         const FrameCount kFC(750);
-        const FrameOffset kHave = kFC.AsOffset();
-        const FrameOffset kWant = 750;
+        const FramePosition kHave = kFC.AsPosition();
+        const FramePosition kWant = 750;
         CHECK(kHave == kWant);
     }
 

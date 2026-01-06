@@ -30,7 +30,8 @@ SpectrumPlot::GetDecibels(const ChannelCount aChannel) const
 {
     const FrameCount kAvailableFrameCount = mController.GetAvailableFrameCount();
     // This casting friction should be fixed after we implement cursors correctly.
-    const FrameOffset kTopFrame = mController.CalculateTopOfWindow(kAvailableFrameCount.AsOffset());
+    const FramePosition kTopFrame =
+      mController.CalculateTopOfWindow(kAvailableFrameCount.AsPosition());
     return mController.GetRow(aChannel, kTopFrame);
 }
 

@@ -105,8 +105,11 @@ SpectrogramController::GetRow(ChannelCount aChannel, FrameOffset aFirstFrame) co
         return std::vector<float>((kFFTSize / 2) + 1, 0.0f);
     }
 
+    // The aFirstFrame < 0 check above ensures this cast is safe
+    const FrameIndex kFirstFrameIndex(aFirstFrame);
+
     // Check cache first
-    const std::pair<ChannelCount, FrameIndex> cacheKey = { aChannel, FrameIndex(aFirstFrame) };
+    const std::pair<ChannelCount, FrameIndex> cacheKey = { aChannel, kFirstFrameIndex };
 
     const auto cacheIt = mSpectrogramRowCache.find(cacheKey);
     if (cacheIt != mSpectrogramRowCache.end()) {
@@ -115,7 +118,7 @@ SpectrogramController::GetRow(ChannelCount aChannel, FrameOffset aFirstFrame) co
     }
 
     // Not in cache, compute it
-    const auto kSpectrum = ComputeFFT(aChannel, aFirstFrame);
+    const auto kSpectrum = ComputeFFT(aChannel, kFirstFrameIndex);
     // Store in cache
     mSpectrogramRowCache.emplace(cacheKey, kSpectrum);
 
@@ -127,7 +130,7 @@ SpectrogramController::ComputeFFT(ChannelCount aChannel, FrameIndex aFirstFrame)
 {
     const FFTSize kFFTSize = mFFTWindows.at(aChannel)->GetSize();
     // We need to convert FrameIndex to SampleIndex for audio buffer access
-    const SampleIndex kFirstSample(aFirstFrame);
+    const SampleIndex kFirstSample(aFirstFrame.Get());
     // Future performance optimization: grab the entire needed range once
     // before the loop to minimize locking and copy overhead.
     const auto kSamples = mAudioBuffer.GetSamples(aChannel, kFirstSample, SampleCount(kFFTSize));

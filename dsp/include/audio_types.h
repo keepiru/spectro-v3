@@ -103,13 +103,6 @@ class Index
         return mValue < aOther.Get();
     }
 
-    /// @brief Cast to ptrdiff_t for use in iterator arithmetic
-    /// @return The index as ptrdiff_t
-    [[nodiscard]] constexpr std::ptrdiff_t AsPtrDiffT() const noexcept
-    {
-        return static_cast<std::ptrdiff_t>(mValue);
-    }
-
   private:
     T mValue;
 };
@@ -154,6 +147,13 @@ class SampleIndex : public Index<size_t, TagSample>
     [[nodiscard]] constexpr SampleIndex operator+(FFTSize aOther) const noexcept
     {
         return SampleIndex(Get() + aOther);
+    }
+
+    /// @brief Cast to ptrdiff_t for use in iterator arithmetic
+    /// @return The index as ptrdiff_t
+    [[nodiscard]] constexpr std::ptrdiff_t AsPtrDiffT() const noexcept
+    {
+        return static_cast<std::ptrdiff_t>(Get());
     }
 };
 
@@ -204,8 +204,11 @@ class FrameCount : public Count<size_t, TagFrame>
 };
 
 /// Index into audio timeline (0-based frame position)
-// Currently unused
-using FrameIndex = size_t;
+class FrameIndex : public Index<size_t, TagFrame>
+{
+  public:
+    using Index<size_t, TagFrame>::Index;
+};
 
 /// Validates that a value is a power of 2.
 /// This helper is intended for checking FFTSize values. Although FFTSize is

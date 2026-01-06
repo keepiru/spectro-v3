@@ -55,7 +55,7 @@ TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
         // With window size 8 and stride 4, top of window should start at frame 4
         const FramePosition kTopFrame =
           controller.CalculateTopOfWindow(kAvailableFrameCount.AsPosition());
-        CHECK(kTopFrame == 4);
+        CHECK(kTopFrame == FramePosition{ 4 });
         // Therefore, FFT window should cover frames 4-8:
         const std::vector<std::vector<float>> want = { { 8, 10, 12, 14, 16 },
                                                        { 9, 11, 13, 15, 17 } };

@@ -7,6 +7,7 @@
 #include <audio_types.h>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <fft_processor.h>
 #include <fft_window.h>
 #include <memory>
@@ -81,8 +82,7 @@ SpectrogramController::GetRows(ChannelCount aChannel,
     const FFTSize kWindowStride = mSettings.GetWindowStride();
 
     for (size_t row = 0; row < aRowCount; row++) {
-        const FramePosition kWindowFirstSample =
-          aFirstFrame + (static_cast<FramePosition>(row) * kWindowStride);
+        const FramePosition kWindowFirstSample = aFirstFrame + FrameCount{ row * kWindowStride };
         const auto kSpectrum = GetRow(aChannel, kWindowFirstSample);
         spectrogram.push_back(kSpectrum);
     }
@@ -101,12 +101,12 @@ SpectrogramController::GetRow(ChannelCount aChannel, FramePosition aFirstFrame) 
     const FrameCount kAvailableFrames = GetAvailableFrameCount();
     const FramePosition kLastNeededSample = aFirstFrame + kFFTSize;
     // Check if the requested window is within available data, else return zeroed row
-    if (aFirstFrame < 0 || kLastNeededSample > kAvailableFrames.Get()) {
+    if (aFirstFrame < FramePosition{ 0 } || kLastNeededSample > kAvailableFrames.AsPosition()) {
         return std::vector<float>((kFFTSize / 2) + 1, 0.0f);
     }
 
     // The aFirstFrame < 0 check above ensures this cast is safe
-    const FrameIndex kFirstFrameIndex(aFirstFrame);
+    const FrameIndex kFirstFrameIndex(aFirstFrame.Get());
 
     // Check cache first
     const std::pair<ChannelCount, FrameIndex> cacheKey = { aChannel, kFirstFrameIndex };
@@ -170,9 +170,9 @@ SpectrogramController::RoundToStride(FramePosition aFrame) const
     //     ceil(-n / d) == (-n + d - 1) / d
     //     floor(n / d) == -ceil(-n / d)
     //                  == -((-n + d - 1) / d)
-    const FramePosition kStrideIndex =
-      aFrame >= 0 ? aFrame / kStride : -((-aFrame + kStride - 1) / kStride);
-    return kStrideIndex * kStride;
+    const int64_t kStrideIndex =
+      aFrame.Get() >= 0 ? aFrame.Get() / kStride : -((-aFrame.Get() + kStride - 1) / kStride);
+    return FramePosition{ kStrideIndex * kStride };
 }
 
 float

@@ -92,9 +92,9 @@ TEST_CASE("SpectrogramController::GetRows single window computation", "[spectrog
     const std::vector<std::vector<float>> kWant = {
         { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
     };
-    REQUIRE(controller->GetRows(0, 0, 1) == kWant);
-    REQUIRE(controller->GetRow(0, 0) == kWant[0]);
-    REQUIRE(controller->ComputeFFT(0, FrameIndex(0)) == kWant[0]);
+    REQUIRE(controller->GetRows(0, FramePosition{ 0 }, 1) == kWant);
+    REQUIRE(controller->GetRow(0, FramePosition{ 0 }) == kWant[0]);
+    REQUIRE(controller->ComputeFFT(0, FrameIndex{ 0 }) == kWant[0]);
 }
 
 TEST_CASE("SpectrogramController::GetRows multiple non-overlapping windows",
@@ -111,7 +111,7 @@ TEST_CASE("SpectrogramController::GetRows multiple non-overlapping windows",
         { 9.0f, 10.0f, 11.0f, 12.0f, 13.0f },
         { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f },
     };
-    const auto kGot = controller->GetRows(0, 0, 3);
+    const auto kGot = controller->GetRows(0, FramePosition{ 0 }, 3);
     REQUIRE(kGot == kWant);
 }
 
@@ -130,7 +130,7 @@ TEST_CASE("SpectrogramController::GetRows 50% overlap", "[spectrogram_controller
         { 9.0f, 10.0f, 11.0f, 12.0f, 13.0f },  { 13.0f, 14.0f, 15.0f, 16.0f, 17.0f },
         { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f },
     };
-    const auto kGot = controller->GetRows(0, 0, 5);
+    const auto kGot = controller->GetRows(0, FramePosition{ 0 }, 5);
     REQUIRE(kGot == kWant);
 }
 
@@ -151,7 +151,7 @@ TEST_CASE("SpectrogramController::GetRows 75% overlap", "[spectrogram_controller
         { 13.0f, 14.0f, 15.0f, 16.0f, 17.0f }, { 15.0f, 16.0f, 17.0f, 18.0f, 19.0f },
         { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f }, { 19.0f, 20.0f, 21.0f, 22.0f, 23.0f },
     };
-    const auto kGot = controller->GetRows(0, 0, 10);
+    const auto kGot = controller->GetRows(0, FramePosition{ 0 }, 10);
     REQUIRE(kGot == kWant);
 }
 
@@ -169,11 +169,11 @@ TEST_CASE("SpectrogramController::GetRows with start sample beyond buffer end re
         { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
     };
 
-    REQUIRE(controller->GetRows(0, 0, 2) == kWant);
+    REQUIRE(controller->GetRows(0, FramePosition{ 0 }, 2) == kWant);
 
     // Do the same thing with GetRow
-    REQUIRE(controller->GetRow(0, 0) == kWant[0]);
-    REQUIRE(controller->GetRow(0, 8) == kWant[1]);
+    REQUIRE(controller->GetRow(0, FramePosition{ 0 }) == kWant[0]);
+    REQUIRE(controller->GetRow(0, FramePosition{ 8 }) == kWant[1]);
 
     // And with ComputeFFT
     REQUIRE(controller->ComputeFFT(0, FrameIndex(0)) == kWant[0]);
@@ -192,15 +192,15 @@ TEST_CASE("SpectrogramController::GetRows with negative start sample returns zer
         { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
         { 7.0f, 8.0f, 9.0f, 10.0f, 11.0f },
     };
-    REQUIRE(controller->GetRows(0, -2, 2) == kWant);
+    REQUIRE(controller->GetRows(0, FramePosition{ -2 }, 2) == kWant);
 
     // Do the same thing with GetRow
-    REQUIRE(controller->GetRow(0, -2) == kWant[0]);
-    REQUIRE(controller->GetRow(0, 6) == kWant[1]);
+    REQUIRE(controller->GetRow(0, FramePosition{ -2 }) == kWant[0]);
+    REQUIRE(controller->GetRow(0, FramePosition{ 6 }) == kWant[1]);
 
     // ComputeFFT takes FrameIndex (unsigned), so negative values cannot be passed
     // The validation happens in GetRow which calls ToFrameIndex before ComputeFFT
-    REQUIRE(controller->ComputeFFT(0, FrameIndex(6)) == kWant[1]);
+    REQUIRE(controller->ComputeFFT(0, FrameIndex{ 6 }) == kWant[1]);
 }
 
 TEST_CASE("SpectrogramController::GetRows with Hann window integration", "[spectrogram_controller]")
@@ -221,9 +221,9 @@ TEST_CASE("SpectrogramController::GetRows with Hann window integration", "[spect
         { 0.0f, 0.188255101f, 0.611260474f, 0.950484395f, 0.950484395f }
     };
 
-    REQUIRE(controller->GetRows(0, 0, 2) == kWant);
-    REQUIRE(controller->GetRow(0, 0) == kWant[0]);
-    REQUIRE(controller->ComputeFFT(0, FrameIndex(0)) == kWant[0]);
+    REQUIRE(controller->GetRows(0, FramePosition{ 0 }, 2) == kWant);
+    REQUIRE(controller->GetRow(0, FramePosition{ 0 }) == kWant[0]);
+    REQUIRE(controller->ComputeFFT(0, FrameIndex{ 0 }) == kWant[0]);
 }
 
 TEST_CASE("SpectrogramController::GetRows throws on invalid channel", "[spectrogram_controller]")
@@ -233,9 +233,9 @@ TEST_CASE("SpectrogramController::GetRows throws on invalid channel", "[spectrog
     buffer.Reset(1, 44100);
     const SpectrogramController controller(settings, buffer);
 
-    REQUIRE_THROWS_AS((void)controller.GetRows(1, 0, 1), std::out_of_range);
-    REQUIRE_THROWS_AS((void)controller.GetRow(1, 0), std::out_of_range);
-    REQUIRE_THROWS_AS((void)controller.ComputeFFT(1, FrameIndex(0)), std::out_of_range);
+    REQUIRE_THROWS_AS((void)controller.GetRows(1, FramePosition{ 0 }, 1), std::out_of_range);
+    REQUIRE_THROWS_AS((void)controller.GetRow(1, FramePosition{ 0 }), std::out_of_range);
+    REQUIRE_THROWS_AS((void)controller.ComputeFFT(1, FrameIndex{ 0 }), std::out_of_range);
 }
 
 TEST_CASE("SpectrogramController::GetAvailableSampleCount", "[spectrogram_controller]")
@@ -269,13 +269,13 @@ TEST_CASE("SpectrogramController::CalculateTopOfWindow", "[spectrogram_controlle
     auto check = [&](int64_t index, size_t scale, int64_t want) {
         settings.SetWindowScale(scale);
 
-        const int64_t have = controller.CalculateTopOfWindow(index);
+        const FramePosition have = controller.CalculateTopOfWindow(FramePosition{ index });
         INFO(std::format("CalculateTopOfWindow: sample={} scale={} => topSample={} (want {})",
                          index,
                          scale,
-                         have,
+                         have.Get(),
                          want));
-        REQUIRE(have == want);
+        REQUIRE(have == FramePosition{ want });
     };
 
     check(6, 1, -8); //[-8 -7 -6 -5 -4 -3 -2 -1] 0  1  2  3  4  5
@@ -343,14 +343,14 @@ TEST_CASE("SpectrogramController::RoundToStride", "[spectrogram_controller]")
         }
         settings.SetWindowScale(settings.GetFFTSize() / stride);
 
-        const int64_t have = controller.RoundToStride(sample);
+        const FramePosition have = controller.RoundToStride(FramePosition{ sample });
         INFO(std::format(
           "SpectrogramController::RoundToStride: stride={}, sample={}, got={} (want {})",
           stride,
           sample,
-          have,
+          have.Get(),
           want));
-        REQUIRE(have == want);
+        REQUIRE(have == FramePosition{ want });
     };
 
     check(1, -2, -2);

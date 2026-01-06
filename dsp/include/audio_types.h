@@ -157,9 +157,6 @@ class SampleIndex : public Index<size_t, TagSample>
     }
 };
 
-/// Offset between sample positions (can be negative for backward references)
-using SampleOffset = int64_t;
-
 // === Frame types (multi-channel time positions) ===
 // A frame represents one point in time across all channels.
 // In mono: 1 frame = 1 sample. In stereo: 1 frame = 2 samples.

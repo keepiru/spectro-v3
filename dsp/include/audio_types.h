@@ -161,8 +161,9 @@ class SampleIndex : public Index<size_t, TagSample>
 // A frame represents one point in time across all channels.
 // In mono: 1 frame = 1 sample. In stereo: 1 frame = 2 samples.
 
-/// Offset between frame positions (can be negative)
-using FrameOffset = int64_t;
+/// A signed frame position in the audio timeline, which can be negative to
+/// represent positions before the timeline start
+using FramePosition = int64_t;
 
 /// Count of frames (always non-negative)
 class FrameCount : public Count<size_t, TagFrame>
@@ -197,9 +198,9 @@ class FrameCount : public Count<size_t, TagFrame>
         return static_cast<sf_count_t>(Get());
     }
 
-    [[nodiscard]] constexpr FrameOffset AsOffset() const noexcept
+    [[nodiscard]] constexpr FramePosition AsPosition() const noexcept
     {
-        return static_cast<FrameOffset>(Get());
+        return static_cast<FramePosition>(Get());
     }
 };
 

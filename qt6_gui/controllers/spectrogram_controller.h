@@ -64,7 +64,7 @@ class SpectrogramController : public QObject
      * Each row represents one time window in the spectrogram.
      */
     [[nodiscard]] std::vector<std::vector<float>> GetRows(ChannelCount aChannel,
-                                                          FrameOffset aFirstFrame,
+                                                          FramePosition aFirstFrame,
                                                           size_t aRowCount) const;
 
     /**
@@ -77,7 +77,7 @@ class SpectrogramController : public QObject
      * @note If ANY samples in the requested window are not available, returns a
      * vector of zeros.
      */
-    [[nodiscard]] std::vector<float> GetRow(ChannelCount aChannel, FrameOffset aFirstFrame) const;
+    [[nodiscard]] std::vector<float> GetRow(ChannelCount aChannel, FramePosition aFirstFrame) const;
 
     /**
      * @brief Compute FFT for a channel at a specific frame position
@@ -124,14 +124,14 @@ class SpectrogramController : public QObject
      * @return First frame index of the stride-aligned window containing aCursorFrame
      * @note Returns a negative value if aCursorFrame is less than one transform window
      */
-    [[nodiscard]] FrameOffset CalculateTopOfWindow(FrameOffset aCursorFrame) const;
+    [[nodiscard]] FramePosition CalculateTopOfWindow(FramePosition aCursorFrame) const;
 
     /**
      * @brief round a frame index down to nearest window stride
      * @param aFrame Frame index
      * @return Frame index rounded down to nearest window stride
      */
-    [[nodiscard]] FrameOffset RoundToStride(FrameOffset aFrame) const;
+    [[nodiscard]] FramePosition RoundToStride(FramePosition aFrame) const;
 
     /**
      * @brief Get frequency resolution in Hz per FFT bin

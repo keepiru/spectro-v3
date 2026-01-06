@@ -16,7 +16,7 @@ struct RenderConfig
 {
     ChannelCount channels;
     FFTSize stride;
-    FrameOffset top_frame;
+    FramePosition top_frame;
     float min_decibels;
     float max_decibels;
     float decibel_range;

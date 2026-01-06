@@ -14,13 +14,13 @@ class SpectrogramController;
  */
 struct RenderConfig
 {
-    ChannelCount channels;
-    FFTSize stride;
+    ChannelCount channels{};
+    FFTSize stride{};
     FramePosition top_frame;
-    float min_decibels;
-    float max_decibels;
-    float decibel_range;
-    float inverse_decibel_range;
+    float min_decibels{};
+    float max_decibels{};
+    float decibel_range{};
+    float inverse_decibel_range{};
     const Settings::ColorMapLUTs& color_map_lut;
 
     /**
@@ -38,7 +38,7 @@ struct RenderConfig
           "color_map_lut_ref=<ptr:{}>}}",
           config.channels,
           config.stride,
-          config.top_frame,
+          config.top_frame.Get(),
           config.min_decibels,
           config.max_decibels,
           config.decibel_range,

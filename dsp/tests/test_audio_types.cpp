@@ -104,7 +104,7 @@ TEST_CASE("FrameCount", "[audio_types]")
     {
         const FrameCount kFC(750);
         const FramePosition kHave = kFC.AsPosition();
-        const FramePosition kWant = 750;
+        const FramePosition kWant{ 750 };
         CHECK(kHave == kWant);
     }
 
@@ -171,14 +171,6 @@ TEST_CASE("SampleIndex", "[audio_types]")
         CHECK(kEnd.Get() == 150);
     }
 
-    SECTION("Addition with FFTSize")
-    {
-        const SampleIndex kStart(1000);
-        const FFTSize kFFTSize = 512;
-        const auto kEnd = kStart + kFFTSize;
-        CHECK(kEnd.Get() == 1512);
-    }
-
     SECTION("Comparison operators")
     {
         const SampleIndex kIdx1(100);
@@ -199,15 +191,6 @@ TEST_CASE("SampleIndex", "[audio_types]")
         const std::ptrdiff_t kHave = kIdx.AsPtrDiffT();
         const std::ptrdiff_t kWant = 9876;
         CHECK(kHave == kWant);
-    }
-
-    SECTION("Chained addition")
-    {
-        const SampleIndex kStart(100);
-        const SampleCount kCount(50);
-        const FFTSize kFFTSize = 256;
-        const auto kEnd = kStart + kCount + kFFTSize;
-        CHECK(kEnd.Get() == 406);
     }
 }
 
@@ -282,5 +265,50 @@ TEST_CASE("FrameIndex", "[audio_types]")
         CHECK(cache.size() == 2);
         CHECK(cache[{ kChannel0, kIdx1 }] == 3);
         CHECK(cache[{ kChannel0, kIdx2 }] == 2);
+    }
+}
+
+TEST_CASE("FramePosition", "[audio_types]")
+{
+
+    SECTION("Addition with FrameCount")
+    {
+        const FramePosition kStart(500);
+        const FrameCount kOffset(250);
+        const auto kEnd = kStart + kOffset;
+        CHECK(kEnd.Get() == 750);
+    }
+
+    SECTION("Subtraction with FrameCount")
+    {
+        const FramePosition kStart(800);
+        const FrameCount kOffset(300);
+        const auto kEnd = kStart - kOffset;
+        CHECK(kEnd.Get() == 500);
+    }
+
+    SECTION("Addition with FFTSize")
+    {
+        const FramePosition kStart(1000);
+        const FFTSize kFFTSize = 512;
+        const auto kEnd = kStart + kFFTSize;
+        CHECK(kEnd.Get() == 1512);
+    }
+
+    SECTION("Subtraction with FFTSize")
+    {
+        const FramePosition kStart(2000);
+        const FFTSize kFFTSize = 512;
+        const auto kEnd = kStart - kFFTSize;
+        CHECK(kEnd.Get() == 1488);
+    }
+
+    SECTION("Chained addition")
+    {
+        const FramePosition kStart(100);
+        const FrameCount kCount(50);
+        const FFTSize kFFTSize = 256;
+        const auto kEnd = kStart + kCount + kFFTSize;
+        CHECK(kEnd.Get() == 406);
     }
 }

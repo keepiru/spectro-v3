@@ -21,6 +21,16 @@ template<typename T, typename Tag>
 class Index;
 template<typename T, typename Tag>
 class Count;
+class FrameCount;
+class FramePosition;
+
+/// FFT transform size (must be a power of 2)
+/// int is used for compatibility with FFTW3.
+using FFTSize = int;
+
+/// Audio sample rate in Hz (e.g., 44100, 48000)
+/// int is used for compatibility with FFTW3 and libsndfile.
+using SampleRate = int;
 
 /// @brief Represents a count of items of type T, tagged with Tag for strong typing.
 /// @tparam T The underlying integer type (e.g., size_t)
@@ -103,17 +113,14 @@ class Index
         return mValue < aOther.Get();
     }
 
+    [[nodiscard]] constexpr bool operator==(Index<T, Tag> aOther) const noexcept
+    {
+        return mValue == aOther.Get();
+    }
+
   private:
     T mValue;
 };
-
-/// Audio sample rate in Hz (e.g., 44100, 48000)
-/// int is used for compatibility with FFTW3 and libsndfile.
-using SampleRate = int;
-
-/// FFT transform size (must be a power of 2)
-/// int is used for compatibility with FFTW3.
-using FFTSize = int;
 
 // === Sample types (single channel values) ===
 
@@ -140,15 +147,6 @@ class SampleIndex : public Index<size_t, TagSample>
         return SampleIndex(Get() + aOther.Get());
     }
 
-    /// @brief Add an FFTSize offset to this SampleIndex
-    /// @param aOther The FFTSize offset to add
-    /// @return A new SampleIndex offset by the given FFTSize
-    /// @note this may be used to represent first-past-the-end for ranges
-    [[nodiscard]] constexpr SampleIndex operator+(FFTSize aOther) const noexcept
-    {
-        return SampleIndex(Get() + aOther);
-    }
-
     /// @brief Cast to ptrdiff_t for use in iterator arithmetic
     /// @return The index as ptrdiff_t
     [[nodiscard]] constexpr std::ptrdiff_t AsPtrDiffT() const noexcept
@@ -163,7 +161,38 @@ class SampleIndex : public Index<size_t, TagSample>
 
 /// A signed frame position in the audio timeline, which can be negative to
 /// represent positions before the timeline start
-using FramePosition = int64_t;
+class FramePosition : public Index<int64_t, TagFrame>
+{
+  public:
+    using Index<int64_t, TagFrame>::Index;
+
+    /// @brief Add a FrameCount to this FramePosition
+    /// @param aOther The FrameCount to add
+    /// @return A new FramePosition offset by the given FrameCount
+    [[nodiscard]] constexpr FramePosition operator+(FrameCount aOther) const noexcept;
+
+    /// @brief Subtract a FrameCount from this FramePosition
+    /// @param aOther The FrameCount to subtract
+    /// @return A new FramePosition offset by the given FrameCount
+    [[nodiscard]] constexpr FramePosition operator-(FrameCount aOther) const noexcept;
+
+    /// @brief Add an FFTSize offset to this FramePosition
+    /// @param aOther The FFTSize offset to add
+    /// @return A new FramePosition offset by the given FFTSize
+    /// @note this may be used to represent first-past-the-end for ranges
+    [[nodiscard]] constexpr FramePosition operator+(FFTSize aOther) const noexcept
+    {
+        return FramePosition{ Get() + aOther };
+    }
+
+    /// @brief Subtract a FFTSize from this FramePosition
+    /// @param aOther The FFTSize to subtract
+    /// @return A new FramePosition offset by the given FFTSize
+    [[nodiscard]] constexpr FramePosition operator-(FFTSize aOther) const noexcept
+    {
+        return FramePosition{ Get() - aOther };
+    }
+};
 
 /// Count of frames (always non-negative)
 class FrameCount : public Count<size_t, TagFrame>
@@ -200,7 +229,7 @@ class FrameCount : public Count<size_t, TagFrame>
 
     [[nodiscard]] constexpr FramePosition AsPosition() const noexcept
     {
-        return static_cast<FramePosition>(Get());
+        return FramePosition{ ToIntChecked() };
     }
 };
 
@@ -210,6 +239,18 @@ class FrameIndex : public Index<size_t, TagFrame>
   public:
     using Index<size_t, TagFrame>::Index;
 };
+
+[[nodiscard]] constexpr FramePosition
+FramePosition::operator+(FrameCount aOther) const noexcept
+{
+    return FramePosition{ Get() + static_cast<int64_t>(aOther.Get()) };
+}
+
+[[nodiscard]] constexpr FramePosition
+FramePosition::operator-(FrameCount aOther) const noexcept
+{
+    return FramePosition{ Get() - static_cast<int64_t>(aOther.Get()) };
+}
 
 /// Validates that a value is a power of 2.
 /// This helper is intended for checking FFTSize values. Although FFTSize is

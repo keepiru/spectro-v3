@@ -148,7 +148,7 @@ TEST_CASE("Benchmark", "[spectrogram_view][!benchmark]")
         // data.  Let's verify that assumption first.
         SECTION("Verify zeroed data assumption")
         {
-            const auto have = controller.GetRows(0, 0, 10);
+            const auto have = controller.GetRows(0, FramePosition{ 0 }, 10);
             REQUIRE(have.size() == 10);
             for (const auto& row : have) {
                 REQUIRE(row.size() == (settings.GetFFTSize() / 2) + 1);
@@ -162,7 +162,7 @@ TEST_CASE("Benchmark", "[spectrogram_view][!benchmark]")
         // image generation time.
         BENCHMARK("SpectrogramController::GetRows 1024 rows")
         {
-            return controller.GetRows(0, 0, 1024);
+            return controller.GetRows(0, FramePosition{ 0 }, 1024);
         };
 
         BENCHMARK("GenerateSpectrogramImage 800x600")
@@ -196,7 +196,7 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
         RenderConfig want{
             .channels = 2,
             .stride = 1024,
-            .top_frame = 0,
+            .top_frame = FramePosition{ 0 },
             .min_decibels = -100.0f,
             .max_decibels = 0.0f,
             .decibel_range = 100.0f,
@@ -214,7 +214,7 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
         {
             view.UpdateScrollbarRange(FrameCount(2000000));
 
-            want.top_frame = 1735680; // 2000000 - (1024 * 256), aligned down
+            want.top_frame = FramePosition{ 1735680 }; // 2000000 - (1024 * 256), aligned down
             const RenderConfig have = view.GetRenderConfig(height);
             REQUIRE(ToString(have) == ToString(want));
         }

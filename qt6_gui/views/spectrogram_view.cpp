@@ -106,11 +106,11 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
     // Determine the top frame to start rendering from.
     // The scrollbar value represents the frame position at the bottom of the view.
     // Calculate top frame by going back (height * stride) frames from the bottom.
-    const FramePosition kBottomFrame = verticalScrollBar()->value();
-    const FramePosition kTopFrameUnaligned =
-      kBottomFrame - (kStride * static_cast<FramePosition>(aHeight));
+    const FramePosition kBottomFrame{ verticalScrollBar()->value() };
+    const FramePosition kTopFrameUnaligned = kBottomFrame - FrameCount{ kStride * aHeight };
     const FramePosition kTopFrameAligned = mController.CalculateTopOfWindow(kTopFrameUnaligned);
-    const FramePosition kTopFrame = kTopFrameAligned < 0 ? 0 : kTopFrameAligned;
+    const FramePosition kTopFrame =
+      kTopFrameAligned < FramePosition{ 0 } ? FramePosition{ 0 } : kTopFrameAligned;
 
     // Validate channel count.  This should never happen because AudioBuffer
     // enforces channel count limits, but let's be safe.  This guards against

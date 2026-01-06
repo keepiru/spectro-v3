@@ -94,7 +94,7 @@ TEST_CASE("SpectrogramController::GetRows single window computation", "[spectrog
     };
     REQUIRE(controller->GetRows(0, 0, 1) == kWant);
     REQUIRE(controller->GetRow(0, 0) == kWant[0]);
-    REQUIRE(controller->ComputeFFT(0, SampleIndex(0)) == kWant[0]);
+    REQUIRE(controller->ComputeFFT(0, FrameIndex(0)) == kWant[0]);
 }
 
 TEST_CASE("SpectrogramController::GetRows multiple non-overlapping windows",
@@ -176,8 +176,8 @@ TEST_CASE("SpectrogramController::GetRows with start sample beyond buffer end re
     REQUIRE(controller->GetRow(0, 8) == kWant[1]);
 
     // And with ComputeFFT
-    REQUIRE(controller->ComputeFFT(0, SampleIndex(0)) == kWant[0]);
-    REQUIRE_THROWS_AS((void)controller->ComputeFFT(0, SampleIndex(8)), std::out_of_range);
+    REQUIRE(controller->ComputeFFT(0, FrameIndex(0)) == kWant[0]);
+    REQUIRE_THROWS_AS((void)controller->ComputeFFT(0, FrameIndex(8)), std::out_of_range);
 }
 
 TEST_CASE("SpectrogramController::GetRows with negative start sample returns zeroed rows",
@@ -200,7 +200,7 @@ TEST_CASE("SpectrogramController::GetRows with negative start sample returns zer
 
     // ComputeFFT takes FrameIndex (unsigned), so negative values cannot be passed
     // The validation happens in GetRow which calls ToFrameIndex before ComputeFFT
-    REQUIRE(controller->ComputeFFT(0, SampleIndex(6)) == kWant[1]);
+    REQUIRE(controller->ComputeFFT(0, FrameIndex(6)) == kWant[1]);
 }
 
 TEST_CASE("SpectrogramController::GetRows with Hann window integration", "[spectrogram_controller]")
@@ -223,7 +223,7 @@ TEST_CASE("SpectrogramController::GetRows with Hann window integration", "[spect
 
     REQUIRE(controller->GetRows(0, 0, 2) == kWant);
     REQUIRE(controller->GetRow(0, 0) == kWant[0]);
-    REQUIRE(controller->ComputeFFT(0, SampleIndex(0)) == kWant[0]);
+    REQUIRE(controller->ComputeFFT(0, FrameIndex(0)) == kWant[0]);
 }
 
 TEST_CASE("SpectrogramController::GetRows throws on invalid channel", "[spectrogram_controller]")
@@ -235,7 +235,7 @@ TEST_CASE("SpectrogramController::GetRows throws on invalid channel", "[spectrog
 
     REQUIRE_THROWS_AS((void)controller.GetRows(1, 0, 1), std::out_of_range);
     REQUIRE_THROWS_AS((void)controller.GetRow(1, 0), std::out_of_range);
-    REQUIRE_THROWS_AS((void)controller.ComputeFFT(1, SampleIndex(0)), std::out_of_range);
+    REQUIRE_THROWS_AS((void)controller.ComputeFFT(1, FrameIndex(0)), std::out_of_range);
 }
 
 TEST_CASE("SpectrogramController::GetAvailableSampleCount", "[spectrogram_controller]")

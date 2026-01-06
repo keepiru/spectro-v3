@@ -56,7 +56,7 @@ class SpectrogramController : public QObject
     /**
      * @brief Get spectrogram rows for a channel
      * @param aChannel Channel index (0-based)
-     * @param aFirstSample First sample position (aligned to stride)
+     * @param aFirstFrame First frame position (aligned to stride)
      * @param aRowCount Number of rows to compute
      * @return 2D vector [aRowCount][frequency_bins] containing frequency magnitudes
      * @throws std::out_of_range if aChannel is invalid
@@ -64,32 +64,32 @@ class SpectrogramController : public QObject
      * Each row represents one time window in the spectrogram.
      */
     [[nodiscard]] std::vector<std::vector<float>> GetRows(ChannelCount aChannel,
-                                                          SampleOffset aFirstSample,
+                                                          FrameOffset aFirstFrame,
                                                           size_t aRowCount) const;
 
     /**
      * @brief Get a single spectrogram row for a channel
      * @param aChannel Channel index (0-based)
-     * @param aFirstSample First sample position (aligned to stride)
+     * @param aFirstFrame First frame position (aligned to stride)
      * @return Vector of frequency magnitudes for the specified row
      * @throws std::out_of_range if aChannel is invalid
      * @note Uses internal caching to avoid redundant computations
      * @note If ANY samples in the requested window are not available, returns a
      * vector of zeros.
      */
-    [[nodiscard]] std::vector<float> GetRow(ChannelCount aChannel, SampleOffset aFirstSample) const;
+    [[nodiscard]] std::vector<float> GetRow(ChannelCount aChannel, FrameOffset aFirstFrame) const;
 
     /**
-     * @brief Compute FFT for a channel at a specific sample position
+     * @brief Compute FFT for a channel at a specific frame position
      * @param aChannel Channel index (0-based)
-     * @param aFirstSample First sample position (aligned to stride)
+     * @param aFirstFrame First frame position (aligned to stride)
      * @return Vector of frequency magnitudes
      * @throws std::out_of_range if aChannel is invalid
      * @throws std::out_of_range if requested samples are not available
      * @note Does not use caching; called internally by GetRow
      */
     [[nodiscard]] std::vector<float> ComputeFFT(ChannelCount aChannel,
-                                                SampleIndex aFirstSample) const;
+                                                FrameIndex aFirstFrame) const;
 
     /**
      * @brief Get the number of available frames
@@ -150,7 +150,7 @@ class SpectrogramController : public QObject
     IFFTProcessorFactory mFFTProcessorFactory;
     FFTWindowFactory mFFTWindowFactory;
 
-    // Spectrogram row cache.  Key: (channel, first sample).  Stores a single row
+    // Spectrogram row cache.  Key: (channel, first frame).  Stores a single row
     // of spectrogram data for reuse.
-    mutable std::map<std::pair<ChannelCount, SampleIndex>, std::vector<float>> mSpectrogramRowCache;
+    mutable std::map<std::pair<ChannelCount, FrameIndex>, std::vector<float>> mSpectrogramRowCache;
 };

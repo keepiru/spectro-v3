@@ -67,10 +67,10 @@ TEST_CASE("FrameCount", "[audio_types]")
     {
         const FrameCount kFC(1000);
 
-        CHECK(kFC * ChannelCount(1) == 1000);        // mono
-        CHECK(kFC * ChannelCount(2) == 2000);        // stereo
-        CHECK(kFC * ChannelCount(6) == 6000);        // multichannel
-        CHECK(FrameCount(0) * ChannelCount(2) == 0); // zero frames
+        CHECK(kFC * ChannelCount(1) == SampleCount(1000));        // mono
+        CHECK(kFC * ChannelCount(2) == SampleCount(2000));        // stereo
+        CHECK(kFC * ChannelCount(6) == SampleCount(6000));        // multichannel
+        CHECK(FrameCount(0) * ChannelCount(2) == SampleCount(0)); // zero frames
     }
 
     SECTION("ToIntChecked - valid values")
@@ -104,5 +104,107 @@ TEST_CASE("FrameCount", "[audio_types]")
         const FrameOffset kHave = kFC.AsOffset();
         const FrameOffset kWant = 750;
         CHECK(kHave == kWant);
+    }
+
+    SECTION("AsPtrDiffT conversion")
+    {
+        const FrameCount kFC(1234);
+        const std::ptrdiff_t kHave = kFC.AsPtrDiffT();
+        const std::ptrdiff_t kWant = 1234;
+        CHECK(kHave == kWant);
+    }
+}
+
+TEST_CASE("SampleCount", "[audio_types]")
+{
+    SECTION("Construction and Get()")
+    {
+        CHECK(SampleCount().Get() == 0); // Default constructor
+        CHECK(SampleCount(0).Get() == 0);
+        CHECK(SampleCount(100).Get() == 100);
+        CHECK(SampleCount(1000000).Get() == 1000000);
+    }
+
+    SECTION("Equality operator")
+    {
+        const SampleCount kSC1(500);
+        const SampleCount kSC2(500);
+        const SampleCount kSC3(1000);
+
+        CHECK(kSC1 == kSC2);
+        CHECK_FALSE(kSC1 == kSC3);
+    }
+
+    SECTION("AsPtrDiffT conversion")
+    {
+        const SampleCount kSC(5678);
+        const std::ptrdiff_t kHave = kSC.AsPtrDiffT();
+        const std::ptrdiff_t kWant = 5678;
+        CHECK(kHave == kWant);
+    }
+
+    SECTION("Large values")
+    {
+        const size_t kLargeValue = 1uLL << 32;
+        const SampleCount kSC(kLargeValue);
+        CHECK(kSC.Get() == kLargeValue);
+    }
+}
+
+TEST_CASE("SampleIndex", "[audio_types]")
+{
+    SECTION("Construction and Get()")
+    {
+        CHECK(SampleIndex().Get() == 0); // Default constructor
+        CHECK(SampleIndex(0).Get() == 0);
+        CHECK(SampleIndex(250).Get() == 250);
+        CHECK(SampleIndex(500000).Get() == 500000);
+    }
+
+    SECTION("Addition with SampleCount")
+    {
+        const SampleIndex kStart(100);
+        const SampleCount kOffset(50);
+        const auto kEnd = kStart + kOffset;
+        CHECK(kEnd.Get() == 150);
+    }
+
+    SECTION("Addition with FFTSize")
+    {
+        const SampleIndex kStart(1000);
+        const FFTSize kFFTSize = 512;
+        const auto kEnd = kStart + kFFTSize;
+        CHECK(kEnd.Get() == 1512);
+    }
+
+    SECTION("Comparison operators")
+    {
+        const SampleIndex kIdx1(100);
+        const SampleIndex kIdx2(200);
+        const SampleIndex kIdx3(200);
+
+        CHECK(kIdx1 < kIdx2);
+        CHECK(kIdx2 > kIdx1);
+        CHECK_FALSE(kIdx2 < kIdx1);
+        CHECK_FALSE(kIdx1 > kIdx2);
+        CHECK_FALSE(kIdx2 < kIdx3);
+        CHECK_FALSE(kIdx2 > kIdx3);
+    }
+
+    SECTION("AsPtrDiffT conversion")
+    {
+        const SampleIndex kIdx(9876);
+        const std::ptrdiff_t kHave = kIdx.AsPtrDiffT();
+        const std::ptrdiff_t kWant = 9876;
+        CHECK(kHave == kWant);
+    }
+
+    SECTION("Chained addition")
+    {
+        const SampleIndex kStart(100);
+        const SampleCount kCount(50);
+        const FFTSize kFFTSize = 256;
+        const auto kEnd = kStart + kCount + kFFTSize;
+        CHECK(kEnd.Get() == 406);
     }
 }

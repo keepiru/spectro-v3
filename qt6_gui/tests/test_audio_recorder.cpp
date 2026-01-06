@@ -149,16 +149,16 @@ TEST_CASE("AudioRecorder audio data written to buffer", "[audio_recorder]")
 
     // ... then see if it comes back.
     REQUIRE(buffer.GetFrameCount() == FrameCount(2));
-    REQUIRE(buffer.GetSamples(0, 0, 2) == std::vector<float>({ 0.1, 0.3 }));
-    REQUIRE(buffer.GetSamples(1, 0, 2) == std::vector<float>({ 0.2, 0.4 }));
+    REQUIRE(buffer.GetSamples(0, SampleIndex(0), SampleCount(2)) == std::vector<float>({ 0.1, 0.3 }));
+    REQUIRE(buffer.GetSamples(1, SampleIndex(0), SampleCount(2)) == std::vector<float>({ 0.2, 0.4 }));
 
     // Add some more...
     ioDevice.SimulateAudioData({ 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 });
 
     // ... And it should all be there.
     REQUIRE(buffer.GetFrameCount() == FrameCount(5));
-    REQUIRE(buffer.GetSamples(0, 0, 5) == std::vector<float>({ 0.1, 0.3, 0.5, 0.7, 0.9 }));
-    REQUIRE(buffer.GetSamples(1, 0, 5) == std::vector<float>({ 0.2, 0.4, 0.6, 0.8, 1.0 }));
+    REQUIRE(buffer.GetSamples(0, SampleIndex(0), SampleCount(5)) == std::vector<float>({ 0.1, 0.3, 0.5, 0.7, 0.9 }));
+    REQUIRE(buffer.GetSamples(1, SampleIndex(0), SampleCount(5)) == std::vector<float>({ 0.2, 0.4, 0.6, 0.8, 1.0 }));
 }
 
 TEST_CASE("AudioRecorder::IsRecording", "[audio_recorder]")

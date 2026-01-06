@@ -15,24 +15,24 @@ TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
     SECTION("Check properties")
     {
         REQUIRE(buffer.GetSampleRate() == kSampleRate);
-        REQUIRE(buffer.GetSampleCount() == kSamples.size());
+        REQUIRE(buffer.GetSampleCount() == SampleCount(kSamples.size()));
     }
 
     SECTION("Retrieve all samples")
     {
-        auto retrieved = buffer.GetSamples(0, kSamples.size());
+        auto retrieved = buffer.GetSamples(SampleIndex(0), SampleCount(kSamples.size()));
         REQUIRE(retrieved == kSamples);
     }
 
     SECTION("Retrieve partial samples")
     {
-        auto retrieved = buffer.GetSamples(1, 2);
+        auto retrieved = buffer.GetSamples(SampleIndex(1), SampleCount(2));
         REQUIRE(retrieved == std::vector<float>({ 0.2f, 0.3f }));
     }
 
     SECTION("Throws when retrieving beyond buffer size")
     {
-        REQUIRE_THROWS_AS(buffer.GetSamples(2, 4), std::out_of_range);
+        REQUIRE_THROWS_AS(buffer.GetSamples(SampleIndex(2), SampleCount(4)), std::out_of_range);
     }
 
     SECTION("Append more samples")
@@ -40,7 +40,7 @@ TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
         std::vector<float> const kNewSamples = { 0.5f, 0.6f };
         buffer.AddSamples(kNewSamples);
 
-        auto const kRetrieved = buffer.GetSamples(0, kSamples.size() + kNewSamples.size());
+        auto const kRetrieved = buffer.GetSamples(SampleIndex(0), SampleCount(kSamples.size() + kNewSamples.size()));
         REQUIRE(kRetrieved == std::vector<float>({ 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f }));
     }
 }

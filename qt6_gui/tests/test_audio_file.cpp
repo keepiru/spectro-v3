@@ -29,7 +29,8 @@ class MockAudioFileReader : public IAudioFileReader
     /// @return Vector of interleaved audio samples
     [[nodiscard]] std::vector<float> ReadInterleaved(FrameCount aFrames) override
     {
-        const size_t samplesToRead = std::min(aFrames * mChannelCount, mSamples.size());
+        const SampleCount kRequestedSamples = aFrames * mChannelCount;
+        const size_t samplesToRead = std::min(kRequestedSamples.Get(), mSamples.size());
         const auto end = std::next(mSamples.begin(), static_cast<std::ptrdiff_t>(samplesToRead));
         std::vector<float> result(mSamples.begin(), end);
         mSamples.erase(mSamples.begin(), end);
@@ -83,8 +84,8 @@ TEST_CASE("AudioFile - load file", "[audio_file]")
         CHECK(buffer.GetSampleRate() == 22050);
         CHECK(buffer.GetChannelCount() == 2);
         CHECK(buffer.GetFrameCount() == FrameCount(3));
-        CHECK(buffer.GetSamples(0, 0, 3) == std::vector<float>({ 0, 2, 4 }));
-        CHECK(buffer.GetSamples(1, 0, 3) == std::vector<float>({ 1, 3, 5 }));
+        CHECK(buffer.GetSamples(0, SampleIndex(0), SampleCount(3)) == std::vector<float>({ 0, 2, 4 }));
+        CHECK(buffer.GetSamples(1, SampleIndex(0), SampleCount(3)) == std::vector<float>({ 1, 3, 5 }));
         CHECK(progressCalls == std::vector<int>({ 100 }));
     }
 

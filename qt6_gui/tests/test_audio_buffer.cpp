@@ -38,14 +38,14 @@ TEST_CASE("AudioBuffer::GetSamples throws if insufficient samples", "[audio_buff
 {
     AudioBuffer buffer;
     buffer.AddSamples({ 1, 2, 3, 4 });
-    REQUIRE_THROWS_AS((void)buffer.GetSamples(1, 1, 4), std::out_of_range);
+    REQUIRE_THROWS_AS((void)buffer.GetSamples(1, SampleIndex(1), SampleCount(4)), std::out_of_range);
 }
 
 TEST_CASE("AudioBuffer::GetSamples throws on invalid channel index", "[audio_buffer]")
 {
     AudioBuffer const buffer;
-    (void)buffer.GetSamples(1, 0, 0); // No exception
-    REQUIRE_THROWS_AS((void)buffer.GetSamples(2, 0, 0), std::out_of_range);
+    (void)buffer.GetSamples(1, SampleIndex(0), SampleCount(0)); // No exception
+    REQUIRE_THROWS_AS((void)buffer.GetSamples(2, SampleIndex(0), SampleCount(0)), std::out_of_range);
 }
 
 TEST_CASE("AudioBuffer::AddSamples deinterleaves to channel buffers", "[audio_buffer]")
@@ -53,8 +53,8 @@ TEST_CASE("AudioBuffer::AddSamples deinterleaves to channel buffers", "[audio_bu
     AudioBuffer buffer;
     buffer.AddSamples({ 1, 2, 3, 4 });
 
-    REQUIRE(buffer.GetSamples(0, 0, 2) == std::vector<float>({ 1, 3 }));
-    REQUIRE(buffer.GetSamples(1, 0, 2) == std::vector<float>({ 2, 4 }));
+    REQUIRE(buffer.GetSamples(0, SampleIndex(0), SampleCount(2)) == std::vector<float>({ 1, 3 }));
+    REQUIRE(buffer.GetSamples(1, SampleIndex(0), SampleCount(2)) == std::vector<float>({ 2, 4 }));
 }
 
 TEST_CASE("AudioBuffer::AddSamples emits signal", "[audio_buffer]")
@@ -78,7 +78,7 @@ TEST_CASE("AudioBuffer::Reset clears samples", "[audio_buffer]")
 
     buffer.Reset(2, 44100);
     REQUIRE(buffer.GetFrameCount() == FrameCount(0));
-    REQUIRE_THROWS_AS((void)buffer.GetSamples(0, 0, 1), std::out_of_range);
+    REQUIRE_THROWS_AS((void)buffer.GetSamples(0, SampleIndex(0), SampleCount(1)), std::out_of_range);
 
     // Also test after changing channel count
     buffer.AddSamples({ 5, 6, 7, 8 });

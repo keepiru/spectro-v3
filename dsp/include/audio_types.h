@@ -16,11 +16,19 @@ struct TagFrame
 struct TagSample
 {};
 
+// Forward declarations so Count and Index can reference each other
+template<typename T, typename Tag>
+class Index;
+template<typename T, typename Tag>
+class Count;
+
+/// @brief Represents a count of items of type T, tagged with Tag for strong typing.
+/// @tparam T The underlying integer type (e.g., size_t)
+/// @tparam Tag A unique tag type to differentiate between different count types
 template<typename T, typename Tag>
 class Count
 {
   public:
-    // Default constructor for Qt metatype system
     constexpr Count()
       : mValue(0)
     {
@@ -39,6 +47,69 @@ class Count
         return mValue == aOther.Get();
     }
 
+    /// @brief Cast to ptrdiff_t for use in iterator arithmetic
+    /// @return The count as ptrdiff_t
+    [[nodiscard]] constexpr std::ptrdiff_t AsPtrDiffT() const noexcept
+    {
+        return static_cast<std::ptrdiff_t>(mValue);
+    }
+
+  private:
+    T mValue;
+};
+
+/// @brief Represents a position (index) into a sequence of items of type T, tagged with Tag
+///        for strong typing.
+///
+/// Unlike Count<T, Tag>, which represents a quantity/size (how many items), Index<T, Tag>
+/// represents a zero-based position (where in the sequence). Use Count when you mean "how
+/// many" and Index when you mean "at which position". Adding a Count to an Index produces
+/// a new Index that refers to a different position.
+///
+/// @tparam T The underlying integer type (e.g., size_t)
+/// @tparam Tag A unique tag type to differentiate between different index types
+template<typename T, typename Tag>
+class Index
+{
+  public:
+    constexpr Index()
+      : mValue(0)
+    {
+    }
+
+    explicit constexpr Index(T aValue)
+      : mValue(aValue)
+    {
+    }
+
+    /// @brief Get the underlying index value
+    [[nodiscard]] constexpr T Get() const noexcept { return mValue; }
+
+    /// @brief Add a Count to this Index, returning a new Index
+    /// @param aOther The Count to add
+    /// @return A new Index representing first-past-the-end position
+    [[nodiscard]] constexpr Index<T, Tag> operator+(Count<T, Tag> aOther) const noexcept
+    {
+        return Index<T, Tag>(mValue + aOther.Get());
+    }
+
+    [[nodiscard]] constexpr bool operator>(Index<T, Tag> aOther) const noexcept
+    {
+        return mValue > aOther.Get();
+    }
+
+    [[nodiscard]] constexpr bool operator<(Index<T, Tag> aOther) const noexcept
+    {
+        return mValue < aOther.Get();
+    }
+
+    /// @brief Cast to ptrdiff_t for use in iterator arithmetic
+    /// @return The index as ptrdiff_t
+    [[nodiscard]] constexpr std::ptrdiff_t AsPtrDiffT() const noexcept
+    {
+        return static_cast<std::ptrdiff_t>(mValue);
+    }
+
   private:
     T mValue;
 };
@@ -53,11 +124,38 @@ using FFTSize = int;
 
 // === Sample types (single channel values) ===
 
-/// Count of samples (always non-negative)
-using SampleCount = size_t;
+/// @brief Count of samples (always non-negative)
+class SampleCount : public Count<size_t, TagSample>
+{
+  public:
+    // inherit constructors
+    using Count<size_t, TagSample>::Count;
+};
 
-/// Index into a sample buffer (0-based, non-negative position)
-using SampleIndex = size_t;
+/// @brief Index into audio timeline (0-based sample position)
+class SampleIndex : public Index<size_t, TagSample>
+{
+  public:
+    using Index<size_t, TagSample>::Index;
+
+    /// @brief Add a SampleCount to this SampleIndex
+    /// @param aOther The SampleCount to add
+    /// @return A new SampleIndex offset by the given SampleCount
+    /// @note this may be used to represent first-past-the-end for ranges
+    [[nodiscard]] constexpr SampleIndex operator+(SampleCount aOther) const noexcept
+    {
+        return SampleIndex(Get() + aOther.Get());
+    }
+
+    /// @brief Add an FFTSize offset to this SampleIndex
+    /// @param aOther The FFTSize offset to add
+    /// @return A new SampleIndex offset by the given FFTSize
+    /// @note this may be used to represent first-past-the-end for ranges
+    [[nodiscard]] constexpr SampleIndex operator+(FFTSize aOther) const noexcept
+    {
+        return SampleIndex(Get() + aOther);
+    }
+};
 
 /// Offset between sample positions (can be negative for backward references)
 using SampleOffset = int64_t;
@@ -81,7 +179,7 @@ class FrameCount : public Count<size_t, TagFrame>
     /// @return The total sample count across all channels
     [[nodiscard]] constexpr SampleCount operator*(ChannelCount aChannels) const noexcept
     {
-        return static_cast<SampleCount>(Get()) * aChannels;
+        return SampleCount(Get() * aChannels);
     }
 
     /// @brief Cast to int with overflow check
@@ -110,22 +208,7 @@ class FrameCount : public Count<size_t, TagFrame>
 
 /// Index into audio timeline (0-based frame position)
 // Currently unused
-// using FrameIndex = size_t;
-
-// === Conversion helpers ===
-
-/// Safely convert a signed sample offset to unsigned index.
-/// @param aOffset The signed offset to convert
-/// @return The offset as an unsigned SampleIndex
-/// @throws std::out_of_range if aOffset is negative
-[[nodiscard]] inline SampleIndex
-ToSampleIndex(SampleOffset aOffset)
-{
-    if (aOffset < 0) {
-        throw std::out_of_range("Negative sample offset cannot be converted to index");
-    }
-    return static_cast<SampleIndex>(aOffset);
-}
+using FrameIndex = size_t;
 
 /// Validates that a value is a power of 2.
 /// This helper is intended for checking FFTSize values. Although FFTSize is

@@ -84,7 +84,9 @@ class AudioBuffer : public QObject
         if (mChannelBuffers.empty()) {
             return FrameCount(0);
         }
-        return FrameCount(mChannelBuffers[0]->GetSampleCount());
+        // Cast to FrameCount.  In AudioBuffer, all channels have the same
+        // sample count, so we can use any channel to get the frame count.
+        return FrameCount(mChannelBuffers[0]->GetSampleCount().Get());
     }
 
   signals:

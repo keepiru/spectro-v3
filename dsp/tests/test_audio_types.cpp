@@ -2,8 +2,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cstddef>
 #include <limits>
+#include <map>
 #include <sndfile.h>
 #include <stdexcept>
+#include <utility>
 
 TEST_CASE("IsPowerOf2", "[audio_types]")
 {
@@ -206,5 +208,79 @@ TEST_CASE("SampleIndex", "[audio_types]")
         const FFTSize kFFTSize = 256;
         const auto kEnd = kStart + kCount + kFFTSize;
         CHECK(kEnd.Get() == 406);
+    }
+}
+
+TEST_CASE("FrameIndex", "[audio_types]")
+{
+    SECTION("Construction and Get()")
+    {
+        CHECK(FrameIndex().Get() == 0); // Default constructor
+        CHECK(FrameIndex(0).Get() == 0);
+        CHECK(FrameIndex(100).Get() == 100);
+        CHECK(FrameIndex(500000).Get() == 500000);
+    }
+
+    SECTION("Addition with FrameCount")
+    {
+        const FrameIndex kStart(100);
+        const FrameCount kOffset(50);
+        const auto kEnd = kStart + kOffset;
+        CHECK(kEnd.Get() == 150);
+    }
+
+    SECTION("Comparison operators - greater than")
+    {
+        const FrameIndex kIdx1(100);
+        const FrameIndex kIdx2(200);
+        const FrameIndex kIdx3(200);
+
+        CHECK(kIdx2 > kIdx1);
+        CHECK_FALSE(kIdx1 > kIdx2);
+        CHECK_FALSE(kIdx2 > kIdx3);
+    }
+
+    SECTION("Comparison operators - less than")
+    {
+        const FrameIndex kIdx1(100);
+        const FrameIndex kIdx2(200);
+        const FrameIndex kIdx3(200);
+
+        CHECK(kIdx1 < kIdx2);
+        CHECK_FALSE(kIdx2 < kIdx1);
+        CHECK_FALSE(kIdx2 < kIdx3);
+    }
+
+    SECTION("Use with zero offset")
+    {
+        const FrameIndex kIdx(1000);
+        const auto kSame = kIdx + FrameCount(0);
+        CHECK(kSame.Get() == 1000);
+    }
+
+    SECTION("Large values")
+    {
+        const size_t kLargeValue = 1uLL << 40;
+        const FrameIndex kIdx(kLargeValue);
+        CHECK(kIdx.Get() == kLargeValue);
+    }
+
+    SECTION("Used as cache key")
+    {
+        // Test that FrameIndex can be used in std::pair and std::map (like in
+        // SpectrogramController) Note: std::map uses operator< for ordering, not operator==
+        const FrameIndex kIdx1(100);
+        const FrameIndex kIdx2(200);
+        const FrameIndex kIdx3(100);
+        const ChannelCount kChannel0(0);
+
+        std::map<std::pair<ChannelCount, FrameIndex>, int> cache;
+        cache[{ kChannel0, kIdx1 }] = 1;
+        cache[{ kChannel0, kIdx2 }] = 2;
+        cache[{ kChannel0, kIdx3 }] = 3; // overwrites the first entry
+
+        CHECK(cache.size() == 2);
+        CHECK(cache[{ kChannel0, kIdx1 }] == 3);
+        CHECK(cache[{ kChannel0, kIdx2 }] == 2);
     }
 }

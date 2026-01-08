@@ -51,78 +51,65 @@ class Base
 
     /// @brief Get the underlying index value
     /// @return The stored value
-    [[nodiscard]] constexpr T Get() const noexcept { return mValue; }
+    template<typename Self>
+    [[nodiscard]] constexpr T Get(this const Self& aSelf) noexcept
+    {
+        return aSelf.mValue;
+    }
 
   private:
     T mValue;
 };
 
 /// @brief Mixin to provide addition of Count types to Index/Position types
-/// @tparam Derived The derived strong type class
 /// @tparam Other The Count type to add
-template<typename Derived, typename Other>
+template<typename Other>
 class AddCount
 {
-  private:
-    AddCount() = default;
-    friend Derived;
-
   public:
     /// @brief Add a Count to this value
     /// @param aOther The Count to add
-    /// @return A new Derived value offset by the given Count
-    [[nodiscard]] constexpr Derived operator+(const Other& aOther) const noexcept
+    /// @return A new Self value offset by the given Count
+    template<typename Self>
+    [[nodiscard]] constexpr Self operator+(this const Self& aSelf, const Other& aOther) noexcept
     {
-        return Derived(static_cast<const Derived*>(this)->Get() + aOther.Get());
+        return Self(aSelf.Get() + aOther.Get());
     }
 };
 
 /// @brief Mixin to provide equality and three-way comparison operators
-/// @tparam Derived The derived strong type class
-template<typename Derived>
 class Comparable
 {
-  private:
-    Comparable() = default;
-    friend Derived;
-
   public:
     /// @brief Equality comparison
-    /// @param aLhs The left-hand side value
-    /// @param aRhs The right-hand side value
+    /// @param aOther The value to compare against
     /// @return true if the values are equal, false otherwise
-    [[nodiscard]] friend constexpr bool operator==(const Derived& aLhs,
-                                                   const Derived& aRhs) noexcept
+    template<typename Self>
+    [[nodiscard]] constexpr bool operator==(this const Self& aSelf, const Self& aOther) noexcept
     {
-        return aLhs.Get() == aRhs.Get();
+        return aSelf.Get() == aOther.Get();
     }
 
     /// @brief Three-way comparison
-    /// @param aLhs The left-hand side value
-    /// @param aRhs The right-hand side value
+    /// @param aOther The value to compare against
     /// @return The comparison result
-    [[nodiscard]] friend constexpr auto operator<=>(const Derived& aLhs,
-                                                    const Derived& aRhs) noexcept
+    template<typename Self>
+    [[nodiscard]] constexpr auto operator<=>(this const Self& aSelf, const Self& aOther) noexcept
     {
-        return aLhs.Get() <=> aRhs.Get();
+        return aSelf.Get() <=> aOther.Get();
     }
 };
 
 /// @brief Mixin to allow casting to ptrdiff_t for iterator arithmetic
-/// @tparam Derived The derived strong type class
-template<typename Derived>
 class AsPtrDiff
 {
-  private:
-    AsPtrDiff() = default;
-    friend Derived;
-
   public:
     /// @brief Cast to ptrdiff_t for use in iterator arithmetic
     /// @return The value as ptrdiff_t
-    [[nodiscard]] constexpr std::ptrdiff_t AsPtrDiffT() const noexcept
+    template<typename Self>
+    [[nodiscard]] constexpr std::ptrdiff_t AsPtrDiffT(this const Self& aSelf) noexcept
     {
-        return static_cast<std::ptrdiff_t>(static_cast<const Derived*>(this)->Get());
+        return static_cast<std::ptrdiff_t>(aSelf.Get());
     }
 };
 
@@ -133,8 +120,8 @@ class AsPtrDiff
 /// @brief Count of samples (always non-negative)
 class SampleCount
   : public audio_type_internal::Base<size_t>
-  , public audio_type_internal::Comparable<SampleCount>
-  , public audio_type_internal::AsPtrDiff<SampleCount>
+  , public audio_type_internal::Comparable
+  , public audio_type_internal::AsPtrDiff
 {
   public:
     using audio_type_internal::Base<size_t>::Base;
@@ -143,9 +130,9 @@ class SampleCount
 /// @brief Index into audio timeline (0-based sample position)
 class SampleIndex
   : public audio_type_internal::Base<size_t>
-  , public audio_type_internal::AddCount<SampleIndex, SampleCount>
-  , public audio_type_internal::Comparable<SampleIndex>
-  , public audio_type_internal::AsPtrDiff<SampleIndex>
+  , public audio_type_internal::AddCount<SampleCount>
+  , public audio_type_internal::Comparable
+  , public audio_type_internal::AsPtrDiff
 {
   public:
     using audio_type_internal::Base<size_t>::Base;
@@ -155,12 +142,12 @@ class SampleIndex
 /// represent positions before the timeline start
 class FramePosition
   : public audio_type_internal::Base<int64_t>
-  , public audio_type_internal::AddCount<FramePosition, FrameCount>
-  , public audio_type_internal::Comparable<FramePosition>
+  , public audio_type_internal::AddCount<FrameCount>
+  , public audio_type_internal::Comparable
 {
   public:
     using audio_type_internal::Base<int64_t>::Base;
-    using audio_type_internal::AddCount<FramePosition, FrameCount>::operator+;
+    using audio_type_internal::AddCount<FrameCount>::operator+;
 
     /// @brief Subtract a FrameCount from this FramePosition
     /// @param aOther The FrameCount to subtract
@@ -188,8 +175,8 @@ class FramePosition
 /// Count of frames (always non-negative)
 class FrameCount
   : public audio_type_internal::Base<size_t>
-  , public audio_type_internal::Comparable<FrameCount>
-  , public audio_type_internal::AsPtrDiff<FrameCount>
+  , public audio_type_internal::Comparable
+  , public audio_type_internal::AsPtrDiff
 {
   public:
     using audio_type_internal::Base<size_t>::Base;
@@ -229,8 +216,8 @@ class FrameCount
 /// Index into audio timeline (0-based frame position)
 class FrameIndex
   : public audio_type_internal::Base<size_t>
-  , public audio_type_internal::AddCount<FrameIndex, FrameCount>
-  , public audio_type_internal::Comparable<FrameIndex>
+  , public audio_type_internal::AddCount<FrameCount>
+  , public audio_type_internal::Comparable
 {
   public:
     using audio_type_internal::Base<size_t>::Base;

@@ -7,22 +7,11 @@
 #include <sndfile.h>
 #include <stdexcept>
 
-using ChannelCount = uint8_t;
-
-// === Tag types for strong typedefs ===
-// Used to differentiate Count types for frames vs. samples
-struct TagFrame
-{};
-struct TagSample
-{};
-
-// Forward declarations so Count and Index can reference each other
-template<typename T, typename Tag>
-class Index;
-template<typename T, typename Tag>
-class Count;
+// Forward declarations
 class FrameCount;
-class FramePosition;
+
+/// Number of audio channels (e.g., 1=mono, 2=stereo)
+using ChannelCount = uint8_t;
 
 /// FFT transform size (must be a power of 2)
 /// int is used for compatibility with FFTW3.
@@ -32,144 +21,146 @@ using FFTSize = int;
 /// int is used for compatibility with FFTW3 and libsndfile.
 using SampleRate = int;
 
-/// @brief Represents a count of items of type T, tagged with Tag for strong typing.
-/// @tparam T The underlying integer type (e.g., size_t)
-/// @tparam Tag A unique tag type to differentiate between different count types
-template<typename T, typename Tag>
-class Count
+// Overview of the strong types defined in this file:
+//
+// Each type is in the form: [Sample|Frame][Count|Index|Position]
+//
+// Sample vs Frame:
+//   Sample types refer to single-channel values (e.g., left channel only).
+//   Frame types refer to multi-channel values (e.g., left + right channels).
+//   In mono audio, 1 frame = 1 sample. In stereo audio, 1 frame = 2 samples.
+//
+// Count vs Index vs Position:
+//   Count: represents a quantity/size (how many items).
+//   Index: represents a zero-based position in the timeline.
+//   Position: represents an abstract signed position in the timeline (can be negative).
+
+/// @brief Namespace for strong type mixin classes
+namespace audio_type_internal {
+
+/// @brief Base class for strong types wrapping an underlying value
+/// @tparam T The underlying value type
+template<typename T>
+class Base
 {
   public:
-    constexpr Count()
-      : mValue(0)
-    {
-    }
-
-    explicit constexpr Count(T aValue)
-      : mValue(aValue)
-    {
-    }
-
-    /// @brief Get the underlying count value
-    [[nodiscard]] constexpr T Get() const noexcept { return mValue; }
-
-    [[nodiscard]] constexpr bool operator==(Count<T, Tag> aOther) const noexcept
-    {
-        return mValue == aOther.Get();
-    }
-
-    /// @brief Cast to ptrdiff_t for use in iterator arithmetic
-    /// @return The count as ptrdiff_t
-    [[nodiscard]] constexpr std::ptrdiff_t AsPtrDiffT() const noexcept
-    {
-        return static_cast<std::ptrdiff_t>(mValue);
-    }
-
-  private:
-    T mValue;
-};
-
-/// @brief Represents a position (index) into a sequence of items of type T, tagged with Tag
-///        for strong typing.
-///
-/// Unlike Count<T, Tag>, which represents a quantity/size (how many items), Index<T, Tag>
-/// represents a zero-based position (where in the sequence). Use Count when you mean "how
-/// many" and Index when you mean "at which position". Adding a Count to an Index produces
-/// a new Index that refers to a different position.
-///
-/// @tparam T The underlying integer type (e.g., size_t)
-/// @tparam Tag A unique tag type to differentiate between different index types
-template<typename T, typename Tag>
-class Index
-{
-  public:
-    constexpr Index()
-      : mValue(0)
-    {
-    }
-
-    explicit constexpr Index(T aValue)
+    explicit constexpr Base(T aValue = 0)
       : mValue(aValue)
     {
     }
 
     /// @brief Get the underlying index value
+    /// @return The stored value
     [[nodiscard]] constexpr T Get() const noexcept { return mValue; }
-
-    /// @brief Add a Count to this Index, returning a new Index
-    /// @param aOther The Count to add
-    /// @return A new Index representing first-past-the-end position
-    [[nodiscard]] constexpr Index<T, Tag> operator+(Count<T, Tag> aOther) const noexcept
-    {
-        return Index<T, Tag>(mValue + aOther.Get());
-    }
-
-    [[nodiscard]] constexpr bool operator>(Index<T, Tag> aOther) const noexcept
-    {
-        return mValue > aOther.Get();
-    }
-
-    [[nodiscard]] constexpr bool operator<(Index<T, Tag> aOther) const noexcept
-    {
-        return mValue < aOther.Get();
-    }
-
-    [[nodiscard]] constexpr bool operator==(Index<T, Tag> aOther) const noexcept
-    {
-        return mValue == aOther.Get();
-    }
 
   private:
     T mValue;
 };
 
+/// @brief Mixin to provide addition of Count types to Index/Position types
+/// @tparam Derived The derived strong type class
+/// @tparam Other The Count type to add
+template<typename Derived, typename Other>
+class AddCount
+{
+  private:
+    AddCount() = default;
+    friend Derived;
+
+  public:
+    /// @brief Add a Count to this value
+    /// @param aOther The Count to add
+    /// @return A new Derived value offset by the given Count
+    [[nodiscard]] constexpr Derived operator+(const Other& aOther) const noexcept
+    {
+        return Derived(static_cast<const Derived*>(this)->Get() + aOther.Get());
+    }
+};
+
+/// @brief Mixin to provide equality and three-way comparison operators
+/// @tparam Derived The derived strong type class
+template<typename Derived>
+class Comparable
+{
+  private:
+    Comparable() = default;
+    friend Derived;
+
+  public:
+    /// @brief Equality comparison
+    /// @param aLhs The left-hand side value
+    /// @param aRhs The right-hand side value
+    /// @return true if the values are equal, false otherwise
+    [[nodiscard]] friend constexpr bool operator==(const Derived& aLhs,
+                                                   const Derived& aRhs) noexcept
+    {
+        return aLhs.Get() == aRhs.Get();
+    }
+
+    /// @brief Three-way comparison
+    /// @param aLhs The left-hand side value
+    /// @param aRhs The right-hand side value
+    /// @return The comparison result
+    [[nodiscard]] friend constexpr auto operator<=>(const Derived& aLhs,
+                                                    const Derived& aRhs) noexcept
+    {
+        return aLhs.Get() <=> aRhs.Get();
+    }
+};
+
+/// @brief Mixin to allow casting to ptrdiff_t for iterator arithmetic
+/// @tparam Derived The derived strong type class
+template<typename Derived>
+class AsPtrDiff
+{
+  private:
+    AsPtrDiff() = default;
+    friend Derived;
+
+  public:
+    /// @brief Cast to ptrdiff_t for use in iterator arithmetic
+    /// @return The value as ptrdiff_t
+    [[nodiscard]] constexpr std::ptrdiff_t AsPtrDiffT() const noexcept
+    {
+        return static_cast<std::ptrdiff_t>(static_cast<const Derived*>(this)->Get());
+    }
+};
+
+} // namespace audio_type_internal
+
 // === Sample types (single channel values) ===
 
 /// @brief Count of samples (always non-negative)
-class SampleCount : public Count<size_t, TagSample>
+class SampleCount
+  : public audio_type_internal::Base<size_t>
+  , public audio_type_internal::Comparable<SampleCount>
+  , public audio_type_internal::AsPtrDiff<SampleCount>
 {
   public:
-    // inherit constructors
-    using Count<size_t, TagSample>::Count;
+    using audio_type_internal::Base<size_t>::Base;
 };
 
 /// @brief Index into audio timeline (0-based sample position)
-class SampleIndex : public Index<size_t, TagSample>
+class SampleIndex
+  : public audio_type_internal::Base<size_t>
+  , public audio_type_internal::AddCount<SampleIndex, SampleCount>
+  , public audio_type_internal::Comparable<SampleIndex>
+  , public audio_type_internal::AsPtrDiff<SampleIndex>
 {
   public:
-    using Index<size_t, TagSample>::Index;
-
-    /// @brief Add a SampleCount to this SampleIndex
-    /// @param aOther The SampleCount to add
-    /// @return A new SampleIndex offset by the given SampleCount
-    /// @note this may be used to represent first-past-the-end for ranges
-    [[nodiscard]] constexpr SampleIndex operator+(SampleCount aOther) const noexcept
-    {
-        return SampleIndex(Get() + aOther.Get());
-    }
-
-    /// @brief Cast to ptrdiff_t for use in iterator arithmetic
-    /// @return The index as ptrdiff_t
-    [[nodiscard]] constexpr std::ptrdiff_t AsPtrDiffT() const noexcept
-    {
-        return static_cast<std::ptrdiff_t>(Get());
-    }
+    using audio_type_internal::Base<size_t>::Base;
 };
-
-// === Frame types (multi-channel time positions) ===
-// A frame represents one point in time across all channels.
-// In mono: 1 frame = 1 sample. In stereo: 1 frame = 2 samples.
 
 /// A signed frame position in the audio timeline, which can be negative to
 /// represent positions before the timeline start
-class FramePosition : public Index<int64_t, TagFrame>
+class FramePosition
+  : public audio_type_internal::Base<int64_t>
+  , public audio_type_internal::AddCount<FramePosition, FrameCount>
+  , public audio_type_internal::Comparable<FramePosition>
 {
   public:
-    using Index<int64_t, TagFrame>::Index;
-
-    /// @brief Add a FrameCount to this FramePosition
-    /// @param aOther The FrameCount to add
-    /// @return A new FramePosition offset by the given FrameCount
-    [[nodiscard]] constexpr FramePosition operator+(FrameCount aOther) const noexcept;
+    using audio_type_internal::Base<int64_t>::Base;
+    using audio_type_internal::AddCount<FramePosition, FrameCount>::operator+;
 
     /// @brief Subtract a FrameCount from this FramePosition
     /// @param aOther The FrameCount to subtract
@@ -195,11 +186,13 @@ class FramePosition : public Index<int64_t, TagFrame>
 };
 
 /// Count of frames (always non-negative)
-class FrameCount : public Count<size_t, TagFrame>
+class FrameCount
+  : public audio_type_internal::Base<size_t>
+  , public audio_type_internal::Comparable<FrameCount>
+  , public audio_type_internal::AsPtrDiff<FrameCount>
 {
   public:
-    // inherit constructors
-    using Count<size_t, TagFrame>::Count;
+    using audio_type_internal::Base<size_t>::Base;
 
     /// @brief Multiply frame count by channel count to get total sample count
     /// @param aChannels The number of audio channels
@@ -234,17 +227,14 @@ class FrameCount : public Count<size_t, TagFrame>
 };
 
 /// Index into audio timeline (0-based frame position)
-class FrameIndex : public Index<size_t, TagFrame>
+class FrameIndex
+  : public audio_type_internal::Base<size_t>
+  , public audio_type_internal::AddCount<FrameIndex, FrameCount>
+  , public audio_type_internal::Comparable<FrameIndex>
 {
   public:
-    using Index<size_t, TagFrame>::Index;
+    using audio_type_internal::Base<size_t>::Base;
 };
-
-[[nodiscard]] constexpr FramePosition
-FramePosition::operator+(FrameCount aOther) const noexcept
-{
-    return FramePosition{ Get() + static_cast<int64_t>(aOther.Get()) };
-}
 
 [[nodiscard]] constexpr FramePosition
 FramePosition::operator-(FrameCount aOther) const noexcept

@@ -103,7 +103,7 @@ TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
     std::vector<float> samples(kTransformSize);
     for (size_t i = 0; i < kTransformSize; ++i) {
         const auto kPI = std::numbers::pi_v<float>;
-        samples[i] = std::sinf(2.0f * kPI * kFrequency * static_cast<float>(i) / kTransformSize);
+        samples[i] = std::sinf(2.0f * kPI * kFrequency * static_cast<float>(i) / static_cast<float>(kTransformSize));
     }
 
     // Compute spectrum without windowing

@@ -14,9 +14,6 @@ FFTWindow::FFTWindow(FFTSize aSize, FFTWindow::Type aType)
   : mSize(aSize)
   , mType(aType)
 {
-    if (aSize <= 0) {
-        throw std::invalid_argument("Window size must be greater than zero");
-    }
     mWindowCoefficients.resize(aSize);
     ComputeWindowCoefficients();
 }

@@ -7,41 +7,32 @@
 #include <stdexcept>
 #include <utility>
 
-TEST_CASE("IsPowerOf2", "[audio_types]")
+TEST_CASE("FFTSize", "[audio_types]")
 {
 
-    SECTION("Valid power of 2 values")
+    SECTION("Constructor accepts valid power of 2 values")
     {
-        CHECK(IsPowerOf2(1));
-        CHECK(IsPowerOf2(2));
-        CHECK(IsPowerOf2(32768));
-        CHECK(IsPowerOf2(1048576));
-        CHECK(IsPowerOf2(1 << 30));
+        CHECK_NOTHROW(FFTSize(1));
+        CHECK_NOTHROW(FFTSize(2));
+        CHECK_NOTHROW(FFTSize(32768));
+        CHECK_NOTHROW(FFTSize(1048576));
+        CHECK_NOTHROW(FFTSize(1 << 30));
     }
 
-    SECTION("Invalid non-power of 2 values")
+    SECTION("Constructor throws on invalid non-power of 2 values")
     {
-        CHECK_FALSE(IsPowerOf2(0));
-        CHECK_FALSE(IsPowerOf2(3));
-        CHECK_FALSE(IsPowerOf2(5));
-        CHECK_FALSE(IsPowerOf2(255));
-        CHECK_FALSE(IsPowerOf2(1023));
-        CHECK_FALSE(IsPowerOf2(1025));
-    }
-
-    SECTION("Negative values are not powers of 2")
-    {
-        CHECK_FALSE(IsPowerOf2(-1));
-        CHECK_FALSE(IsPowerOf2(-2));
-        CHECK_FALSE(IsPowerOf2(-1024));
+        CHECK_THROWS_AS(FFTSize(0), std::invalid_argument);
+        CHECK_THROWS_AS(FFTSize(3), std::invalid_argument);
+        CHECK_THROWS_AS(FFTSize(5), std::invalid_argument);
+        CHECK_THROWS_AS(FFTSize(255), std::invalid_argument);
+        CHECK_THROWS_AS(FFTSize(1023), std::invalid_argument);
+        CHECK_THROWS_AS(FFTSize(1025), std::invalid_argument);
     }
 
     SECTION("Constexpr evaluation")
     {
-        constexpr bool test1 = IsPowerOf2(16);
-        constexpr bool test2 = IsPowerOf2(18);
+        constexpr bool test1 = FFTSize(16).Get() == 16;
         static_assert(test1, "16 should be a power of 2");
-        static_assert(!test2, "18 should not be a power of 2");
     }
 }
 

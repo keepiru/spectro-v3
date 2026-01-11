@@ -15,7 +15,7 @@ class SpectrogramController;
 struct RenderConfig
 {
     ChannelCount channels{};
-    FFTSize stride{};
+    FFTSize stride;
     FramePosition top_frame;
     float min_decibels{};
     float max_decibels{};
@@ -37,7 +37,7 @@ struct RenderConfig
           "min_decibels={}\n max_decibels={}\n decibel_range={}\n inverse_decibel_range={}\n "
           "color_map_lut_ref=<ptr:{}>}}",
           config.channels,
-          config.stride,
+          config.stride.Get(),
           config.top_frame.Get(),
           config.min_decibels,
           config.max_decibels,

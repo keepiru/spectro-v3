@@ -7,7 +7,6 @@
 #include <fftw3.h>
 #include <span>
 #include <stdexcept>
-#include <string>
 #include <vector>
 
 FFTProcessor::FFTProcessor(FFTSize aTransformSize)
@@ -16,11 +15,6 @@ FFTProcessor::FFTProcessor(FFTSize aTransformSize)
   , mFFTInput(nullptr)
   , mFFTOutput(nullptr)
 {
-    if (!IsPowerOf2(aTransformSize)) {
-        throw std::invalid_argument("aTransformSize must be a power of 2, got: " +
-                                    std::to_string(aTransformSize));
-    }
-
     mFFTInput = FFTWRealPtr(fftwf_alloc_real(mTransformSize));
     mFFTOutput = FFTWComplexPtr(fftwf_alloc_complex((mTransformSize / 2) + 1));
     mFFTPlan = FFTWPlanPtr(

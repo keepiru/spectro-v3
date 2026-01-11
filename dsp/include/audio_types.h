@@ -13,10 +13,6 @@ class FrameCount;
 /// Number of audio channels (e.g., 1=mono, 2=stereo)
 using ChannelCount = uint8_t;
 
-/// FFT transform size (must be a power of 2)
-/// int is used for compatibility with FFTW3.
-using FFTSize = int;
-
 /// Audio sample rate in Hz (e.g., 44100, 48000)
 /// int is used for compatibility with FFTW3 and libsndfile.
 using SampleRate = int;
@@ -61,10 +57,12 @@ class Base
     T mValue;
 };
 
-/// @brief Mixin to provide addition of Count types to Index/Position types
+/// @brief Mixin to add a value of type Other to Self, returning Self
 /// @tparam Other The Count type to add
+/// @note The typical usage is to add a quantity (Count) to an absolute position
+/// (Index/Position), returning a new absolute position.
 template<typename Other>
-class AddCount
+class Add
 {
   public:
     /// @brief Add a Count to this value
@@ -74,6 +72,20 @@ class AddCount
     [[nodiscard]] constexpr Self operator+(this const Self& aSelf, const Other& aOther) noexcept
     {
         return Self(aSelf.Get() + aOther.Get());
+    }
+};
+
+template<typename Other>
+class Subtract
+{
+  public:
+    /// @brief Subtract a Count from this value
+    /// @param aOther The Count to subtract
+    /// @return A new Self value offset by the given Count
+    template<typename Self>
+    [[nodiscard]] constexpr Self operator-(this const Self& aSelf, const Other& aOther) noexcept
+    {
+        return Self(aSelf.Get() - aOther.Get());
     }
 };
 
@@ -117,6 +129,37 @@ class AsPtrDiff
 
 // === Sample types (single channel values) ===
 
+/// @brief FFT transform size (must be a power of 2)
+///
+/// This is a special case of Count used in FFT operations.
+/// The base type is int for compatibility with FFTW3.
+class FFTSize
+  : public audio_type_internal::Base<int>
+  , public audio_type_internal::Comparable
+{
+  public:
+    /// @brief Construct an FFT size value
+    /// @param aValue The FFT size (must be a positive power of 2)
+    /// @throws std::invalid_argument if aValue is not a positive power of 2
+    constexpr FFTSize(int aValue)
+      : audio_type_internal::Base<int>(aValue)
+    {
+        // Ensure aValue is a positive power of 2
+        if (aValue <= 0 || (aValue & (aValue - 1)) != 0) {
+            throw std::invalid_argument("FFTSize must be a positive power of 2");
+        }
+    }
+
+    /// @brief Implicit access as int for convenience
+    /// @return The FFT size as an int
+    /// @note FFTSize is used in many contexts with varying semantics: as a
+    /// parameter for FFTW, as a size for buffers, as a count of samples, etc.
+    /// Calling .Get() everywhere undermines the purpose of having a strong type
+    /// in the first place. We might want to revisit this if we add more
+    /// semantic operations here later.
+    [[nodiscard]] constexpr operator int() const noexcept { return Get(); }
+};
+
 /// @brief Count of samples (always non-negative)
 class SampleCount
   : public audio_type_internal::Base<size_t>
@@ -130,7 +173,7 @@ class SampleCount
 /// @brief Index into audio timeline (0-based sample position)
 class SampleIndex
   : public audio_type_internal::Base<size_t>
-  , public audio_type_internal::AddCount<SampleCount>
+  , public audio_type_internal::Add<SampleCount>
   , public audio_type_internal::Comparable
   , public audio_type_internal::AsPtrDiff
 {
@@ -138,41 +181,26 @@ class SampleIndex
     using audio_type_internal::Base<size_t>::Base;
 };
 
-/// A signed frame position in the audio timeline, which can be negative to
-/// represent positions before the timeline start
+/// @brief A signed frame position in the audio timeline
+///
+/// Can be negative to represent positions before the timeline start.
 class FramePosition
   : public audio_type_internal::Base<int64_t>
-  , public audio_type_internal::AddCount<FrameCount>
+  , public audio_type_internal::Add<FrameCount>
+  , public audio_type_internal::Add<FFTSize>
+  , public audio_type_internal::Subtract<FrameCount>
+  , public audio_type_internal::Subtract<FFTSize>
   , public audio_type_internal::Comparable
 {
   public:
     using audio_type_internal::Base<int64_t>::Base;
-    using audio_type_internal::AddCount<FrameCount>::operator+;
-
-    /// @brief Subtract a FrameCount from this FramePosition
-    /// @param aOther The FrameCount to subtract
-    /// @return A new FramePosition offset by the given FrameCount
-    [[nodiscard]] constexpr FramePosition operator-(FrameCount aOther) const noexcept;
-
-    /// @brief Add an FFTSize offset to this FramePosition
-    /// @param aOther The FFTSize offset to add
-    /// @return A new FramePosition offset by the given FFTSize
-    /// @note this may be used to represent first-past-the-end for ranges
-    [[nodiscard]] constexpr FramePosition operator+(FFTSize aOther) const noexcept
-    {
-        return FramePosition{ Get() + aOther };
-    }
-
-    /// @brief Subtract a FFTSize from this FramePosition
-    /// @param aOther The FFTSize to subtract
-    /// @return A new FramePosition offset by the given FFTSize
-    [[nodiscard]] constexpr FramePosition operator-(FFTSize aOther) const noexcept
-    {
-        return FramePosition{ Get() - aOther };
-    }
+    using audio_type_internal::Add<FrameCount>::operator+;
+    using audio_type_internal::Add<FFTSize>::operator+;
+    using audio_type_internal::Subtract<FrameCount>::operator-;
+    using audio_type_internal::Subtract<FFTSize>::operator-;
 };
 
-/// Count of frames (always non-negative)
+/// @brief Count of frames (always non-negative)
 class FrameCount
   : public audio_type_internal::Base<size_t>
   , public audio_type_internal::Comparable
@@ -213,30 +241,12 @@ class FrameCount
     }
 };
 
-/// Index into audio timeline (0-based frame position)
+/// @brief Index into audio timeline (0-based frame position)
 class FrameIndex
   : public audio_type_internal::Base<size_t>
-  , public audio_type_internal::AddCount<FrameCount>
+  , public audio_type_internal::Add<FrameCount>
   , public audio_type_internal::Comparable
 {
   public:
     using audio_type_internal::Base<size_t>::Base;
 };
-
-[[nodiscard]] constexpr FramePosition
-FramePosition::operator-(FrameCount aOther) const noexcept
-{
-    return FramePosition{ Get() - static_cast<int64_t>(aOther.Get()) };
-}
-
-/// Validates that a value is a power of 2.
-/// This helper is intended for checking FFTSize values. Although FFTSize is
-/// a signed type (for FFTW3 compatibility), negative values are considered
-/// invalid and will always return false from this function.
-/// @param n The value to check (typically a non-negative FFTSize)
-/// @return true if n is a positive power of 2, false otherwise
-[[nodiscard]] constexpr bool
-IsPowerOf2(FFTSize n) noexcept
-{
-    return (n > 0) && ((n & (n - 1)) == 0);
-}

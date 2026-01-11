@@ -224,7 +224,7 @@ TEST_CASE("SettingsPanel initial values", "[settings_panel]")
             static_cast<int>(FFTWindow::Type::Rectangular));
 
     auto* fftSizeCombo = panel.findChild<QComboBox*>("fftSizeCombo");
-    REQUIRE(fftSizeCombo->currentData().toULongLong() == 4096);
+    REQUIRE(fftSizeCombo->currentData().toInt() == 4096);
 
     auto* windowScaleSlider = panel.findChild<QSlider*>("windowScaleSlider");
     REQUIRE(windowScaleSlider->value() == 3); // 8 is at index 3

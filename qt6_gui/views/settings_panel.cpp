@@ -121,18 +121,26 @@ SettingsPanel::CreateFFTSizeControl(QFormLayout* aLayout)
     // Add FFT size options
     const std::array<FFTSize, 5> fftSizes{ 512, 1024, 2048, 4096, 8192 };
     for (const auto size : fftSizes) {
-        mFFTSizeCombo->addItem(QString::number(size), QVariant::fromValue(size));
+        mFFTSizeCombo->addItem(QString::number(size), static_cast<int>(size));
     }
 
     // Set initial value
-    const int currentIndex = mFFTSizeCombo->findData(QVariant::fromValue(mSettings->GetFFTSize()));
+    const FFTSize kCurrentFFTSize = mSettings->GetFFTSize();
+    const int currentIndex = mFFTSizeCombo->findData(static_cast<int>(kCurrentFFTSize));
     if (currentIndex >= 0) {
         mFFTSizeCombo->setCurrentIndex(currentIndex);
     }
 
     // Connect to settings
-    connect(mFFTSizeCombo, &QComboBox::currentIndexChanged, this, [this](int /*aIndex*/) {
-        const FFTSize selectedSize = mFFTSizeCombo->currentData().toInt();
+    connect(mFFTSizeCombo, &QComboBox::currentIndexChanged, this, [this](int aIndex) {
+        if (aIndex < 0) {
+            return; // No valid selection yet
+        }
+        const int sizeInt = mFFTSizeCombo->currentData().toInt();
+        if (sizeInt == 0) {
+            return; // Invalid data
+        }
+        const FFTSize selectedSize = sizeInt;
         mSettings->SetFFTSettings(selectedSize, mSettings->GetWindowType());
     });
 

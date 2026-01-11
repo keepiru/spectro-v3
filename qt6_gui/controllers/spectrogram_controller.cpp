@@ -161,7 +161,7 @@ SpectrogramController::CalculateTopOfWindow(FramePosition aCursorFrame) const
 FramePosition
 SpectrogramController::RoundToStride(FramePosition aFrame) const
 {
-    const FFTSize kStride = mSettings.GetWindowStride();
+    const int64_t kStride = static_cast<int64_t>(mSettings.GetWindowStride());
 
     // Calculate floor(aFrame / kStride) for both positive and negative values.
     // For positive values, this is just integer division.

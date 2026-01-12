@@ -30,6 +30,19 @@ TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
         REQUIRE(retrieved == std::vector<float>({ 0.2f, 0.3f }));
     }
 
+    SECTION("Retrieve zero samples")
+    {
+        auto retrieved = buffer.GetSamples(SampleIndex(2), SampleCount(0));
+        REQUIRE(retrieved.empty());
+    }
+
+    SECTION("Retrieve zero samples from an empty buffer")
+    {
+        const SampleBuffer emptyBuffer(kSampleRate);
+        auto retrieved = emptyBuffer.GetSamples(SampleIndex(0), SampleCount(0));
+        REQUIRE(retrieved.empty());
+    }
+
     SECTION("Throws when retrieving beyond buffer size")
     {
         REQUIRE_THROWS_AS(buffer.GetSamples(SampleIndex(2), SampleCount(4)), std::out_of_range);
@@ -40,7 +53,8 @@ TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
         std::vector<float> const kNewSamples = { 0.5f, 0.6f };
         buffer.AddSamples(kNewSamples);
 
-        auto const kRetrieved = buffer.GetSamples(SampleIndex(0), SampleCount(kSamples.size() + kNewSamples.size()));
+        auto const kRetrieved =
+          buffer.GetSamples(SampleIndex(0), SampleCount(kSamples.size() + kNewSamples.size()));
         REQUIRE(kRetrieved == std::vector<float>({ 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f }));
     }
 }

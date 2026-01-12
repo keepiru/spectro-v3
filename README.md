@@ -52,11 +52,3 @@ spectro-v3/
 └── build/            # Build artifacts (not tracked)
 ```
 
-## Terminology
-
-"Samples" are individual measurements in a channel.
-"Frames" are a group of samples across all channels.
-
-## Types
-
-For sample/frame indices: use int64_t.

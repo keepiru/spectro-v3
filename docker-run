@@ -1,4 +1,6 @@
 #!/bin/bash
 set -ex
 
-docker run --rm -it --user $(id -u):$(id -g) -v $PWD:/build -w /build spectro-v3-builder "$@"
+docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t spectro-v3-builder .
+docker run --rm -it -v $PWD:/build -w /build spectro-v3-builder "$@"
+

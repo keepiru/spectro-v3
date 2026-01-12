@@ -7,10 +7,17 @@
 MAKEFLAGS += --no-print-directory
 
 # Configuration
-BUILD_DIR := build
-ANALYSIS_DIR := build-analysis
+# Detect if running in Docker and use separate build directory
+ifeq ($(shell test -f /.dockerenv && echo yes),yes)
+    BUILD_DIR := build-docker
+    ANALYSIS_DIR := build-docker-analysis
+else
+    BUILD_DIR := build
+    ANALYSIS_DIR := build-analysis
+endif
 BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
+CMAKE_EXTRA_ARGS := -B $(BUILD_DIR)
 
 .PHONY: all build configure clean rebuild test test-one \
         tdd release lint lint-fix-changed lint-fix lint-files help run bench \
@@ -22,13 +29,13 @@ all: build
 # Configure CMake (run once or after CMakeLists.txt changes)
 configure:
 	@echo "Configuring CMake..."
-	cmake --preset=default
+	cmake --preset=default $(CMAKE_EXTRA_ARGS)
 
 # Configure for static analysis (without unity builds).  run-clang-tidy needs
 # compile_commands.json to be present and unity-free.
 configure-analysis:
 	@echo "Configuring CMake for static analysis (no unity builds)..."
-	cmake --preset=analysis
+	cmake --preset=analysis -B $(ANALYSIS_DIR)
 
 # Build the project (configures if needed)
 build: | $(BUILD_DIR)/Makefile
@@ -60,7 +67,7 @@ test-one: build
 # Release build
 release:
 	@echo "Building release..."
-	cmake -B $(BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=Release
+	cmake --preset=release $(CMAKE_EXTRA_ARGS) -DCMAKE_BUILD_TYPE=Release
 	cmake --build $(BUILD_DIR) --config Release -j $(JOBS)
 
 # Lint with clang-tidy

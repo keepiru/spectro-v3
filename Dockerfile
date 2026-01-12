@@ -3,8 +3,13 @@
 
 FROM debian:trixie AS builder
 
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
 # Install build dependencies
-RUN apt-get update && apt-get install -yq \
+RUN apt-get update && \
+    apt-get install -yq eatmydata && \
+    eatmydata apt-get install -yq \
     build-essential \
     cmake \
     pkg-config \
@@ -17,15 +22,22 @@ RUN apt-get update && apt-get install -yq \
     libqt6gui6 \
     libqt6widgets6 \
     libqt6multimedia6 \
-    libfftw3-single3
-
-# Add new requirements here so we don't have to rebuild the whole image
-RUN apt-get -yq install \
+    libfftw3-single3 \
     clang-format \
     libqt6test6 \
-    libsndfile1-dev
+    libsndfile1-dev \
+    ninja-build \
+    sudo
 
-# Set working directory
+# Add new requirements here so we don't have to rebuild the whole image
+# RUN apt-get -yq install \
+
+# Create user with matching UID/GID
+RUN groupadd -g ${GROUP_ID} builder && \
+    useradd -m -u ${USER_ID} -g builder -s /bin/bash builder && \
+    echo "builder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+USER builder
 WORKDIR /build
 
 # For now, just provide a shell

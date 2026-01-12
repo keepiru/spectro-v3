@@ -70,6 +70,7 @@ class FFTProcessor : public IFFTProcessor
      *         Output bins represent frequencies: [DC, 1*Fs/N, 2*Fs/N, ..., Nyquist]
      *         Where Fs is the sampling frequency and N is transform_size
      * @throws std::invalid_argument if aSamples.size() != transform_size
+     * @note Zero magnitudes will produce -inf dB values.
      */
     [[nodiscard]] std::vector<float> ComputeDecibels(
       const std::span<float>& aSamples) const override;

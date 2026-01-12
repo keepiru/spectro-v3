@@ -1,5 +1,4 @@
 build/
-build-docker/
-build-analysis/
+build-*
 .cache/
 .vscode/

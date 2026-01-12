@@ -8,11 +8,13 @@ MAKEFLAGS += --no-print-directory
 
 # Configuration
 BUILD_DIR := build
+ANALYSIS_DIR := build-analysis
 BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
 
 .PHONY: all build configure clean rebuild test test-one \
-        tdd release lint lint-fix-changed lint-fix lint-files help run bench
+        tdd release lint lint-fix-changed lint-fix lint-files help run bench \
+        configure-analysis
 
 # Default target
 all: build
@@ -21,6 +23,12 @@ all: build
 configure:
 	@echo "Configuring CMake..."
 	cmake --preset=default
+
+# Configure for static analysis (without unity builds).  run-clang-tidy needs
+# compile_commands.json to be present and unity-free.
+configure-analysis:
+	@echo "Configuring CMake for static analysis (no unity builds)..."
+	cmake --preset=analysis
 
 # Build the project (configures if needed)
 build: | $(BUILD_DIR)/Makefile
@@ -34,7 +42,7 @@ $(BUILD_DIR)/Makefile:
 # Clean build artifacts
 clean:
 	@echo "Cleaning build directory..."
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) $(ANALYSIS_DIR)
 
 # Full rebuild (clean + configure + build)
 rebuild: clean configure build
@@ -56,29 +64,33 @@ release:
 	cmake --build $(BUILD_DIR) --config Release -j $(JOBS)
 
 # Lint with clang-tidy
-lint:
+lint: $(ANALYSIS_DIR)/compile_commands.json
 	@echo "Running clang-tidy on source files..."
-	@find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
+	@find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -quiet
 
 # Lint specific files (usage: make lint-file FILE="file1.cpp file2.cpp")
-lint-files:
+lint-files: $(ANALYSIS_DIR)/compile_commands.json
 	@echo "Running clang-tidy..."
-	@run-clang-tidy -p $(BUILD_DIR) -use-color -quiet $(filter-out $@,$(MAKECMDGOALS))
+	@run-clang-tidy -p $(ANALYSIS_DIR) -use-color -quiet $(filter-out $@,$(MAKECMDGOALS))
 
 # Lint with automatic fixes (use with caution)
-lint-fix:
+lint-fix: $(ANALYSIS_DIR)/compile_commands.json
 	@echo "Running clang-tidy with automatic fixes..."
-	@find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet
+	@find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -fix -quiet
 
 # Lint files changed in git
-lint-changed:
+lint-changed: $(ANALYSIS_DIR)/compile_commands.json
 	@echo "Running clang-tidy on changed files..."
-	@git diff --name-only HEAD | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
+	git diff --name-only HEAD | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -quiet
 
 # Lint files changed in git
-lint-fix-changed:
+lint-fix-changed: $(ANALYSIS_DIR)/compile_commands.json
 	@echo "Running clang-tidy on changed files..."
-	@git diff --name-only HEAD | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet
+	@git diff --name-only HEAD | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -fix -quiet
+
+# Ensure analysis build is configured
+$(ANALYSIS_DIR)/compile_commands.json:
+	@$(MAKE) configure-analysis
 
 run: build
 	@echo "Running spectro-v3..."
@@ -95,6 +107,7 @@ help:
 	@echo "Build Targets:"
 	@echo "  make              - Build the project (default)"
 	@echo "  make configure    - Configure CMake"
+	@echo "  make configure-analysis - Configure for static analysis (no unity builds)"
 	@echo "  make build        - Build the project"
 	@echo "  make clean        - Remove build directory"
 	@echo "  make rebuild      - Clean + configure + build"

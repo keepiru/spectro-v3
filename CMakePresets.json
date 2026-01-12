@@ -15,7 +15,9 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "CMAKE_COLOR_DIAGNOSTICS": "ON"
+                "CMAKE_COLOR_DIAGNOSTICS": "ON",
+                "CMAKE_UNITY_BUILD": "ON",
+                "CMAKE_UNITY_BUILD_BATCH_SIZE": "8"
             }
         },
         {
@@ -25,6 +27,16 @@
             "inherits": "default",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "analysis",
+            "displayName": "Static Analysis Config",
+            "description": "Build for static analysis (no unity builds)",
+            "inherits": "default",
+            "binaryDir": "${sourceDir}/build-analysis",
+            "cacheVariables": {
+                "CMAKE_UNITY_BUILD": "OFF"
             }
         }
     ],
@@ -38,6 +50,11 @@
             "name": "release",
             "displayName": "Release Build",
             "configurePreset": "release"
+        },
+        {
+            "name": "analysis",
+            "displayName": "Analysis Build",
+            "configurePreset": "analysis"
         }
     ],
     "testPresets": [

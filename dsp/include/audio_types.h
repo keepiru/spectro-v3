@@ -185,7 +185,7 @@ class SampleIndex
 ///
 /// Can be negative to represent positions before the timeline start.
 class FramePosition
-  : public audio_type_internal::Base<int64_t>
+  : public audio_type_internal::Base<std::ptrdiff_t>
   , public audio_type_internal::Add<FrameCount>
   , public audio_type_internal::Add<FFTSize>
   , public audio_type_internal::Subtract<FrameCount>
@@ -193,7 +193,7 @@ class FramePosition
   , public audio_type_internal::Comparable
 {
   public:
-    using audio_type_internal::Base<int64_t>::Base;
+    using audio_type_internal::Base<std::ptrdiff_t>::Base;
     using audio_type_internal::Add<FrameCount>::operator+;
     using audio_type_internal::Add<FFTSize>::operator+;
     using audio_type_internal::Subtract<FrameCount>::operator-;
@@ -235,9 +235,17 @@ class FrameCount
         return static_cast<sf_count_t>(Get());
     }
 
-    [[nodiscard]] constexpr FramePosition AsPosition() const noexcept
+    /// @brief Convert to FramePosition
+    /// @return The FramePosition equivalent of this FrameCount
+    /// @throws std::overflow_error if the count exceeds std::ptrdiff_t maximum
+    [[nodiscard]] constexpr FramePosition AsPosition() const
     {
-        return FramePosition{ ToIntChecked() };
+        const size_t kValue = Get();
+        if (kValue > std::numeric_limits<std::ptrdiff_t>::max()) {
+            throw std::overflow_error(
+              std::format("FrameCount({}) exceeds std::ptrdiff_t max", kValue));
+        }
+        return FramePosition{ static_cast<std::ptrdiff_t>(kValue) };
     }
 };
 

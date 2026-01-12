@@ -99,6 +99,13 @@ TEST_CASE("FrameCount", "[audio_types]")
         CHECK(kHave == kWant);
     }
 
+    SECTION("AsPosition overflow detection")
+    {
+        const size_t kOverflowValue =
+          static_cast<size_t>(std::numeric_limits<std::ptrdiff_t>::max()) + 1;
+        CHECK_THROWS_AS(FrameCount(kOverflowValue).AsPosition(), std::overflow_error);
+    }
+
     SECTION("AsPtrDiffT conversion")
     {
         const FrameCount kFC(1234);

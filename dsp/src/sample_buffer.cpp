@@ -21,10 +21,8 @@ SampleBuffer::AddSamples(const std::vector<float>& aSamples)
 std::vector<float>
 SampleBuffer::GetSamples(SampleIndex aStartSample, SampleCount aSampleCount) const
 {
-    // FIXME: overflow check on aStartSample + aSampleCount.  Minor because
-    // buffers will realistically never be that large.  Requires extending the
-    // type system.
-    if (aStartSample + aSampleCount > SampleIndex(mData.size())) {
+    if (aStartSample.Get() > mData.size() ||
+        aSampleCount.Get() > mData.size() - aStartSample.Get()) {
         throw std::out_of_range(
           std::format("SampleBuffer::GetSamples: Not enough samples to fulfill request: "
                       "requested start {}, count {}, available {}",

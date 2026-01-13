@@ -30,7 +30,8 @@ RUN apt-get update && \
     sudo
 
 # Add new requirements here so we don't have to rebuild the whole image
-# RUN apt-get -yq install \
+RUN eatmydata apt-get -yq install \
+    gdb
 
 # Create user with matching UID/GID
 RUN groupadd -g ${GROUP_ID} builder && \
@@ -39,6 +40,7 @@ RUN groupadd -g ${GROUP_ID} builder && \
 
 USER builder
 WORKDIR /build
+ENV QT_QPA_PLATFORM=offscreen
 
 # For now, just provide a shell
 CMD ["/bin/bash"]

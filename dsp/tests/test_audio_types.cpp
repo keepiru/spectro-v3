@@ -5,6 +5,7 @@
 #include <map>
 #include <sndfile.h>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
 TEST_CASE("FFTSize", "[audio_types]")
@@ -27,6 +28,22 @@ TEST_CASE("FFTSize", "[audio_types]")
         CHECK_THROWS_AS(FFTSize(255), std::invalid_argument);
         CHECK_THROWS_AS(FFTSize(1023), std::invalid_argument);
         CHECK_THROWS_AS(FFTSize(1025), std::invalid_argument);
+    }
+
+    SECTION("Constructor throws when value exceeds int max")
+    {
+        // INT_MAX is 2147483647, so 1 << 31 = 2147483648 exceeds it
+        CHECK_THROWS_AS(FFTSize(1uLL << 31), std::invalid_argument);
+        CHECK_THROWS_AS(FFTSize(1uLL << 32), std::invalid_argument);
+        CHECK_THROWS_AS(FFTSize(std::numeric_limits<size_t>::max()), std::invalid_argument);
+    }
+
+    SECTION("Get() returns size_t")
+    {
+        const FFTSize kSize(512);
+        size_t const value = kSize.Get();
+        CHECK(value == 512);
+        CHECK(std::is_same_v<decltype(kSize.Get()), size_t>);
     }
 
     SECTION("Constexpr evaluation")

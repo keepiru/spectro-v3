@@ -132,32 +132,37 @@ class AsPtrDiff
 /// @brief FFT transform size (must be a power of 2)
 ///
 /// This is a special case of Count used in FFT operations.
-/// The base type is int for compatibility with FFTW3.
+/// The constructor validates it fits in int for FFTW3 compatibility.
 class FFTSize
-  : public audio_type_internal::Base<int>
+  : public audio_type_internal::Base<size_t>
   , public audio_type_internal::Comparable
 {
   public:
     /// @brief Construct an FFT size value
-    /// @param aValue The FFT size (must be a positive power of 2)
-    /// @throws std::invalid_argument if aValue is not a positive power of 2
-    constexpr FFTSize(int aValue)
-      : audio_type_internal::Base<int>(aValue)
+    /// @param aValue The FFT size (must be a positive power of 2 that fits in int)
+    /// @throws std::invalid_argument if aValue is not a positive power of 2 or exceeds int max
+    constexpr FFTSize(size_t aValue)
+      : audio_type_internal::Base<size_t>(aValue)
     {
+        // Ensure aValue fits in int for FFTW3 compatibility
+        if (aValue > static_cast<size_t>(std::numeric_limits<int>::max())) {
+            throw std::invalid_argument(std::format(
+              "FFTSize({}) exceeds int max({})", aValue, std::numeric_limits<int>::max()));
+        }
         // Ensure aValue is a positive power of 2
-        if (aValue <= 0 || (aValue & (aValue - 1)) != 0) {
+        if (aValue == 0 || (aValue & (aValue - 1)) != 0) {
             throw std::invalid_argument("FFTSize must be a positive power of 2");
         }
     }
 
     /// @brief Implicit access as int for convenience
-    /// @return The FFT size as an int
+    /// @return The FFT size as an int (safe because constructor validates it fits)
     /// @note FFTSize is used in many contexts with varying semantics: as a
     /// parameter for FFTW, as a size for buffers, as a count of samples, etc.
     /// Calling .Get() everywhere undermines the purpose of having a strong type
     /// in the first place. We might want to revisit this if we add more
     /// semantic operations here later.
-    [[nodiscard]] constexpr operator int() const noexcept { return Get(); }
+    [[nodiscard]] constexpr operator int() const noexcept { return static_cast<int>(Get()); }
 };
 
 /// @brief Count of samples (always non-negative)

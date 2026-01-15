@@ -252,6 +252,12 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
     // MainWindow connects scrollbar to Settings::ClearLiveMode, simulate that here
     QObject::connect(scrollBar, &QScrollBar::actionTriggered, &settings, &Settings::ClearLiveMode);
 
+    // Compute the page step in frames.  This offset is relevant in scrollbar tests
+    // where we need to account for the page step in the maximum value.
+    constexpr size_t kViewportHeight = 478; // rows
+    constexpr size_t kFFTStride = 1024;
+    constexpr size_t kPageStepFrames = kViewportHeight * kFFTStride;
+
     SECTION("scrollbar is initialized on construction")
     {
         CHECK(scrollBar->orientation() == Qt::Vertical);
@@ -262,19 +268,20 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
 
     SECTION("throws when overflowing scrollbar maximum")
     {
-        const int64_t kMaxAllowed = (1LL << 31) - 1;
+        const int64_t kMaxAllowed = (1LL << 31) - kPageStepFrames - 1;
         REQUIRE_NOTHROW(view.UpdateScrollbarRange(FrameCount(kMaxAllowed)));
 
         const int64_t kTooLarge = kMaxAllowed + 1;
-        REQUIRE_THROWS_MATCHES(view.UpdateScrollbarRange(FrameCount(kTooLarge)),
-                               std::overflow_error,
-                               MessageMatches(ContainsSubstring("exceeds int max")));
+        REQUIRE_THROWS_MATCHES(
+          view.UpdateScrollbarRange(FrameCount(kTooLarge)),
+          std::overflow_error,
+          MessageMatches(ContainsSubstring("Count(2147483648) exceeds int max")));
     }
 
     SECTION("UpdateScrollbarRange updates scrollbar maximum")
     {
         view.UpdateScrollbarRange(FrameCount(10000));
-        REQUIRE(scrollBar->maximum() == 10000);
+        REQUIRE(scrollBar->maximum() == 10000 + kPageStepFrames);
     }
 
     SECTION("UpdateScrollbarRange follows live data when in live mode")
@@ -288,9 +295,10 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
         view.UpdateScrollbarRange(FrameCount(20000));
 
         // Position should follow to new maximum (live mode)
-        REQUIRE(scrollBar->value() == scrollBar->maximum());
-        REQUIRE(scrollBar->maximum() == 20000);
+        REQUIRE(scrollBar->value() == 20000);
+        REQUIRE(scrollBar->maximum() == 20000 + kPageStepFrames);
 
+        // Clear live mode
         settings.SetLiveMode(false);
 
         // Add more data again
@@ -298,6 +306,7 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
 
         // Position should be preserved (not live mode)
         REQUIRE(scrollBar->value() == 20000);
+        REQUIRE(scrollBar->maximum() == 30000 + kPageStepFrames);
     }
 
     SECTION("UpdateScrollbarRange emits valueChanged signal to trigger repaint")

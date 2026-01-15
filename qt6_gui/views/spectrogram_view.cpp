@@ -46,9 +46,6 @@ SpectrogramView::SpectrogramView(const SpectrogramController& aController, QWidg
 void
 SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
 {
-    // The scrollbar's maximum is the total available frames.
-    const FrameCount kScrollMaximum = aAvailableFrames;
-
     const FFTSize kStride = mController.GetSettings().GetWindowStride();
     const bool kIsLiveMode = mController.GetSettings().IsLiveMode();
 
@@ -59,15 +56,19 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
           std::format("{}: scroll page step exceeds int max", __PRETTY_FUNCTION__));
     }
 
-    const auto kScrollPageStep = static_cast<int>(kStride) * viewport()->height();
+    const FrameCount kScrollPageStep(kStride.Get() * viewport()->height());
+
+    // The scrollbar's maximum is one page past the available frames, to allow
+    // scrolling the end of data all the way to the top of the view.
+    const FrameCount kScrollMaximum = aAvailableFrames + kScrollPageStep;
 
     // Update scrollbar range
     verticalScrollBar()->setMaximum(kScrollMaximum.ToIntChecked());
-    verticalScrollBar()->setPageStep(kScrollPageStep);
+    verticalScrollBar()->setPageStep(kScrollPageStep.ToIntChecked());
 
-    // If we are in live mode, keep the scrollbar at the maximum.
+    // If we are in live mode, put the end of the data at the bottom of the view.
     if (kIsLiveMode) {
-        verticalScrollBar()->setValue(kScrollMaximum.ToIntChecked());
+        verticalScrollBar()->setValue(aAvailableFrames.ToIntChecked());
     }
     // Otherwise, preserve the current scroll position (user is viewing history)
 }

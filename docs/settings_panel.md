@@ -43,3 +43,10 @@ When clicked:
 - Choose file with QFileDialog
 - Create a QProgressDialog
 - Call AudioFile::LoadFile with the filename and progress callback lambda
+
+## Live Mode button
+
+QPushButton("Live Mode");
+
+When clicked:
+ - Settings::SetLiveMode(true);

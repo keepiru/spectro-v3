@@ -249,6 +249,9 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
     auto* scrollBar = view.findChild<QScrollBar*>("SpectrogramViewVerticalScrollBar");
     REQUIRE(scrollBar != nullptr);
 
+    // MainWindow connects scrollbar to Settings::ClearLiveMode, simulate that here
+    QObject::connect(scrollBar, &QScrollBar::actionTriggered, &settings, &Settings::ClearLiveMode);
+
     SECTION("scrollbar is initialized on construction")
     {
         CHECK(scrollBar->orientation() == Qt::Vertical);
@@ -274,21 +277,9 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
         REQUIRE(scrollBar->maximum() == 10000);
     }
 
-    SECTION("UpdateScrollbarRange preserves scroll position when not at max")
+    SECTION("UpdateScrollbarRange follows live data when in live mode")
     {
-        // Set initial range and position
-        view.UpdateScrollbarRange(FrameCount(10000));
-        scrollBar->setValue(5000); // Set to middle position
-
-        // Add more data
-        view.UpdateScrollbarRange(FrameCount(20000));
-
-        // Position should be preserved
-        REQUIRE(scrollBar->value() == 5000);
-    }
-
-    SECTION("UpdateScrollbarRange follows live data when at maximum")
-    {
+        settings.SetLiveMode(true);
         // Set initial range and position at max (live mode)
         view.UpdateScrollbarRange(FrameCount(10000));
         scrollBar->setValue(scrollBar->maximum());
@@ -296,9 +287,17 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
         // Add more data
         view.UpdateScrollbarRange(FrameCount(20000));
 
-        // Position should follow to new maximum (implicit live mode)
+        // Position should follow to new maximum (live mode)
         REQUIRE(scrollBar->value() == scrollBar->maximum());
         REQUIRE(scrollBar->maximum() == 20000);
+
+        settings.SetLiveMode(false);
+
+        // Add more data again
+        view.UpdateScrollbarRange(FrameCount(30000));
+
+        // Position should be preserved (not live mode)
+        REQUIRE(scrollBar->value() == 20000);
     }
 
     SECTION("UpdateScrollbarRange emits valueChanged signal to trigger repaint")
@@ -309,5 +308,16 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
         view.UpdateScrollbarRange(FrameCount(10000));
         REQUIRE(spy.count() == 1);
         REQUIRE(spy.takeFirst().takeFirst().toInt() == 10000);
+    }
+
+    SECTION("Scrollbar action clears live mode in settings")
+    {
+        settings.SetLiveMode(true);
+        REQUIRE(settings.IsLiveMode() == true);
+
+        scrollBar->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+
+        // Live mode should be cleared
+        REQUIRE(settings.IsLiveMode() == false);
     }
 }

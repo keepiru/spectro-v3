@@ -12,6 +12,7 @@
 #include <QMainWindow>
 #include <QMediaDevices>
 #include <QOverload>
+#include <QScrollBar>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <audio_types.h>
@@ -134,4 +135,10 @@ MainWindow::SetupConnections()
     connect(&mAudioBuffer, &AudioBuffer::BufferReset, [&]() {
         mSpectrogramView.UpdateScrollbarRange(FrameCount(0));
     });
+
+    // Clear live mode when user interacts with scrollbar
+    connect(mSpectrogramView.verticalScrollBar(),
+            &QScrollBar::actionTriggered,
+            &mSettings,
+            &Settings::ClearLiveMode);
 }

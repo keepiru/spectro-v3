@@ -403,3 +403,38 @@ TEST_CASE("SettingsPanel open file button", "[settings_panel]")
     REQUIRE(button != nullptr);
     REQUIRE(button->text() == QString("Open File"));
 }
+
+TEST_CASE("SettingsPanel live mode button", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    AudioFile audioFile(audioBuffer);
+    SettingsPanel const panel(settings, audioRecorder, audioFile);
+
+    auto* button = panel.findChild<QPushButton*>("liveModeButton");
+    REQUIRE(button != nullptr);
+    REQUIRE(button->text() == QString("Live Mode"));
+}
+
+TEST_CASE("SettingsPanel live mode button functionality", "[settings_panel]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    AudioRecorder audioRecorder(audioBuffer);
+    AudioFile audioFile(audioBuffer);
+    const SettingsPanel panel(settings, audioRecorder, audioFile);
+
+    auto* button = panel.findChild<QPushButton*>("liveModeButton");
+    REQUIRE(button != nullptr);
+
+    // Set to false first
+    settings.SetLiveMode(false);
+    REQUIRE(settings.IsLiveMode() == false);
+
+    // Click button
+    button->click();
+
+    // Should now be true
+    REQUIRE(settings.IsLiveMode() == true);
+}

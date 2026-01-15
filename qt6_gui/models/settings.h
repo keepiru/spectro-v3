@@ -164,6 +164,18 @@ class Settings : public QObject
         return mSelectedColorMaps.at(aChannel);
     }
 
+    /// @brief Get whether live mode is enabled
+    /// @return True if live mode is enabled, false otherwise
+    [[nodiscard]] bool IsLiveMode() const { return mIsLiveMode; }
+
+    /// @brief Set whether live mode is enabled
+    /// @param aIsLiveMode True to enable live mode, false to disable
+    void SetLiveMode(const bool aIsLiveMode) { mIsLiveMode = aIsLiveMode; }
+
+    /// @brief Clear live mode (set to false)
+    /// @note This slot connects with the scrollbar's actionTriggered signal
+    void ClearLiveMode() { mIsLiveMode = false; }
+
   signals:
     /// @brief Emitted when FFT size or window type changes
     ///
@@ -204,4 +216,6 @@ class Settings : public QObject
 
     // Selected color maps for each channel.
     std::array<ColorMapType, GKMaxChannels> mSelectedColorMaps = KDefaultColorMaps;
+
+    bool mIsLiveMode{ true }; ///< Whether we are following live audio or viewing history
 };

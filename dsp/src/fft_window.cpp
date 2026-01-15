@@ -18,11 +18,9 @@ FFTWindow::FFTWindow(FFTSize aSize, FFTWindow::Type aType)
     ComputeWindowCoefficients();
 }
 
-/**
- * @brief Apply the window to the input samples.
- * @param input Input samples.  Size must match window size.
- * @return Windowed data
- */
+/// @brief Apply the window to the input samples.
+/// @param input Input samples.  Size must match window size.
+/// @return Windowed data
 std::vector<float>
 FFTWindow::Apply(std::span<const float> aInputSamples) const
 {
@@ -38,9 +36,7 @@ FFTWindow::Apply(std::span<const float> aInputSamples) const
     return output;
 }
 
-/**
- * @brief Compute the window coefficients based on the selected type and size
- */
+/// @brief Compute the window coefficients based on the selected type and size
 void
 FFTWindow::ComputeWindowCoefficients()
 {

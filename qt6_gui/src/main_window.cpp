@@ -1,6 +1,5 @@
 #include "main_window.h"
 #include "controllers/spectrogram_controller.h"
-#include "include/global_constants.h"
 #include "models/audio_buffer.h"
 #include "models/audio_recorder.h"
 #include "models/settings.h"
@@ -57,25 +56,23 @@ MainWindow::MainWindow(QWidget* parent)
 void
 MainWindow::CreateLayout()
 {
-    /**
-     * ┌─────────────────────────────────────────────────────────┐
-     * │ QHBoxLayout (main)                                      │
-     * │ ┌──────────────────────────────┬────────────────────┐   │
-     * │ │ QVBoxLayout (left)           │ SettingsPanel      │   │
-     * │ │ ┌──────────────────────────┐ │ (~300px)           │   │
-     * │ │ │ SpectrogramView          │ │                    │   │
-     * │ │ │ (stretch 7)              │ │                    │   │
-     * │ │ └──────────────────────────┘ │                    │   │
-     * │ │ ┌──────────────────────────┐ │                    │   │
-     * │ │ │ ScaleView (fixed 20px)   │ │                    │   │
-     * │ │ └──────────────────────────┘ │                    │   │
-     * │ │ ┌──────────────────────────┐ │                    │   │
-     * │ │ │ SpectrumPlot             │ │                    │   │
-     * │ │ │ (stretch 3)              │ │                    │   │
-     * │ │ └──────────────────────────┘ │                    │   │
-     * │ └──────────────────────────────┴────────────────────┘   │
-     * └─────────────────────────────────────────────────────────┘
-     */
+    // ┌─────────────────────────────────────────────────────────┐
+    // │ QHBoxLayout (main)                                      │
+    // │ ┌──────────────────────────────┬────────────────────┐   │
+    // │ │ QVBoxLayout (left)           │ SettingsPanel      │   │
+    // │ │ ┌──────────────────────────┐ │ (~300px)           │   │
+    // │ │ │ SpectrogramView          │ │                    │   │
+    // │ │ │ (stretch 7)              │ │                    │   │
+    // │ │ └──────────────────────────┘ │                    │   │
+    // │ │ ┌──────────────────────────┐ │                    │   │
+    // │ │ │ ScaleView (fixed 20px)   │ │                    │   │
+    // │ │ └──────────────────────────┘ │                    │   │
+    // │ │ ┌──────────────────────────┐ │                    │   │
+    // │ │ │ SpectrumPlot             │ │                    │   │
+    // │ │ │ (stretch 3)              │ │                    │   │
+    // │ │ └──────────────────────────┘ │                    │   │
+    // │ └──────────────────────────────┴────────────────────┘   │
+    // └─────────────────────────────────────────────────────────┘
 
     // Create left container with vertical layout for the two plots
     auto* leftContainer = new QWidget(this);

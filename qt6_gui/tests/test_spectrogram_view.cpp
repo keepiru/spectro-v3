@@ -10,11 +10,9 @@ using namespace Catch::Matchers;
 
 namespace {
 
-/**
- * @brief Convert a QImage to a string representation for easy comparison in tests.
- * @param image The QImage to convert.
- * @return A string representation of the image's pixel RGB values.
- */
+/// @brief Convert a QImage to a string representation for easy comparison in tests.
+/// @param image The QImage to convert.
+/// @return A string representation of the image's pixel RGB values.
 std::string
 QImageToString(const QImage& image)
 {

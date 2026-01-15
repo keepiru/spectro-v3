@@ -13,11 +13,9 @@
 class QLabel;
 class AudioFile;
 
-/**
- * @brief Configuration panel widget
- *
- * Provides controls for adjusting FFT parameters, display settings, and color maps.
- */
+/// @brief Configuration panel widget
+///
+/// Provides controls for adjusting FFT parameters, display settings, and color maps.
 class SettingsPanel : public QWidget
 {
     Q_OBJECT

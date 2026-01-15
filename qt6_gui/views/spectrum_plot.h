@@ -11,19 +11,17 @@
 
 class SpectrogramController;
 
-/**
- * @brief Real-time frequency spectrum line plot widget
- *
- * Displays a line plot of the current frequency spectrum with frequency on the
- * horizontal axis and magnitude on the vertical axis.
- *
- * Future features:
- * - Real-time spectrum line plot
- * - Frequency axis labels
- * - dB scale on vertical axis
- * - Peak markers
- * - Grid lines
- */
+/// @brief Real-time frequency spectrum line plot widget
+///
+/// Displays a line plot of the current frequency spectrum with frequency on the
+/// horizontal axis and magnitude on the vertical axis.
+///
+/// Future features:
+/// - Real-time spectrum line plot
+/// - Frequency axis labels
+/// - dB scale on vertical axis
+/// - Peak markers
+/// - Grid lines
 class SpectrumPlot : public QWidget
 {
     Q_OBJECT
@@ -85,55 +83,45 @@ class SpectrumPlot : public QWidget
     explicit SpectrumPlot(const SpectrogramController& aController, QWidget* parent = nullptr);
     ~SpectrumPlot() override = default;
 
-    /**
-     * @brief Get the decibel values for the most recent stride in a given channel
-     * @param aChannel Channel index (0-based)
-     * @return std::vector<float> Vector of decibel values for the current FFT window
-     * @throws std::out_of_range if aChannel is out of range
-     */
+    /// @brief Get the decibel values for the most recent stride in a given channel
+    /// @param aChannel Channel index (0-based)
+    /// @return std::vector<float> Vector of decibel values for the current FFT window
+    /// @throws std::out_of_range if aChannel is out of range
     [[nodiscard]] std::vector<float> GetDecibels(ChannelCount aChannel) const;
 
-    /**
-     * @brief Compute the points for plotting from decibel values
-     * @param aDecibels Vector of decibel values
-     * @param aWidth Width of the plot area in pixels
-     * @param aHeight Height of the plot area in pixels
-     * @return QPolygonF Polygon of points for plotting
-     * @note Points outside the given width are not included
-     * @note If the decibel range is zero, an empty polygon is returned
-     */
+    /// @brief Compute the points for plotting from decibel values
+    /// @param aDecibels Vector of decibel values
+    /// @param aWidth Width of the plot area in pixels
+    /// @param aHeight Height of the plot area in pixels
+    /// @return QPolygonF Polygon of points for plotting
+    /// @note Points outside the given width are not included
+    /// @note If the decibel range is zero, an empty polygon is returned
     [[nodiscard]] QPolygonF ComputePoints(const std::vector<float>& aDecibels,
                                           size_t aWidth,
                                           size_t aHeight) const;
 
-    /**
-     * @brief Calculate decibel scale parameters for the plot
-     * @param aHeight Height of the plot area in pixels
-     * @return DecibelScaleParameters Decibel scale parameters
-     *
-     * These parameters cover the vertical spacing, range, count, step, etc for
-     * the decibel scale markers.  Horizontal positions are handled in
-     * GenerateDecibelScaleMarkers().
-     */
+    /// @brief Calculate decibel scale parameters for the plot
+    /// @param aHeight Height of the plot area in pixels
+    /// @return DecibelScaleParameters Decibel scale parameters
+    ///
+    /// These parameters cover the vertical spacing, range, count, step, etc for
+    /// the decibel scale markers.  Horizontal positions are handled in
+    /// GenerateDecibelScaleMarkers().
     [[nodiscard]] DecibelScaleParameters CalculateDecibelScaleParameters(int aHeight) const;
 
-    /**
-     * @brief Generate decibel scale markers for the plot
-     * @param aParams Decibel scale parameters
-     * @param aWidth Width of the plot area in pixels
-     * @return std::vector<Marker> Vector of decibel markers
-     */
+    /// @brief Generate decibel scale markers for the plot
+    /// @param aParams Decibel scale parameters
+    /// @param aWidth Width of the plot area in pixels
+    /// @return std::vector<Marker> Vector of decibel markers
     [[nodiscard]] static std::vector<Marker> GenerateDecibelScaleMarkers(
       const DecibelScaleParameters& aParams,
       int aWidth);
 
-    /**
-     *  @brief Compute crosshair lines and labels for the given mouse position
-     *  @param aMousePos Mouse position in widget coordinates
-     *  @param aHeight Height of the plot area in pixels
-     *  @param aWidth Width of the plot area in pixels
-     *  @return std::array<Marker, 2> Array containing frequency and decibel markers
-     */
+    /// @brief Compute crosshair lines and labels for the given mouse position
+    /// @param aMousePos Mouse position in widget coordinates
+    /// @param aHeight Height of the plot area in pixels
+    /// @param aWidth Width of the plot area in pixels
+    /// @return std::array<Marker, 2> Array containing frequency and decibel markers
     [[nodiscard]] std::array<Marker, 2> ComputeCrosshair(QPoint aMousePos,
                                                          int aHeight,
                                                          int aWidth) const;

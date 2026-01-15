@@ -7,18 +7,14 @@
 #include <QSignalSpy>
 #include <catch2/catch_test_macros.hpp>
 
-/**
- * @brief Mock QIODevice to simulate audio input for testing.
- */
+/// @brief Mock QIODevice to simulate audio input for testing.
 class MockQIODevice : public QIODevice
 {
   public:
     explicit MockQIODevice() { open(QIODevice::ReadOnly); }
 
-    /**
-     * @brief Simulates incoming audio data by appending to the internal buffer.
-     * @param samples Vector of float samples to append.
-     */
+    /// @brief Simulates incoming audio data by appending to the internal buffer.
+    /// @param samples Vector of float samples to append.
     void SimulateAudioData(const std::vector<float>& samples)
     {
         // Type punning is intentional: converting float samples to byte stream
@@ -30,12 +26,10 @@ class MockQIODevice : public QIODevice
         emit readyRead();
     }
 
-    /**
-     * @brief Reads data from the internal buffer.
-     * @param data Pointer to the destination buffer.
-     * @param maxlen Maximum number of bytes to read.
-     * @return Number of bytes actually read.
-     */
+    /// @brief Reads data from the internal buffer.
+    /// @param data Pointer to the destination buffer.
+    /// @param maxlen Maximum number of bytes to read.
+    /// @return Number of bytes actually read.
     qint64 readData(char* data, qint64 maxlen) override
     {
         const qint64 bytesToRead = qMin(maxlen, static_cast<qint64>(mBuffer.size()));

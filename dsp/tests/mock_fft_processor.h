@@ -7,19 +7,15 @@
 #include <stdexcept>
 #include <vector>
 
-/**
- * @brief Mock implementation of IFFTProcessor for testing
- *
- * This mock processor just returns the sample data as both the real and
- * imaginary parts of the complex FFT output, and as the magnitudes.  It allows
- * predefined results to be set for testing purposes.
- */
+/// @brief Mock implementation of IFFTProcessor for testing
+///
+/// This mock processor just returns the sample data as both the real and
+/// imaginary parts of the complex FFT output, and as the magnitudes.  It allows
+/// predefined results to be set for testing purposes.
 class MockFFTProcessor : public IFFTProcessor
 {
   public:
-    /**
-     * @brief Constructor
-     */
+    /// @brief Constructor
     MockFFTProcessor(FFTSize aTransformSize)
       : mTransformSize(aTransformSize)
     {
@@ -27,12 +23,10 @@ class MockFFTProcessor : public IFFTProcessor
 
     [[nodiscard]] FFTSize GetTransformSize() const noexcept override { return mTransformSize; }
 
-    /**
-     * @brief Return predefined complex FFT results
-     * @param aInputSamples Input audio aInputSamples (size must be equal to transform_size).
-     * @return Vector of complex FFT output
-     * @throws std::invalid_argument if aInputSamples.size() != transform_size
-     */
+    /// @brief Return predefined complex FFT results
+    /// @param aInputSamples Input audio aInputSamples (size must be equal to transform_size).
+    /// @return Vector of complex FFT output
+    /// @throws std::invalid_argument if aInputSamples.size() != transform_size
     [[nodiscard]] std::vector<FftwfComplex> ComputeComplex(
       const std::span<float>& aInputSamples) const override
     {
@@ -48,13 +42,11 @@ class MockFFTProcessor : public IFFTProcessor
         return ret;
     }
 
-    /**
-     * @brief Return predefined magnitude results
-     * @param aInputSamples Input audio aInputSamples (size must be equal to transform_size).
-     * Ignored in this mock.
-     * @return Vector of frequency magnitudes
-     * @throws std::invalid_argument if aInputSamples.size() != transform_size
-     */
+    /// @brief Return predefined magnitude results
+    /// @param aInputSamples Input audio aInputSamples (size must be equal to transform_size).
+    /// Ignored in this mock.
+    /// @return Vector of frequency magnitudes
+    /// @throws std::invalid_argument if aInputSamples.size() != transform_size
     [[nodiscard]] std::vector<float> ComputeMagnitudes(
       const std::span<float>& aInputSamples) const override
     {
@@ -75,10 +67,8 @@ class MockFFTProcessor : public IFFTProcessor
         return ComputeMagnitudes(aInputSamples);
     }
 
-    /**
-     * @brief Get factory function for creating IFFTProcessor instances
-     * @return Factory function
-     */
+    /// @brief Get factory function for creating IFFTProcessor instances
+    /// @return Factory function
     [[nodiscard]] static IFFTProcessorFactory GetFactory()
     {
         return [](FFTSize size) { return std::make_unique<MockFFTProcessor>(size); };

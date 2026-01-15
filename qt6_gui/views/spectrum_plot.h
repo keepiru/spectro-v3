@@ -1,6 +1,6 @@
 #pragma once
 
-#include "include/global_constants.h"
+#include "audio_types.h"
 #include <QLine>
 #include <QObject>
 #include <QRect>

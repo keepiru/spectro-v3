@@ -1,6 +1,5 @@
 #pragma once
 
-#include "include/global_constants.h"
 #include <QWidget>
 #include <format>
 #include <optional>

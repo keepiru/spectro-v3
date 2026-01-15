@@ -11,13 +11,9 @@ MAKEFLAGS += --no-print-directory
 ifeq ($(shell test -f /.dockerenv && echo yes),yes)
     BUILD_DIR := build-docker
     ANALYSIS_DIR := build-docker
-	CMAKE_UNITY_ARGS := -B $(BUILD_DIR) -DCMAKE_UNITY_BUILD=OFF
-	CMAKE_NONUNITY_ARGS := -B $(ANALYSIS_DIR) -DCMAKE_UNITY_BUILD=OFF
 else
     BUILD_DIR := build-unity
     ANALYSIS_DIR := build
-	CMAKE_UNITY_ARGS := -B $(BUILD_DIR) -DCMAKE_UNITY_BUILD=ON -DCMAKE_UNITY_BUILD_BATCH_SIZE=8
-	CMAKE_NONUNITY_ARGS := -B $(ANALYSIS_DIR) -DCMAKE_UNITY_BUILD=OFF
 endif
 BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
@@ -32,13 +28,13 @@ all: build
 # Configure CMake (run once or after CMakeLists.txt changes)
 configure:
 	@echo "Configuring CMake..."
-	cmake --preset=default $(CMAKE_UNITY_ARGS)
+	cmake --preset=default -B ${BUILD_DIR}
 
 # Configure for static analysis (without unity builds).  run-clang-tidy needs
 # compile_commands.json to be present and unity-free.
 configure-analysis:
 	@echo "Configuring CMake for static analysis (no unity builds)..."
-	cmake --preset=default $(CMAKE_NONUNITY_ARGS)
+	cmake --preset=analysis -B ${ANALYSIS_DIR}
 
 # Build the project (configures if needed)
 build: | $(BUILD_DIR)/Makefile
@@ -47,7 +43,7 @@ build: | $(BUILD_DIR)/Makefile
 
 # Ensure build directory exists and is configured
 $(BUILD_DIR)/Makefile:
-	@$(MAKE) configure
+	$(MAKE) configure
 
 # Clean build artifacts
 clean:
@@ -70,23 +66,23 @@ test-one: build
 # Release build
 release:
 	@echo "Building release..."
-	cmake --preset=release $(CMAKE_NONUNITY_ARGS) -DCMAKE_BUILD_TYPE=Release
+	cmake --preset=release -B ${BUILD_DIR}
 	cmake --build $(BUILD_DIR) --config Release -j $(JOBS)
 
 # Lint with clang-tidy
 lint: $(ANALYSIS_DIR)/compile_commands.json
 	@echo "Running clang-tidy on source files..."
-	@find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -quiet
+	find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -quiet
 
 # Lint specific files (usage: make lint-file FILE="file1.cpp file2.cpp")
 lint-files: $(ANALYSIS_DIR)/compile_commands.json
 	@echo "Running clang-tidy..."
-	@run-clang-tidy -p $(ANALYSIS_DIR) -use-color -quiet $(filter-out $@,$(MAKECMDGOALS))
+	run-clang-tidy -p $(ANALYSIS_DIR) -use-color -quiet $(filter-out $@,$(MAKECMDGOALS))
 
 # Lint with automatic fixes (use with caution)
 lint-fix: $(ANALYSIS_DIR)/compile_commands.json
 	@echo "Running clang-tidy with automatic fixes..."
-	@find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -fix -quiet
+	find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -fix -quiet
 
 # Lint files changed in git
 lint-changed: $(ANALYSIS_DIR)/compile_commands.json
@@ -96,11 +92,11 @@ lint-changed: $(ANALYSIS_DIR)/compile_commands.json
 # Lint files changed in git
 lint-fix-changed: $(ANALYSIS_DIR)/compile_commands.json
 	@echo "Running clang-tidy on changed files..."
-	@git diff --name-only HEAD | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -fix -quiet
+	git diff --name-only HEAD | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -fix -quiet
 
 # Ensure analysis build is configured
 $(ANALYSIS_DIR)/compile_commands.json:
-	@$(MAKE) configure-analysis
+	$(MAKE) configure-analysis
 
 run: build
 	@echo "Running spectro-v3..."

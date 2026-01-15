@@ -8,36 +8,43 @@
     "configurePresets": [
         {
             "name": "default",
-            "displayName": "Default Config",
-            "description": "Default build",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "CMAKE_COLOR_DIAGNOSTICS": "ON"
+                "CMAKE_COLOR_DIAGNOSTICS": "ON",
+                "CMAKE_UNITY_BUILD": "ON"
             }
         },
         {
             "name": "release",
-            "displayName": "Release Config",
-            "description": "Release build",
             "inherits": "default",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "analysis",
+            "inherits": "default",
+            "description": "Config without Unity for clang-tidy / clangd",
+            "cacheVariables": {
+                "CMAKE_UNITY_BUILD": "OFF"
             }
         }
     ],
     "buildPresets": [
         {
             "name": "default",
-            "displayName": "Default Build",
             "configurePreset": "default"
         },
         {
             "name": "release",
-            "displayName": "Release Build",
             "configurePreset": "release"
+        },
+        {
+            "name": "analysis",
+            "configurePreset": "analysis"
         }
     ],
     "testPresets": [

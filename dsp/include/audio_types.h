@@ -64,6 +64,9 @@ class Base
 template<typename Other>
 class Add
 {
+  protected:
+    constexpr Add() = default;
+
   public:
     /// @brief Add a Count to this value
     /// @param aOther The Count to add
@@ -210,6 +213,7 @@ class FrameCount
   : public audio_type_internal::Base<size_t>
   , public audio_type_internal::Comparable
   , public audio_type_internal::AsPtrDiff
+  , public audio_type_internal::Add<FrameCount>
 {
   public:
     using audio_type_internal::Base<size_t>::Base;

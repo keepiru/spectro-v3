@@ -174,3 +174,31 @@ TEST_CASE("Settings::SetAperture", "[settings]")
     REQUIRE(settings.GetApertureMinDecibels() == -40.0f);
     REQUIRE(settings.GetApertureMaxDecibels() == 20.0f);
 }
+
+TEST_CASE("Settings Live Mode", "[settings]")
+{
+    Settings settings;
+
+    SECTION("default is true")
+    {
+        REQUIRE(settings.IsLiveMode() == true);
+    }
+
+    SECTION("SetLiveMode changes value")
+    {
+        settings.SetLiveMode(true);
+        REQUIRE(settings.IsLiveMode() == true);
+
+        settings.SetLiveMode(false);
+        REQUIRE(settings.IsLiveMode() == false);
+    }
+
+    SECTION("ClearLiveMode sets to false")
+    {
+        settings.SetLiveMode(true);
+        REQUIRE(settings.IsLiveMode() == true);
+
+        settings.ClearLiveMode();
+        REQUIRE(settings.IsLiveMode() == false);
+    }
+}

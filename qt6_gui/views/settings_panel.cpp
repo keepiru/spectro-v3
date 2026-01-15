@@ -77,6 +77,7 @@ SettingsPanel::CreateLayout()
 
     CreateAudioControls(formLayout);
     CreateOpenFileButton(formLayout);
+    CreateLiveModeButton(formLayout);
     CreateWindowTypeControl(formLayout);
     CreateFFTSizeControl(formLayout);
     CreateWindowScaleControl(formLayout);
@@ -518,4 +519,14 @@ SettingsPanel::OnOpenFileClicked()
     }
 
     progressDialog.setValue(KProgressMaximum);
+}
+
+void
+SettingsPanel::CreateLiveModeButton(QFormLayout* aLayout)
+{
+    mLiveModeButton = new QPushButton("Live Mode", this);
+    mLiveModeButton->setObjectName("liveModeButton");
+    connect(
+      mLiveModeButton, &QPushButton::clicked, this, [this]() { mSettings->SetLiveMode(true); });
+    aLayout->addRow("", mLiveModeButton);
 }

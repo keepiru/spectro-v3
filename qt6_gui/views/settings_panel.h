@@ -53,11 +53,13 @@ class SettingsPanel : public QWidget
 
     // File controls
     QPushButton* mOpenFileButton = nullptr;
+    QPushButton* mLiveModeButton = nullptr;
 
     // Helper methods
     void CreateLayout();
     void CreateAudioControls(class QFormLayout* aLayout);
     void CreateOpenFileButton(class QFormLayout* aLayout);
+    void CreateLiveModeButton(class QFormLayout* aLayout);
     void CreateWindowTypeControl(class QFormLayout* aLayout);
     void CreateFFTSizeControl(class QFormLayout* aLayout);
     void CreateWindowScaleControl(class QFormLayout* aLayout);

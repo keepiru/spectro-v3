@@ -50,6 +50,7 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
     const FrameCount kScrollMaximum = aAvailableFrames;
 
     const FFTSize kStride = mController.GetSettings().GetWindowStride();
+    const bool kIsLiveMode = mController.GetSettings().IsLiveMode();
 
     // Safety check for overflow.  This would only happen with an absurdly large
     // view height, but let's be safe.
@@ -60,14 +61,12 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
 
     const auto kScrollPageStep = static_cast<int>(kStride) * viewport()->height();
 
-    // Check if we're currently at the maximum (live mode)
-    const bool kIsAtMaximum = (verticalScrollBar()->value() == verticalScrollBar()->maximum());
-
     // Update scrollbar range
     verticalScrollBar()->setMaximum(kScrollMaximum.ToIntChecked());
     verticalScrollBar()->setPageStep(kScrollPageStep);
-    // If we were at the maximum, stay at the new maximum (follow live audio)
-    if (kIsAtMaximum) {
+
+    // If we are in live mode, keep the scrollbar at the maximum.
+    if (kIsLiveMode) {
         verticalScrollBar()->setValue(kScrollMaximum.ToIntChecked());
     }
     // Otherwise, preserve the current scroll position (user is viewing history)

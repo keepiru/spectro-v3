@@ -62,11 +62,8 @@ class Base
 /// @note The typical usage is to add a quantity (Count) to an absolute position
 /// (Index/Position), returning a new absolute position.
 template<typename Other>
-class Add
+class Add // NOLINT(bugprone-crtp-constructor-accessibility)
 {
-  protected:
-    constexpr Add() = default;
-
   public:
     /// @brief Add a Count to this value
     /// @param aOther The Count to add

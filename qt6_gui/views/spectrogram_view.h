@@ -90,6 +90,16 @@ class SpectrogramView : public QAbstractScrollArea
   protected:
     void paintEvent(QPaintEvent* event) override;
 
+    /// @brief Get viewport width for rendering
+    /// @return Width in pixels
+    /// virtual so it can be overridden in tests
+    [[nodiscard]] virtual int GetViewportWidth() const { return viewport()->width(); }
+
+    /// @brief Get viewport height for rendering
+    /// @return Height in pixels
+    /// virtual so it can be overridden in tests
+    [[nodiscard]] virtual int GetViewportHeight() const { return viewport()->height(); }
+
   private:
     const SpectrogramController& mController;
 };

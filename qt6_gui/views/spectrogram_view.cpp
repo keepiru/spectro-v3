@@ -51,12 +51,12 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
 
     // Safety check for overflow.  This would only happen with an absurdly large
     // view height, but let's be safe.
-    if (viewport()->height() > std::numeric_limits<int>::max() / kStride / 2) {
+    if (GetViewportHeight() > std::numeric_limits<int>::max() / kStride) {
         throw std::overflow_error(
           std::format("{}: scroll page step exceeds int max", __PRETTY_FUNCTION__));
     }
 
-    const FrameCount kScrollPageStep(kStride.Get() * viewport()->height());
+    const FrameCount kScrollPageStep(kStride.Get() * GetViewportHeight());
 
     // The scrollbar's maximum is one page past the available frames, to allow
     // scrolling the end of data all the way to the top of the view.
@@ -78,7 +78,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
 {
     QPainter painter(viewport());
 
-    auto image = GenerateSpectrogramImage(viewport()->width(), viewport()->height());
+    auto image = GenerateSpectrogramImage(GetViewportWidth(), GetViewportHeight());
 
     // blit the result
     painter.drawImage(0, 0, image);
@@ -88,7 +88,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
     const auto kMousePos = mapFromGlobal(QCursor::pos());
     const float kCrosshairPenWidth = 0.5f;
     painter.setPen(QPen(Qt::yellow, kCrosshairPenWidth, Qt::DashLine));
-    painter.drawLine(kMousePos.x(), 0, kMousePos.x(), viewport()->height());
+    painter.drawLine(kMousePos.x(), 0, kMousePos.x(), GetViewportHeight());
 }
 
 RenderConfig

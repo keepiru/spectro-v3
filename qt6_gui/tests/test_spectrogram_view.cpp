@@ -291,7 +291,9 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
     Settings settings;
     const AudioBuffer audioBuffer;
     const SpectrogramController controller(settings, audioBuffer);
-    TestableSpectrogramView view(controller);
+    size_t viewportUpdateCount = 0;
+    SpectrogramView::ViewportUpdater const updater = [&viewportUpdateCount]() { viewportUpdateCount++; };
+    TestableSpectrogramView view(controller, nullptr, updater);
 
     // Set up FFT settings with known stride
     settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
@@ -398,5 +400,54 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
 
         // Live mode should be cleared
         REQUIRE(settings.IsLiveMode() == false);
+    }
+
+    SECTION("UpdateScrollbarRange repaints view if current view includes new data")
+    {
+        view.SetTestHeight(256);
+
+        // Height is 256, stride is 1024, so view shows 262144 frames.
+        constexpr int kPageStepFrames = 1024 * 256;
+
+        // Set up initial data: almost one full page.
+        view.UpdateScrollbarRange(FrameCount(kPageStepFrames - 2048));
+
+        // Check our assumptions about PageStep
+        REQUIRE(scrollBar->pageStep() == kPageStepFrames);
+
+        // Clear live mode so we can test if updates happen in non-live mode.
+        // This has to happen after the first UpdateScrollbarRange call to set up
+        // the scrollbar.
+        settings.SetLiveMode(false);
+        scrollBar->setValue(kPageStepFrames); // Frame 0 at top of view
+
+        CHECK(viewportUpdateCount == 0);
+
+        // Add new data that falls within current view
+        view.UpdateScrollbarRange(FrameCount(kPageStepFrames - 1024));
+        CHECK(viewportUpdateCount == 1); // update should have been called
+
+        // Add more data just shy of the edge of current view
+        view.UpdateScrollbarRange(FrameCount(kPageStepFrames - 1));
+        CHECK(viewportUpdateCount == 2); // another update should have been called
+
+        // Add more data right at the edge of current view
+        view.UpdateScrollbarRange(FrameCount(kPageStepFrames));
+        CHECK(viewportUpdateCount == 3); // another update should have been called
+
+        // Now add data that is outside current view
+        view.UpdateScrollbarRange(FrameCount(kPageStepFrames + 2048));
+        CHECK(viewportUpdateCount == 3); // no update should have been called
+
+        // Go back, set the scrollbar back within the view
+        view.UpdateScrollbarRange(FrameCount(kPageStepFrames - 1024));
+        // no update because previous position was outside view.  The code
+        // doesn't expect backtracking so it's undefined whether it should
+        // actually repaint.  Currently it does not.
+        CHECK(viewportUpdateCount == 3);
+
+        // Now add data which will go past the end of the view.
+        view.UpdateScrollbarRange(FrameCount(kPageStepFrames + 4096));
+        CHECK(viewportUpdateCount == 4); // another update should have been called
     }
 }

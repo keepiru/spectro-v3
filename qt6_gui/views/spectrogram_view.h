@@ -5,6 +5,7 @@
 #include <QScrollBar>
 #include <QWidget>
 #include <audio_types.h>
+#include <functional>
 
 // Forward declarations
 class SpectrogramController;
@@ -59,10 +60,17 @@ class SpectrogramView : public QAbstractScrollArea
     Q_OBJECT
 
   public:
+    /// @brief Function type for triggering viewport updates
+    using ViewportUpdater = std::function<void()>;
+
     /// @brief Constructor
     /// @param aController Reference to spectrogram controller
     /// @param parent Qt parent widget (optional)
-    explicit SpectrogramView(const SpectrogramController& aController, QWidget* parent = nullptr);
+    /// @param aViewportUpdater Function to call for viewport updates (defaults to
+    /// viewport()->update())
+    explicit SpectrogramView(const SpectrogramController& aController,
+                             QWidget* parent = nullptr,
+                             ViewportUpdater aViewportUpdater = nullptr);
     ~SpectrogramView() override = default;
 
     /// @brief Generate spectrogram image for given dimensions
@@ -82,7 +90,8 @@ class SpectrogramView : public QAbstractScrollArea
     /// reflect the total available frames. If the scrollbar is currently at its
     /// maximum (live mode), it will be updated to the new maximum to continue
     /// following live audio. Otherwise, the scroll position is preserved to
-    /// maintain the user's historical viewing position.
+    /// maintain the user's historical viewing position.  Repaints the view if
+    /// needed.
     ///
     /// @param aAvailableFrames Total number of frames available in the buffer
     void UpdateScrollbarRange(FrameCount aAvailableFrames);
@@ -102,4 +111,6 @@ class SpectrogramView : public QAbstractScrollArea
 
   private:
     const SpectrogramController& mController;
+    FrameCount mPreviousAvailableFrames{ 0 };
+    ViewportUpdater mViewportUpdater;
 };

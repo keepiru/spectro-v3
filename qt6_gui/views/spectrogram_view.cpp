@@ -21,11 +21,16 @@
 #include <format>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
-SpectrogramView::SpectrogramView(const SpectrogramController& aController, QWidget* parent)
+SpectrogramView::SpectrogramView(const SpectrogramController& aController,
+                                 QWidget* parent,
+                                 ViewportUpdater aViewportUpdater)
   : QAbstractScrollArea(parent)
   , mController(aController)
+  , mViewportUpdater(aViewportUpdater ? std::move(aViewportUpdater)
+                                      : [this]() { viewport()->update(); })
 {
     constexpr int kMinWidth = 400;
     constexpr int kMinHeight = 300;
@@ -69,8 +74,23 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
     // If we are in live mode, put the end of the data at the bottom of the view.
     if (kIsLiveMode) {
         verticalScrollBar()->setValue(aAvailableFrames.ToIntChecked());
+    } else {
+        // Otherwise, preserve the current scroll position (user is viewing
+        // history).  However, we may have new data which needs to be displayed.
+        const FramePosition kCurrentBottomFrame{ verticalScrollBar()->value() };
+        const FramePosition kCurrentTopFrame =
+          kCurrentBottomFrame - FrameCount{ kStride.Get() * GetViewportHeight() };
+
+        // Check if the mPreviousAvailableFrames is inside the current view, and if
+        // so, trigger a repaint - we added data that should be visible.
+        if (mPreviousAvailableFrames.AsPosition() >= kCurrentTopFrame &&
+            mPreviousAvailableFrames.AsPosition() < kCurrentBottomFrame) {
+            // Trigger a repaint to reflect any new data
+            mViewportUpdater();
+        }
     }
-    // Otherwise, preserve the current scroll position (user is viewing history)
+
+    mPreviousAvailableFrames = aAvailableFrames;
 }
 
 void

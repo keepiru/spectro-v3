@@ -142,6 +142,9 @@ TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
         settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
         settings.SetWindowScale(1); // no overlap
 
+        // Update scrollbar range so frame 0 is at the top of the view
+        view.UpdateScrollbarRange(FrameCount(32));
+
         const std::string kHave = QImageToString(view.GenerateSpectrogramImage(6, 4));
         const std::string kWant = "\n"
                                   "010001 020002 030003 040004 050005 000000 \n"
@@ -215,6 +218,8 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
         settings.SetWindowScale(2); // stride = 1024
 
         constexpr size_t height = 256;
+        const size_t kPageStep = height * settings.GetWindowStride();
+
         RenderConfig want{
             .channels = 2,
             .stride = 1024,
@@ -226,17 +231,39 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
             .color_map_lut = settings.GetColorMapLUTs(),
         };
 
-        SECTION("with scrollbar at zero")
+        SECTION("with zero data")
         {
+            // Zero data, bottom is at frame 0, top is back one pagestep
+            want.top_frame = FramePosition{ static_cast<long>(-kPageStep) };
             const RenderConfig have = view.GetRenderConfig(height);
             REQUIRE(ToString(have) == ToString(want));
         }
 
-        SECTION("with scrollbar at non-zero")
+        SECTION("with one page of data")
         {
-            view.UpdateScrollbarRange(FrameCount(2000000));
+            view.UpdateScrollbarRange(FrameCount(kPageStep));
 
-            want.top_frame = FramePosition{ 1735680 }; // 2000000 - (1024 * 256), aligned down
+            want.top_frame = FramePosition{ 0 };
+            const RenderConfig have = view.GetRenderConfig(height);
+            REQUIRE(ToString(have) == ToString(want));
+        }
+
+        SECTION("with a page and a half of data")
+        {
+            const FrameCount kTotalFrames{ 0x60000 };
+            view.UpdateScrollbarRange(kTotalFrames);
+
+            want.top_frame = FramePosition{ 0x20000 };
+            const RenderConfig have = view.GetRenderConfig(height);
+            REQUIRE(ToString(have) == ToString(want));
+        }
+
+        SECTION("with a page and a half of data plus a bit more")
+        {
+            const FrameCount kTotalFrames{ 0x60000 + 1023 }; // just shy of one stride
+            view.UpdateScrollbarRange(kTotalFrames);
+
+            want.top_frame = FramePosition{ 0x20000 };
             const RenderConfig have = view.GetRenderConfig(height);
             REQUIRE(ToString(have) == ToString(want));
         }

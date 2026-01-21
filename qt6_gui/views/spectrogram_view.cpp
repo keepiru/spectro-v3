@@ -21,16 +21,14 @@
 #include <format>
 #include <limits>
 #include <stdexcept>
-#include <utility>
 #include <vector>
 
-SpectrogramView::SpectrogramView(const SpectrogramController& aController,
-                                 QWidget* parent,
-                                 ViewportUpdater aViewportUpdater)
+SpectrogramView::SpectrogramView(const SpectrogramController& aController, QWidget* parent)
   : QAbstractScrollArea(parent)
   , mController(aController)
-  , mViewportUpdater(aViewportUpdater ? std::move(aViewportUpdater)
-                                      : [this]() { viewport()->update(); })
+  , mUpdateViewport([this]() { viewport()->update(); })
+  , mGetViewportWidth([this]() { return viewport()->width(); })
+  , mGetViewportHeight([this]() { return viewport()->height(); })
 {
     constexpr int kMinWidth = 400;
     constexpr int kMinHeight = 300;
@@ -56,12 +54,12 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
 
     // Safety check for overflow.  This would only happen with an absurdly large
     // view height, but let's be safe.
-    if (GetViewportHeight() > std::numeric_limits<int>::max() / kStride) {
+    if (mGetViewportHeight() > std::numeric_limits<int>::max() / kStride) {
         throw std::overflow_error(
           std::format("{}: scroll page step exceeds int max", __PRETTY_FUNCTION__));
     }
 
-    const FrameCount kScrollPageStep(kStride.Get() * GetViewportHeight());
+    const FrameCount kScrollPageStep(kStride.Get() * mGetViewportHeight());
 
     // The scrollbar's maximum is one page past the available frames, to allow
     // scrolling the end of data all the way to the top of the view.
@@ -79,14 +77,14 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
         // history).  However, we may have new data which needs to be displayed.
         const FramePosition kCurrentBottomFrame{ verticalScrollBar()->value() };
         const FramePosition kCurrentTopFrame =
-          kCurrentBottomFrame - FrameCount{ kStride.Get() * GetViewportHeight() };
+          kCurrentBottomFrame - FrameCount{ kStride.Get() * mGetViewportHeight() };
 
         // Check if the mPreviousAvailableFrames is inside the current view, and if
         // so, trigger a repaint - we added data that should be visible.
         if (mPreviousAvailableFrames.AsPosition() >= kCurrentTopFrame &&
             mPreviousAvailableFrames.AsPosition() < kCurrentBottomFrame) {
             // Trigger a repaint to reflect any new data
-            mViewportUpdater();
+            mUpdateViewport();
         }
     }
 
@@ -98,7 +96,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
 {
     QPainter painter(viewport());
 
-    auto image = GenerateSpectrogramImage(GetViewportWidth(), GetViewportHeight());
+    auto image = GenerateSpectrogramImage(mGetViewportWidth(), mGetViewportHeight());
 
     // blit the result
     painter.drawImage(0, 0, image);
@@ -108,7 +106,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
     const auto kMousePos = mapFromGlobal(QCursor::pos());
     const float kCrosshairPenWidth = 0.5f;
     painter.setPen(QPen(Qt::yellow, kCrosshairPenWidth, Qt::DashLine));
-    painter.drawLine(kMousePos.x(), 0, kMousePos.x(), GetViewportHeight());
+    painter.drawLine(kMousePos.x(), 0, kMousePos.x(), mGetViewportHeight());
 }
 
 RenderConfig

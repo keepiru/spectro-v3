@@ -9,6 +9,7 @@
 
 // Forward declarations
 class SpectrogramController;
+class TestableSpectrogramView;
 
 /// @brief Configuration data for rendering spectrogram
 struct RenderConfig
@@ -61,16 +62,25 @@ class SpectrogramView : public QAbstractScrollArea
 
   public:
     /// @brief Function type for triggering viewport updates
+    ///
+    /// Used to request viewport repaints when data or scroll position changes.
+    /// This wraps QAbstractScrollArea's viewport()->update() in production,
+    /// but can be overridden in tests to count update calls or simulate
+    /// different behaviors.
     using ViewportUpdater = std::function<void()>;
+
+    /// @brief Function type for getting a single viewport dimension in pixels
+    ///
+    /// Used to query the current viewport size (width or height) when
+    /// calculating render parameters, scroll ranges, or layout.  These wrap
+    /// QAbstractScrollArea's viewport accessors in prod, but can be overridden
+    /// in tests to simulate different viewport sizes.
+    using ViewportDimensionGetter = std::function<int()>;
 
     /// @brief Constructor
     /// @param aController Reference to spectrogram controller
     /// @param parent Qt parent widget (optional)
-    /// @param aViewportUpdater Function to call for viewport updates (defaults to
-    /// viewport()->update())
-    explicit SpectrogramView(const SpectrogramController& aController,
-                             QWidget* parent = nullptr,
-                             ViewportUpdater aViewportUpdater = nullptr);
+    explicit SpectrogramView(const SpectrogramController& aController, QWidget* parent = nullptr);
     ~SpectrogramView() override = default;
 
     /// @brief Generate spectrogram image for given dimensions
@@ -99,18 +109,15 @@ class SpectrogramView : public QAbstractScrollArea
   protected:
     void paintEvent(QPaintEvent* event) override;
 
-    /// @brief Get viewport width for rendering
-    /// @return Width in pixels
-    /// virtual so it can be overridden in tests
-    [[nodiscard]] virtual int GetViewportWidth() const { return viewport()->width(); }
-
-    /// @brief Get viewport height for rendering
-    /// @return Height in pixels
-    /// virtual so it can be overridden in tests
-    [[nodiscard]] virtual int GetViewportHeight() const { return viewport()->height(); }
-
   private:
     const SpectrogramController& mController;
     FrameCount mPreviousAvailableFrames{ 0 };
-    ViewportUpdater mViewportUpdater;
+
+    // These lambdas access the member functions of the QAbstractScrollArea's
+    // viewport.  The defaults are used in production, but can be overridden in
+    // tests via derived test fixture classes.
+    ViewportUpdater mUpdateViewport;
+    ViewportDimensionGetter mGetViewportWidth;
+    ViewportDimensionGetter mGetViewportHeight;
+    friend class TestableSpectrogramView;
 };

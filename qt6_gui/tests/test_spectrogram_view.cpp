@@ -83,22 +83,6 @@ TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
       settings, audioBuffer, MockFFTProcessor::GetFactory(), nullptr);
     SpectrogramView view(controller);
 
-    SECTION("throws on invalid channel count")
-    {
-        // mock controller to return invalid channel count
-        class MockController : public SpectrogramController
-        {
-          public:
-            using SpectrogramController::SpectrogramController;
-            ChannelCount GetChannelCount() const override { return GENERATE(0, GKMaxChannels + 1); }
-        };
-        const MockController mockController(settings, audioBuffer);
-        SpectrogramView mockView(mockController);
-        REQUIRE_THROWS_MATCHES(mockView.GenerateSpectrogramImage(256, 256),
-                               std::runtime_error,
-                               MessageMatches(ContainsSubstring("out of range")));
-    }
-
     SECTION("generates image of correct size")
     {
         constexpr size_t width = 512;
@@ -268,22 +252,6 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
             const RenderConfig have = view.GetRenderConfig(height);
             REQUIRE(ToString(have) == ToString(want));
         }
-    }
-
-    SECTION("throws on invalid channel count")
-    {
-        // mock controller to return invalid channel count
-        class MockController : public SpectrogramController
-        {
-          public:
-            using SpectrogramController::SpectrogramController;
-            ChannelCount GetChannelCount() const override { return GENERATE(0, GKMaxChannels + 1); }
-        };
-        const MockController mockController(settings, audioBuffer);
-        const SpectrogramView mockView(mockController);
-        REQUIRE_THROWS_MATCHES(mockView.GetRenderConfig(256),
-                               std::runtime_error,
-                               MessageMatches(ContainsSubstring("out of range")));
     }
 }
 

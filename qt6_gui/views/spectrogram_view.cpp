@@ -94,19 +94,19 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
 void
 SpectrogramView::paintEvent(QPaintEvent* /*event*/)
 {
-    QPainter painter(viewport());
-
-    auto image = GenerateSpectrogramImage(mGetViewportWidth(), mGetViewportHeight());
-
-    // blit the result
-    painter.drawImage(0, 0, image);
+    QImage image = GenerateSpectrogramImage(mGetViewportWidth(), mGetViewportHeight());
 
     // Overlay crosshair.  We don't need to provide any labels here, just a
     // vertical line.  The measurements happen in the SpectrumPlot view.
+    QPainter painter(&image);
     const auto kMousePos = mapFromGlobal(QCursor::pos());
     const float kCrosshairPenWidth = 0.5f;
     painter.setPen(QPen(Qt::yellow, kCrosshairPenWidth, Qt::DashLine));
     painter.drawLine(kMousePos.x(), 0, kMousePos.x(), mGetViewportHeight());
+
+    // Blit the result to the viewport
+    QPainter viewportPainter(viewport());
+    viewportPainter.drawImage(0, 0, image);
 }
 
 RenderConfig

@@ -14,7 +14,8 @@ sudo apt install \
     cmake \
     build-essential \
     ninja-build \
-    libsndfile1-dev
+    libsndfile1-dev \
+    mold
 ```
 
 ## Build Instructions

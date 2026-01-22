@@ -1,3 +1,7 @@
+# Spectro-v3 -- Real-time spectrum analyzer
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2025-2026 Chris "Kai" Frederick
+
 cmake_minimum_required(VERSION 3.25)
 project(spectro VERSION 0.1.0 LANGUAGES CXX)
 

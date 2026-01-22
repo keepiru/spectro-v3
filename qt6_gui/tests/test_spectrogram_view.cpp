@@ -1,3 +1,7 @@
+// Spectro-v3 -- Real-time spectrum analyzer
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2025-2026 Chris "Kai" Frederick
+
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
 #include "views/spectrogram_view.h"

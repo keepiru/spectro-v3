@@ -1,3 +1,7 @@
+// Spectro-v3 -- Real-time spectrum analyzer
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2025-2026 Chris "Kai" Frederick
+
 #include <audio_types.h>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
@@ -103,7 +107,8 @@ TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
     std::vector<float> samples(kTransformSize);
     for (size_t i = 0; i < kTransformSize; ++i) {
         const auto kPI = std::numbers::pi_v<float>;
-        samples[i] = std::sinf(2.0f * kPI * kFrequency * static_cast<float>(i) / static_cast<float>(kTransformSize));
+        samples[i] = std::sinf(2.0f * kPI * kFrequency * static_cast<float>(i) /
+                               static_cast<float>(kTransformSize));
     }
 
     // Compute spectrum without windowing

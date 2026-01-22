@@ -53,3 +53,12 @@ spectro-v3/
 └── build/            # Build artifacts (not tracked)
 ```
 
+## License
+
+Spectro-v3 is licensed under the [GNU General Public License v3.0](LICENSE) (GPL-3.0-only).
+
+Copyright (C) 2025-2026 Chris "Kai" Frederick
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 3 of the License only.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.

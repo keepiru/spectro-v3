@@ -149,9 +149,9 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
 }
 
 QImage
-SpectrogramView::GenerateSpectrogramImage(size_t aWidth, size_t aHeight)
+SpectrogramView::GenerateSpectrogramImage(int aWidth, int aHeight)
 {
-    QImage image(static_cast<int>(aWidth), static_cast<int>(aHeight), QImage::Format_RGBA8888);
+    QImage image(aWidth, aHeight, QImage::Format_RGBA8888);
     image.fill(Qt::black);
 
     const auto renderConfig = GetRenderConfig(aHeight);
@@ -165,23 +165,23 @@ SpectrogramView::GenerateSpectrogramImage(size_t aWidth, size_t aHeight)
     // Store the magnitudes for all channels. Channel x Row x Frequency bins
     std::vector<std::vector<std::vector<float>>> decibelsChannelRowBin(renderConfig.channels);
 
-    for (size_t ch = 0; ch < renderConfig.channels; ch++) {
+    for (ChannelCount ch = 0; ch < renderConfig.channels; ch++) {
         decibelsChannelRowBin[ch] = mController.GetRows(ch, renderConfig.top_frame, aHeight);
     }
 
     // Determine max X to render, lesser of view width or data width
-    const size_t kMaxX = std::min(aWidth, decibelsChannelRowBin[0][0].size());
+    const size_t kMaxX = std::min(static_cast<size_t>(aWidth), decibelsChannelRowBin[0][0].size());
 
     // Render spectrogram data into image
     // This is the hot path, so avoid branches and unnecessary allocations.
-    for (size_t y = 0; y < aHeight; y++) { // NOLINT(readability-identifier-length)
+    for (int y = 0; y < aHeight; y++) { // NOLINT(readability-identifier-length)
         // QImage::setPixel is slow, so we're going to access the framebuffer directly
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* const kScanLine = reinterpret_cast<uint8_t*>(image.scanLine(static_cast<int>(y)));
+        auto* const kScanLine = reinterpret_cast<uint8_t*>(image.scanLine(y));
 
         // Scan the line.
         // This is the inner loop of the hot path, performance matters here.
-        for (size_t x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
+        for (int x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
             // composite the colors from each channel in decibels
             // NOLINTBEGIN(readability-identifier-length)
             int r = 0;
@@ -189,7 +189,7 @@ SpectrogramView::GenerateSpectrogramImage(size_t aWidth, size_t aHeight)
             int b = 0;
             // NOLINTEND(readability-identifier-length)
             // Sum RGB values for each channel
-            for (size_t ch = 0; ch < renderConfig.channels; ch++) {
+            for (ChannelCount ch = 0; ch < renderConfig.channels; ch++) {
                 const float kDecibels = decibelsChannelRowBin[ch][y][x];
                 // Map to 0-255
                 auto colorMapIndex =

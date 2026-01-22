@@ -87,7 +87,7 @@ class SpectrogramView : public QAbstractScrollArea
     /// @param aWidth Width in pixels
     /// @param aHeight Height in pixels
     /// @return Generated spectrogram image
-    QImage GenerateSpectrogramImage(size_t aWidth, size_t aHeight);
+    QImage GenerateSpectrogramImage(int aWidth, int aHeight);
 
     /// @brief Gather configuration needed for rendering
     /// @param aHeight Height in pixels (needed for topFrame calculation)

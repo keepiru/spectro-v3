@@ -17,6 +17,16 @@ if(CCACHE_PROGRAM)
     set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
 endif()
 
+# Use mold linker if available for faster linking
+include(CheckLinkerFlag)
+check_linker_flag(CXX "-fuse-ld=mold" LINKER_SUPPORTS_MOLD)
+if(LINKER_SUPPORTS_MOLD)
+    message(STATUS "Using mold linker")
+    add_link_options("-fuse-ld=mold")
+else()
+    message(STATUS "Using default linker (mold not found)")
+endif()
+
 # Generate compile_commands.json for clang-tidy and other tools
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

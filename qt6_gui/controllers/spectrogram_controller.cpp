@@ -4,7 +4,6 @@
 
 #include "controllers/spectrogram_controller.h"
 #include "ifft_processor.h"
-#include "include/global_constants.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
 #include <QObject>

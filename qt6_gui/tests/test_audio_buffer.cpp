@@ -1,3 +1,7 @@
+// Spectro-v3 -- Real-time spectrum analyzer
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2025-2026 Chris "Kai" Frederick
+
 #include "include/global_constants.h"
 #include "models/audio_buffer.h"
 #include <QSignalSpy>
@@ -38,14 +42,16 @@ TEST_CASE("AudioBuffer::GetSamples throws if insufficient samples", "[audio_buff
 {
     AudioBuffer buffer;
     buffer.AddSamples({ 1, 2, 3, 4 });
-    REQUIRE_THROWS_AS((void)buffer.GetSamples(1, SampleIndex(1), SampleCount(4)), std::out_of_range);
+    REQUIRE_THROWS_AS((void)buffer.GetSamples(1, SampleIndex(1), SampleCount(4)),
+                      std::out_of_range);
 }
 
 TEST_CASE("AudioBuffer::GetSamples throws on invalid channel index", "[audio_buffer]")
 {
     AudioBuffer const buffer;
     (void)buffer.GetSamples(1, SampleIndex(0), SampleCount(0)); // No exception
-    REQUIRE_THROWS_AS((void)buffer.GetSamples(2, SampleIndex(0), SampleCount(0)), std::out_of_range);
+    REQUIRE_THROWS_AS((void)buffer.GetSamples(2, SampleIndex(0), SampleCount(0)),
+                      std::out_of_range);
 }
 
 TEST_CASE("AudioBuffer::AddSamples deinterleaves to channel buffers", "[audio_buffer]")
@@ -78,7 +84,8 @@ TEST_CASE("AudioBuffer::Reset clears samples", "[audio_buffer]")
 
     buffer.Reset(2, 44100);
     REQUIRE(buffer.GetFrameCount() == FrameCount(0));
-    REQUIRE_THROWS_AS((void)buffer.GetSamples(0, SampleIndex(0), SampleCount(1)), std::out_of_range);
+    REQUIRE_THROWS_AS((void)buffer.GetSamples(0, SampleIndex(0), SampleCount(1)),
+                      std::out_of_range);
 
     // Also test after changing channel count
     buffer.AddSamples({ 5, 6, 7, 8 });

@@ -1,3 +1,7 @@
+# Spectro-v3 -- Real-time spectrum analyzer
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2025-2026 Chris "Kai" Frederick
+
 # Makefile for spectro-v3 routine tasks
 # 
 # This wraps CMake commands for convenience. The actual build logic

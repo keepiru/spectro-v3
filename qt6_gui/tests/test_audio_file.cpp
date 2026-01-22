@@ -1,3 +1,7 @@
+// Spectro-v3 -- Real-time spectrum analyzer
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2025-2026 Chris "Kai" Frederick
+
 #include "controllers/audio_file.h"
 #include "models/audio_file_reader.h"
 #include <algorithm>
@@ -84,8 +88,10 @@ TEST_CASE("AudioFile - load file", "[audio_file]")
         CHECK(buffer.GetSampleRate() == 22050);
         CHECK(buffer.GetChannelCount() == 2);
         CHECK(buffer.GetFrameCount() == FrameCount(3));
-        CHECK(buffer.GetSamples(0, SampleIndex(0), SampleCount(3)) == std::vector<float>({ 0, 2, 4 }));
-        CHECK(buffer.GetSamples(1, SampleIndex(0), SampleCount(3)) == std::vector<float>({ 1, 3, 5 }));
+        CHECK(buffer.GetSamples(0, SampleIndex(0), SampleCount(3)) ==
+              std::vector<float>({ 0, 2, 4 }));
+        CHECK(buffer.GetSamples(1, SampleIndex(0), SampleCount(3)) ==
+              std::vector<float>({ 1, 3, 5 }));
         CHECK(progressCalls == std::vector<int>({ 100 }));
     }
 

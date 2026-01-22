@@ -1,4 +1,8 @@
 #!/bin/bash
+# Spectro-v3 -- Real-time spectrum analyzer
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2025-2026 Chris "Kai" Frederick
+
 set -ex
 
 docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t spectro-v3-builder .

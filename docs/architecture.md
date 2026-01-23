@@ -204,6 +204,13 @@ SettingsPanel (UI)
 - Spectrogram measurements (bandwidth, duration)
 
 ### Performance
+
+#### Zero-Copy Audio Buffer Access
+- **`SampleBuffer::GetSamples()` and `AudioBuffer::GetSamples()` return `std::span<const float>`**
+  - Eliminates unnecessary vector copies in audio processing path
+  - Direct view into internal buffer data without allocation
+
+#### Future Optimizations
 - Profile and potentially migrate `SpectrogramView` to `QOpenGLWidget` with texture uploads
 - Expand per-row cache to LRU cache if memory becomes an issue
 - Consider background thread for pre-computation when live/historical mode is added

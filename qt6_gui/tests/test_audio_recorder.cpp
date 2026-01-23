@@ -10,6 +10,7 @@
 #include <QMediaDevices>
 #include <QSignalSpy>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_range_equals.hpp>
 
 /// @brief Mock QIODevice to simulate audio input for testing.
 class MockQIODevice : public QIODevice
@@ -147,20 +148,24 @@ TEST_CASE("AudioRecorder audio data written to buffer", "[audio_recorder]")
 
     // ... then see if it comes back.
     REQUIRE(buffer.GetFrameCount() == FrameCount(2));
-    REQUIRE(buffer.GetSamples(0, SampleIndex(0), SampleCount(2)) ==
-            std::vector<float>({ 0.1, 0.3 }));
-    REQUIRE(buffer.GetSamples(1, SampleIndex(0), SampleCount(2)) ==
-            std::vector<float>({ 0.2, 0.4 }));
+    const auto kHaveRound0Ch0 = buffer.GetSamples(0, SampleIndex(0), SampleCount(2));
+    const auto kHaveRound0Ch1 = buffer.GetSamples(1, SampleIndex(0), SampleCount(2));
+    const auto kWantRound0Ch0 = std::vector<float>({ 0.1, 0.3 });
+    const auto kWantRound0Ch1 = std::vector<float>({ 0.2, 0.4 });
+    REQUIRE_THAT(kHaveRound0Ch0, Catch::Matchers::RangeEquals(kWantRound0Ch0));
+    REQUIRE_THAT(kHaveRound0Ch1, Catch::Matchers::RangeEquals(kWantRound0Ch1));
 
     // Add some more...
     ioDevice.SimulateAudioData({ 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 });
 
     // ... And it should all be there.
     REQUIRE(buffer.GetFrameCount() == FrameCount(5));
-    REQUIRE(buffer.GetSamples(0, SampleIndex(0), SampleCount(5)) ==
-            std::vector<float>({ 0.1, 0.3, 0.5, 0.7, 0.9 }));
-    REQUIRE(buffer.GetSamples(1, SampleIndex(0), SampleCount(5)) ==
-            std::vector<float>({ 0.2, 0.4, 0.6, 0.8, 1.0 }));
+    const auto kHaveRound1Ch0 = buffer.GetSamples(0, SampleIndex(0), SampleCount(5));
+    const auto kHaveRound1Ch1 = buffer.GetSamples(1, SampleIndex(0), SampleCount(5));
+    const auto kWantRound1Ch0 = std::vector<float>({ 0.1, 0.3, 0.5, 0.7, 0.9 });
+    const auto kWantRound1Ch1 = std::vector<float>({ 0.2, 0.4, 0.6, 0.8, 1.0 });
+    REQUIRE_THAT(kHaveRound1Ch0, Catch::Matchers::RangeEquals(kWantRound1Ch0));
+    REQUIRE_THAT(kHaveRound1Ch1, Catch::Matchers::RangeEquals(kWantRound1Ch1));
 }
 
 TEST_CASE("AudioRecorder::IsRecording", "[audio_recorder]")

@@ -6,6 +6,7 @@
 #include "models/audio_buffer.h"
 #include <QSignalSpy>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_range_equals.hpp>
 #include <stdexcept>
 #include <vector>
 
@@ -59,8 +60,12 @@ TEST_CASE("AudioBuffer::AddSamples deinterleaves to channel buffers", "[audio_bu
     AudioBuffer buffer;
     buffer.AddSamples({ 1, 2, 3, 4 });
 
-    REQUIRE(buffer.GetSamples(0, SampleIndex(0), SampleCount(2)) == std::vector<float>({ 1, 3 }));
-    REQUIRE(buffer.GetSamples(1, SampleIndex(0), SampleCount(2)) == std::vector<float>({ 2, 4 }));
+    const auto kHave0 = buffer.GetSamples(0, SampleIndex(0), SampleCount(2));
+    const auto kHave1 = buffer.GetSamples(1, SampleIndex(0), SampleCount(2));
+    const auto kWant0 = std::vector<float>({ 1, 3 });
+    const auto kWant1 = std::vector<float>({ 2, 4 });
+    REQUIRE_THAT(kHave0, Catch::Matchers::RangeEquals(kWant0));
+    REQUIRE_THAT(kHave1, Catch::Matchers::RangeEquals(kWant1));
 }
 
 TEST_CASE("AudioBuffer::AddSamples emits signal", "[audio_buffer]")

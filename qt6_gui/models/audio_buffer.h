@@ -6,6 +6,7 @@
 #include <QObject>
 #include <memory>
 #include <sample_buffer.h>
+#include <span>
 #include <vector>
 
 /// @brief Multi-channel audio buffer
@@ -50,12 +51,12 @@ class AudioBuffer : public QObject
     /// @param aChannelIndex Channel index (0-based)
     /// @param aStartSample Starting sample index
     /// @param aSampleCount Number of samples to retrieve
-    /// @return Vector of samples.
+    /// @return Read-only span of samples.
     /// @throws std::out_of_range if aChannelIndex >= channel count, or if there
     /// aren't enough samples to fill the request.
-    [[nodiscard]] std::vector<float> GetSamples(ChannelCount aChannelIndex,
-                                                SampleIndex aStartSample,
-                                                SampleCount aSampleCount) const;
+    [[nodiscard]] std::span<const float> GetSamples(ChannelCount aChannelIndex,
+                                                    SampleIndex aStartSample,
+                                                    SampleCount aSampleCount) const;
 
     /// @brief Get the underlying SampleBuffer for a specific channel
     /// @param aChannelIndex Channel index (0-based)

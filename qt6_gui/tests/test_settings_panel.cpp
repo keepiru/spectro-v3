@@ -185,8 +185,9 @@ TEST_CASE("SettingsPanel color map controls", "[settings_panel]")
         auto* combo = panel.findChild<QComboBox*>(objectName);
         REQUIRE(combo != nullptr);
 
-        // Check that it has the 7 implemented color map types
-        REQUIRE(combo->count() == 7); // White, Red, Green, Blue, Cyan, Magenta, Yellow
+        // Check that it has 12 implemented color map types
+        // Disabled, White, Red, Green, Blue, Cyan, Magenta, Yellow, Viridis, Plasma, Inferno, Magma
+        REQUIRE(combo->count() == 12);
 
         // Check icon size
         REQUIRE(combo->iconSize() == QSize(128, 16));

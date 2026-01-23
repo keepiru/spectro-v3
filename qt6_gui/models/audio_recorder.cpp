@@ -67,8 +67,6 @@ AudioRecorder::Start(const QAudioDevice& aQAudioDevice,
     // gives us 5880 bytes.  We'll choose something smaller than that to keep
     // the updates coming quickly even if the sample rate is lower.  In
     // practice, we seem to get ~3-4K, perhaps due to scheduling limitations.
-    // TODO: investigate how to choose an optimal value here, taking into
-    // account sample rate, channels, display refresh rate, jitter, etc.
     constexpr qsizetype kSourceBufferSize = 2048;
     mAudioSource->setBufferSize(kSourceBufferSize);
 

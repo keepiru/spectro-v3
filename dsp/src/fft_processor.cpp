@@ -73,8 +73,8 @@ FFTProcessor::ComputeDecibels(const std::span<float>& aSamples) const
     for (size_t i = 0; i < magnitudes.size(); ++i) {
         // Standard conversion: dB = 20 * log10(magnitude)
         constexpr float kDecibelScaleFactor = 20.0F;
-        // Note that zero magnitudes will produce -inf dB.  It is up to the
-        // caller to handle that appropriately.
+        // Note that zero magnitudes will produce -inf dB.  This is correct
+        // floating-point behavior.
         decibels[i] = kDecibelScaleFactor * std::log10(magnitudes[i]);
     }
     return decibels;

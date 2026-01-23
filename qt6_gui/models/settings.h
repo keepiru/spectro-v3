@@ -137,10 +137,12 @@ class Settings : public QObject
 
     /// @brief Set the aperture minimum decibel value
     /// @param aMinDecibels New minimum decibel value
+    /// @note May be greater than maximum decibel value, resulting in inverted display
     void SetApertureMinDecibels(float aMinDecibels);
 
     /// @brief Set the aperture maximum decibel value
     /// @param aMaxDecibels New maximum decibel value
+    /// @note May be less than minimum decibel value, resulting in inverted display
     void SetApertureMaxDecibels(float aMaxDecibels);
 
     /// @brief Get the minimum decibel value of the aperture

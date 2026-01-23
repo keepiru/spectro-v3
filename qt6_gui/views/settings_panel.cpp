@@ -34,8 +34,6 @@
 #include <qrgb.h>
 #include <stdexcept>
 #include <string>
-#include <string_view>
-#include <utility>
 
 namespace {
 constexpr int KProgressMaximum = 100;
@@ -246,16 +244,6 @@ SettingsPanel::CreateApertureControls(QFormLayout* aLayout)
 void
 SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
 {
-    // Only include implemented color maps (not Viridis, Plasma, Inferno, Magma yet)
-    static const std::array<std::pair<Settings::ColorMapType, std::string_view>, 7>
-      ImplementedColorMaps = { { { Settings::ColorMapType::White, "White" },
-                                 { Settings::ColorMapType::Red, "Red" },
-                                 { Settings::ColorMapType::Green, "Green" },
-                                 { Settings::ColorMapType::Blue, "Blue" },
-                                 { Settings::ColorMapType::Cyan, "Cyan" },
-                                 { Settings::ColorMapType::Magenta, "Magenta" },
-                                 { Settings::ColorMapType::Yellow, "Yellow" } } };
-
     constexpr int kPreviewIconWidth = 128;
     constexpr int kPreviewIconHeight = 16;
 
@@ -264,8 +252,8 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
         combo->setObjectName(QString("colorMapCombo%1").arg(i));
         combo->setIconSize(QSize(kPreviewIconWidth, kPreviewIconHeight));
 
-        // Add only implemented color map types with preview icons
-        for (const auto& [type, name] : ImplementedColorMaps) {
+        // Add color map types with preview icons
+        for (const auto& [type, name] : Settings::KColorMapTypeNames) {
             // Create a preview image for this color map
             QImage preview(kPreviewIconWidth, kPreviewIconHeight, QImage::Format_RGB888);
 

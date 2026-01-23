@@ -31,6 +31,7 @@ class Settings : public QObject
     // NOLINTNEXTLINE(readability-enum-initial-value)
     enum class ColorMapType : uint8_t
     {
+        Disabled,
         White,
         Red,
         Green,
@@ -49,7 +50,8 @@ class Settings : public QObject
     /// Used for the UI pulldown to select color maps.
     static constexpr std::array<std::pair<ColorMapType, std::string_view>,
                                 static_cast<size_t>(ColorMapType::Count)>
-      KColorMapTypeNames = { { { ColorMapType::White, "White" },
+      KColorMapTypeNames = { { { ColorMapType::Disabled, "Disabled" },
+                               { ColorMapType::White, "White" },
                                { ColorMapType::Red, "Red" },
                                { ColorMapType::Green, "Green" },
                                { ColorMapType::Blue, "Blue" },

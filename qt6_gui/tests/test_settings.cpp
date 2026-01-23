@@ -167,6 +167,123 @@ TEST_CASE("Settings::GetColorMapValue out of range", "[settings]")
     REQUIRE_THROWS_AS((void)settings.GetColorMapValue(GKMaxChannels, 0), std::out_of_range);
 }
 
+TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
+{
+    Settings settings;
+
+    SECTION("Disabled colormap is black")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Disabled);
+        for (size_t i = 0; i < 256; i++) {
+            const auto entry = settings.GetColorMapValue(0, i);
+            REQUIRE(entry.r == 0);
+            REQUIRE(entry.g == 0);
+            REQUIRE(entry.b == 0);
+        }
+    }
+
+    SECTION("White colormap is white")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::White);
+        for (size_t i = 0; i < 256; i++) {
+            const auto entry = settings.GetColorMapValue(0, i);
+            const auto intensity = static_cast<uint8_t>(i);
+            REQUIRE(entry.r == intensity);
+            REQUIRE(entry.g == intensity);
+            REQUIRE(entry.b == intensity);
+        }
+    }
+
+    SECTION("Red colormap is red gradient")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Red);
+        for (size_t i = 0; i < 256; i++) {
+            const auto entry = settings.GetColorMapValue(0, i);
+            const auto intensity = static_cast<uint8_t>(i);
+            REQUIRE(entry.r == intensity);
+            REQUIRE(entry.g == 0);
+            REQUIRE(entry.b == 0);
+        }
+    }
+
+    SECTION("Viridis colormap has expected RGB values")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Viridis);
+        // Check key points in the Viridis colormap
+        const auto entry0 = settings.GetColorMapValue(0, 0);
+        const auto entry128 = settings.GetColorMapValue(0, 128);
+        const auto entry255 = settings.GetColorMapValue(0, 255);
+
+        // Viridis starts dark purple, mid teal, ends yellow
+        REQUIRE(entry0.r == 68);
+        REQUIRE(entry0.g == 1);
+        REQUIRE(entry0.b == 84);
+        REQUIRE(entry128.r == 33);
+        REQUIRE(entry128.g == 145);
+        REQUIRE(entry128.b == 140);
+        REQUIRE(entry255.r == 253);
+        REQUIRE(entry255.g == 231);
+        REQUIRE(entry255.b == 37);
+    }
+
+    SECTION("Plasma colormap has expected RGB values")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Plasma);
+        const auto entry0 = settings.GetColorMapValue(0, 0);
+        const auto entry128 = settings.GetColorMapValue(0, 128);
+        const auto entry255 = settings.GetColorMapValue(0, 255);
+
+        // Plasma starts dark blue, mid magenta, ends yellow
+        REQUIRE(entry0.r == 13);
+        REQUIRE(entry0.g == 8);
+        REQUIRE(entry0.b == 135);
+        REQUIRE(entry128.r == 204);
+        REQUIRE(entry128.g == 71);
+        REQUIRE(entry128.b == 120);
+        REQUIRE(entry255.r == 240);
+        REQUIRE(entry255.g == 249);
+        REQUIRE(entry255.b == 33);
+    }
+
+    SECTION("Inferno colormap has expected RGB values")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Inferno);
+        const auto entry0 = settings.GetColorMapValue(0, 0);
+        const auto entry128 = settings.GetColorMapValue(0, 128);
+        const auto entry255 = settings.GetColorMapValue(0, 255);
+
+        // Inferno starts black, mid red-orange, ends bright yellow
+        REQUIRE(entry0.r == 0);
+        REQUIRE(entry0.g == 0);
+        REQUIRE(entry0.b == 4);
+        REQUIRE(entry128.r == 188);
+        REQUIRE(entry128.g == 55);
+        REQUIRE(entry128.b == 84);
+        REQUIRE(entry255.r == 252);
+        REQUIRE(entry255.g == 255);
+        REQUIRE(entry255.b == 164);
+    }
+
+    SECTION("Magma colormap has expected RGB values")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Magma);
+        const auto entry0 = settings.GetColorMapValue(0, 0);
+        const auto entry128 = settings.GetColorMapValue(0, 128);
+        const auto entry255 = settings.GetColorMapValue(0, 255);
+
+        // Magma starts black, mid purple-pink, ends light yellow
+        REQUIRE(entry0.r == 0);
+        REQUIRE(entry0.g == 0);
+        REQUIRE(entry0.b == 4);
+        REQUIRE(entry128.r == 183);
+        REQUIRE(entry128.g == 55);
+        REQUIRE(entry128.b == 121);
+        REQUIRE(entry255.r == 252);
+        REQUIRE(entry255.g == 253);
+        REQUIRE(entry255.b == 191);
+    }
+}
+
 TEST_CASE("Settings::SetAperture", "[settings]")
 {
     Settings settings;

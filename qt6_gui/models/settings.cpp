@@ -3,6 +3,7 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "models/settings.h"
+#include "include/colormap_data.h"
 #include "include/global_constants.h"
 #include <QObject>
 #include <algorithm>
@@ -60,6 +61,10 @@ Settings::SetColorMap(ChannelCount aChannel, ColorMapType aType)
     };
 
     switch (aType) {
+        case ColorMapType::Disabled:
+            // Disabled map is all black
+            setGradientColorMap(false, false, false);
+            break;
         case ColorMapType::White:
             setGradientColorMap(true, true, true);
             break;
@@ -80,6 +85,18 @@ Settings::SetColorMap(ChannelCount aChannel, ColorMapType aType)
             break;
         case ColorMapType::Yellow:
             setGradientColorMap(true, true, false);
+            break;
+        case ColorMapType::Viridis:
+            mColorMapLUTs.at(aChannel) = GKViridisLUT;
+            break;
+        case ColorMapType::Plasma:
+            mColorMapLUTs.at(aChannel) = GKPlasmaLUT;
+            break;
+        case ColorMapType::Inferno:
+            mColorMapLUTs.at(aChannel) = GKInfernoLUT;
+            break;
+        case ColorMapType::Magma:
+            mColorMapLUTs.at(aChannel) = GKMagmaLUT;
             break;
         default:
             throw std::invalid_argument("Settings::SetColorMap: Unsupported color map type");

@@ -43,6 +43,13 @@ class Settings : public QObject
         Plasma,
         Inferno,
         Magma,
+        Turbo,
+        Cividis,
+        Hot,
+        Cool,
+        Twilight,
+        Seismic,
+        Jet,
         Count,
     };
 
@@ -61,7 +68,14 @@ class Settings : public QObject
                                { ColorMapType::Viridis, "Viridis" },
                                { ColorMapType::Plasma, "Plasma" },
                                { ColorMapType::Inferno, "Inferno" },
-                               { ColorMapType::Magma, "Magma" } } };
+                               { ColorMapType::Magma, "Magma" },
+                               { ColorMapType::Turbo, "Turbo" },
+                               { ColorMapType::Cividis, "Cividis" },
+                               { ColorMapType::Hot, "Hot" },
+                               { ColorMapType::Cool, "Cool" },
+                               { ColorMapType::Twilight, "Twilight" },
+                               { ColorMapType::Seismic, "Seismic" },
+                               { ColorMapType::Jet, "Jet" } } };
 
     /// @brief Lightweight RGB color representation for LUT
     ///

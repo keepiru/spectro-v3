@@ -10,6 +10,7 @@
 #include <format>
 #include <memory>
 #include <sample_buffer.h>
+#include <span>
 #include <stdexcept>
 #include <vector>
 
@@ -90,7 +91,7 @@ AudioBuffer::AddSamples(const std::vector<float>& aSamples)
     emit DataAvailable(GetFrameCount());
 }
 
-std::vector<float>
+std::span<const float>
 AudioBuffer::GetSamples(const ChannelCount aChannelIndex,
                         const SampleIndex aStartSample,
                         const SampleCount aSampleCount) const

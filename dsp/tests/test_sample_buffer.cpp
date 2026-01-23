@@ -4,6 +4,8 @@
 
 #include "audio_types.h"
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_range_equals.hpp>
 #include <sample_buffer.h>
 #include <stdexcept>
 #include <vector>
@@ -25,13 +27,14 @@ TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
     SECTION("Retrieve all samples")
     {
         auto retrieved = buffer.GetSamples(SampleIndex(0), SampleCount(kSamples.size()));
-        REQUIRE(retrieved == kSamples);
+        REQUIRE_THAT(retrieved, Catch::Matchers::RangeEquals(kSamples));
     }
 
     SECTION("Retrieve partial samples")
     {
         auto retrieved = buffer.GetSamples(SampleIndex(1), SampleCount(2));
-        REQUIRE(retrieved == std::vector<float>({ 0.2f, 0.3f }));
+        const std::vector<float> kExpected = { 0.2f, 0.3f };
+        REQUIRE_THAT(retrieved, Catch::Matchers::RangeEquals(kExpected));
     }
 
     SECTION("Retrieve zero samples")
@@ -59,6 +62,7 @@ TEST_CASE("SampleBuffer basic functionality", "[SampleBuffer]")
 
         auto const kRetrieved =
           buffer.GetSamples(SampleIndex(0), SampleCount(kSamples.size() + kNewSamples.size()));
-        REQUIRE(kRetrieved == std::vector<float>({ 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f }));
+        const std::vector<float> kWant = { 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f };
+        REQUIRE_THAT(kRetrieved, Catch::Matchers::RangeEquals(kWant));
     }
 }

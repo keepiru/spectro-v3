@@ -4,6 +4,7 @@
 
 #pragma once
 #include "audio_types.h"
+#include <span>
 #include <vector>
 
 /// @brief Audio sample storage.
@@ -35,10 +36,10 @@ class SampleBuffer
     /// @brief Get samples from the buffer.
     /// @param aStartSample Starting sample index
     /// @param aSampleCount Number of samples to retrieve.
-    /// @return Vector of samples.
+    /// @return Read-only span of samples.
     /// @throws std::out_of_range if there aren't enough samples to fill the request.
-    [[nodiscard]] std::vector<float> GetSamples(SampleIndex aStartSample,
-                                                SampleCount aSampleCount) const;
+    [[nodiscard]] std::span<const float> GetSamples(SampleIndex aStartSample,
+                                                    SampleCount aSampleCount) const;
 
   private:
     SampleRate mSampleRate;

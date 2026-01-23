@@ -6,6 +6,7 @@
 #include "models/audio_file_reader.h"
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_range_equals.hpp>
 
 /// @brief Mock implementation of IAudioFileReader for testing
 /// Returns predefined audio data.
@@ -88,10 +89,14 @@ TEST_CASE("AudioFile - load file", "[audio_file]")
         CHECK(buffer.GetSampleRate() == 22050);
         CHECK(buffer.GetChannelCount() == 2);
         CHECK(buffer.GetFrameCount() == FrameCount(3));
-        CHECK(buffer.GetSamples(0, SampleIndex(0), SampleCount(3)) ==
-              std::vector<float>({ 0, 2, 4 }));
-        CHECK(buffer.GetSamples(1, SampleIndex(0), SampleCount(3)) ==
-              std::vector<float>({ 1, 3, 5 }));
+
+        const auto kHave0 = buffer.GetSamples(0, SampleIndex(0), SampleCount(3));
+        const auto kHave1 = buffer.GetSamples(1, SampleIndex(0), SampleCount(3));
+        const auto kWant0 = std::vector<float>({ 0, 2, 4 });
+        const auto kWant1 = std::vector<float>({ 1, 3, 5 });
+        CHECK_THAT(kHave0, Catch::Matchers::RangeEquals(kWant0));
+        CHECK_THAT(kHave1, Catch::Matchers::RangeEquals(kWant1));
+
         CHECK(progressCalls == std::vector<int>({ 100 }));
     }
 

@@ -4,8 +4,8 @@
 
 #include "audio_types.h"
 #include <format>
-#include <iterator>
 #include <sample_buffer.h>
+#include <span>
 #include <stdexcept>
 #include <vector>
 
@@ -22,7 +22,7 @@ SampleBuffer::AddSamples(const std::vector<float>& aSamples)
     mData.insert(mData.end(), aSamples.begin(), aSamples.end());
 }
 
-std::vector<float>
+std::span<const float>
 SampleBuffer::GetSamples(SampleIndex aStartSample, SampleCount aSampleCount) const
 {
     if (aStartSample.Get() > mData.size() ||
@@ -36,7 +36,5 @@ SampleBuffer::GetSamples(SampleIndex aStartSample, SampleCount aSampleCount) con
     }
 
     // The check above guarantees the range is valid.
-    const auto kStartIt = std::next(mData.begin(), aStartSample.AsPtrDiffT());
-    const auto kEndIt = std::next(kStartIt, aSampleCount.AsPtrDiffT());
-    return { kStartIt, kEndIt };
+    return std::span<const float>(mData).subspan(aStartSample.Get(), aSampleCount.Get());
 }

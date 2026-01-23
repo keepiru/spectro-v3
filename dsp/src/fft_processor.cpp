@@ -5,7 +5,6 @@
 #include "audio_types.h"
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
 #include <cstring>
 #include <fft_processor.h>
 #include <fftw3.h>
@@ -21,6 +20,11 @@ FFTProcessor::FFTProcessor(FFTSize aTransformSize)
 {
     mFFTInput = FFTWRealPtr(fftwf_alloc_real(mTransformSize));
     mFFTOutput = FFTWComplexPtr(fftwf_alloc_complex((mTransformSize / 2) + 1));
+
+    if (!mFFTInput || !mFFTOutput) {
+        throw std::runtime_error("Failed to allocate FFTW buffers");
+    }
+
     mFFTPlan = FFTWPlanPtr(
       fftwf_plan_dft_r2c_1d(mTransformSize, mFFTInput.get(), mFFTOutput.get(), FFTW_ESTIMATE));
 
@@ -57,7 +61,7 @@ FFTProcessor::ComputeMagnitudes(const std::span<float>& aSamples) const
     Compute(aSamples);
 
     std::vector<float> magnitudes((mTransformSize / 2) + 1);
-    for (uint32_t i = 0; i < magnitudes.size(); ++i) {
+    for (size_t i = 0; i < magnitudes.size(); ++i) {
         float const real = mFFTOutput.get()[i][0];
         float const imag = mFFTOutput.get()[i][1];
         magnitudes[i] = std::sqrt((real * real) + (imag * imag));

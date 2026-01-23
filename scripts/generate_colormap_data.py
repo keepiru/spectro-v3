@@ -25,7 +25,6 @@ Note: This script is only needed to regenerate the colormap data.
 Building spectro-v3 does not require Python or matplotlib.
 """
 
-import sys
 from pathlib import Path
 from typing import List, Tuple
 import matplotlib.pyplot as plt
@@ -62,13 +61,16 @@ def get_colormap_rgb(name: str, num_samples: int = 256) -> List[Tuple[int, int, 
     return rgb_values
 
 
-def format_colormap_cpp(name: str, rgb_values: List[Tuple[int, int, int]]) -> str:
+def format_colormap_cpp(
+    name: str, rgb_values: List[Tuple[int, int, int]], copyright_info: str = ""
+) -> str:
     """
     Format colormap data as a C++ constexpr array.
 
     Args:
         name: Name of the colormap (e.g., 'viridis')
         rgb_values: List of (r, g, b) tuples
+        copyright_info: Copyright and attribution information for doxygen
 
     Returns:
         C++ code string defining the array
@@ -77,13 +79,13 @@ def format_colormap_cpp(name: str, rgb_values: List[Tuple[int, int, int]]) -> st
     identifier = f"GK{name.capitalize()}LUT"
 
     output = f"/// @brief {name.capitalize()} colormap lookup table (256 entries)\n"
+    output += f"/// @copyright {copyright_info}\n"
     output += f"constexpr std::array<Settings::ColorMapEntry, 256> {identifier} = {{{{"
 
     # Format entries, 4 per line for readability
-    for i in range(len(rgb_values)):
+    for i, (r, g, b) in enumerate(rgb_values):
         if i % 4 == 0:
             output += "\n   "
-        r, g, b = rgb_values[i]
         output += f" {{{r:3d}, {g:3d}, {b:3d}}},"
     output += "\n}};\n"
     return output
@@ -96,8 +98,6 @@ def generate_header(output_path: Path) -> None:
     Args:
         output_path: Path to the output header file
     """
-    # Colormaps to generate
-    colormaps = ["viridis", "plasma", "inferno", "magma"]
 
     # Generate header content
     header_lines = [
@@ -110,10 +110,21 @@ def generate_header(output_path: Path) -> None:
         "// DO NOT EDIT MANUALLY - Changes will be overwritten",
         "// ============================================================================",
         "//",
-        "// Colormap data from matplotlib's viridis family",
-        "// Originally created by Nathaniel J. Smith, Stefan van der Walt, and Eric Firing",
-        "// Released under CC0 1.0 Universal Public Domain Dedication",
-        "// Source: https://github.com/BIDS/colormap",
+        "// Colormap Data Sources:",
+        "//",
+        "// Viridis, Plasma, Inferno, Magma:",
+        "//   CC0 1.0 Universal Public Domain Dedication",
+        "//   Nathaniel J. Smith, Stefan van der Walt, and Eric Firing",
+        "//   Source: https://github.com/BIDS/colormap",
+        "//",
+        "// Turbo:",
+        "//   Copyright 2019 Google LLC",
+        "//   Licensed under the Apache License 2.0",
+        "//   Source: https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html",
+        "//",
+        "// Cividis, Hot, Cool, Twilight, Seismic, Jet:",
+        "//   Copyright (c) 2012- Matplotlib Development Team",
+        "//   Licensed under the Matplotlib License (PSF-style, BSD-like)",
         "//",
         "// clang-format off",
         "// NOLINTBEGIN(modernize-use-designated-initializers)",
@@ -124,12 +135,31 @@ def generate_header(output_path: Path) -> None:
         "",
     ]
 
+    # Colormaps with attribution info
+    # Format: (name, copyright_info)
+    colormaps = [
+        # CC0 Public Domain - Viridis family
+        ("viridis", "CC0 1.0 - Nathaniel J. Smith, Stefan van der Walt, Eric Firing"),
+        ("plasma", "CC0 1.0 - Nathaniel J. Smith, Stefan van der Walt"),
+        ("inferno", "CC0 1.0 - Nathaniel J. Smith, Stefan van der Walt"),
+        ("magma", "CC0 1.0 - Nathaniel J. Smith, Stefan van der Walt"),
+        # Apache 2.0 - Google
+        ("turbo", "Apache-2.0 - 2019 Google LLC"),
+        # Matplotlib License (PSF-style)
+        ("cividis", "PSF-style - Matplotlib Development Team"),
+        ("hot", "PSF-style - Matplotlib Development Team"),
+        ("cool", "PSF-style - Matplotlib Development Team"),
+        ("twilight", "PSF-style - Matplotlib Development Team"),
+        ("seismic", "PSF-style - Matplotlib Development Team"),
+        ("jet", "PSF-style - Matplotlib Development Team"),
+    ]
+
     # Generate data for each colormap
-    for i, cmap_name in enumerate(colormaps):
+    for cmap_name, copyright_info in colormaps:
         print(f"Extracting {cmap_name}...")
         rgb_values = get_colormap_rgb(cmap_name)
-        header_lines.append(format_colormap_cpp(cmap_name, rgb_values))
-    
+        header_lines.append(format_colormap_cpp(cmap_name, rgb_values, copyright_info))
+
     header_lines.append("// NOLINTEND(modernize-use-designated-initializers)")
 
     # Write to file

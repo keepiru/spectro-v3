@@ -98,6 +98,27 @@ Settings::SetColorMap(ChannelCount aChannel, ColorMapType aType)
         case ColorMapType::Magma:
             mColorMapLUTs.at(aChannel) = GKMagmaLUT;
             break;
+        case ColorMapType::Turbo:
+            mColorMapLUTs.at(aChannel) = GKTurboLUT;
+            break;
+        case ColorMapType::Cividis:
+            mColorMapLUTs.at(aChannel) = GKCividisLUT;
+            break;
+        case ColorMapType::Hot:
+            mColorMapLUTs.at(aChannel) = GKHotLUT;
+            break;
+        case ColorMapType::Cool:
+            mColorMapLUTs.at(aChannel) = GKCoolLUT;
+            break;
+        case ColorMapType::Twilight:
+            mColorMapLUTs.at(aChannel) = GKTwilightLUT;
+            break;
+        case ColorMapType::Seismic:
+            mColorMapLUTs.at(aChannel) = GKSeismicLUT;
+            break;
+        case ColorMapType::Jet:
+            mColorMapLUTs.at(aChannel) = GKJetLUT;
+            break;
         default:
             throw std::invalid_argument("Settings::SetColorMap: Unsupported color map type");
     }

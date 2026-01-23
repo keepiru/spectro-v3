@@ -282,6 +282,139 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
         REQUIRE(entry255.g == 253);
         REQUIRE(entry255.b == 191);
     }
+
+    SECTION("Turbo colormap has expected RGB values")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Turbo);
+        const auto entry0 = settings.GetColorMapValue(0, 0);
+        const auto entry128 = settings.GetColorMapValue(0, 128);
+        const auto entry255 = settings.GetColorMapValue(0, 255);
+
+        // Turbo: dark purple, bright green-yellow, dark red
+        REQUIRE(entry0.r == 48);
+        REQUIRE(entry0.g == 18);
+        REQUIRE(entry0.b == 59);
+        REQUIRE(entry128.r == 164);
+        REQUIRE(entry128.g == 252);
+        REQUIRE(entry128.b == 60);
+        REQUIRE(entry255.r == 122);
+        REQUIRE(entry255.g == 4);
+        REQUIRE(entry255.b == 3);
+    }
+
+    SECTION("Cividis colormap has expected RGB values")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Cividis);
+        const auto entry0 = settings.GetColorMapValue(0, 0);
+        const auto entry128 = settings.GetColorMapValue(0, 128);
+        const auto entry255 = settings.GetColorMapValue(0, 255);
+
+        // Cividis: dark blue, gray, bright yellow
+        REQUIRE(entry0.r == 0);
+        REQUIRE(entry0.g == 34);
+        REQUIRE(entry0.b == 78);
+        REQUIRE(entry128.r == 125);
+        REQUIRE(entry128.g == 124);
+        REQUIRE(entry128.b == 120);
+        REQUIRE(entry255.r == 254);
+        REQUIRE(entry255.g == 232);
+        REQUIRE(entry255.b == 56);
+    }
+
+    SECTION("Hot colormap has expected RGB values")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Hot);
+        const auto entry0 = settings.GetColorMapValue(0, 0);
+        const auto entry128 = settings.GetColorMapValue(0, 128);
+        const auto entry255 = settings.GetColorMapValue(0, 255);
+
+        // Hot: black, orange, white
+        REQUIRE(entry0.r == 11);
+        REQUIRE(entry0.g == 0);
+        REQUIRE(entry0.b == 0);
+        REQUIRE(entry128.r == 255);
+        REQUIRE(entry128.g == 92);
+        REQUIRE(entry128.b == 0);
+        REQUIRE(entry255.r == 255);
+        REQUIRE(entry255.g == 255);
+        REQUIRE(entry255.b == 255);
+    }
+
+    SECTION("Cool colormap has expected RGB values")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Cool);
+        const auto entry0 = settings.GetColorMapValue(0, 0);
+        const auto entry128 = settings.GetColorMapValue(0, 128);
+        const auto entry255 = settings.GetColorMapValue(0, 255);
+
+        // Cool: cyan, blue-magenta, magenta
+        REQUIRE(entry0.r == 0);
+        REQUIRE(entry0.g == 255);
+        REQUIRE(entry0.b == 255);
+        REQUIRE(entry128.r == 128);
+        REQUIRE(entry128.g == 127);
+        REQUIRE(entry128.b == 255);
+        REQUIRE(entry255.r == 255);
+        REQUIRE(entry255.g == 0);
+        REQUIRE(entry255.b == 255);
+    }
+
+    SECTION("Twilight colormap has expected RGB values")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Twilight);
+        const auto entry0 = settings.GetColorMapValue(0, 0);
+        const auto entry128 = settings.GetColorMapValue(0, 128);
+        const auto entry255 = settings.GetColorMapValue(0, 255);
+
+        // Twilight: light purple, dark purple, light purple
+        REQUIRE(entry0.r == 226);
+        REQUIRE(entry0.g == 217);
+        REQUIRE(entry0.b == 226);
+        REQUIRE(entry128.r == 48);
+        REQUIRE(entry128.g == 20);
+        REQUIRE(entry128.b == 55);
+        REQUIRE(entry255.r == 226);
+        REQUIRE(entry255.g == 217);
+        REQUIRE(entry255.b == 226);
+    }
+
+    SECTION("Seismic colormap has expected RGB values")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Seismic);
+        const auto entry0 = settings.GetColorMapValue(0, 0);
+        const auto entry128 = settings.GetColorMapValue(0, 128);
+        const auto entry255 = settings.GetColorMapValue(0, 255);
+
+        // Seismic: dark blue, white, dark red
+        REQUIRE(entry0.r == 0);
+        REQUIRE(entry0.g == 0);
+        REQUIRE(entry0.b == 76);
+        REQUIRE(entry128.r == 255);
+        REQUIRE(entry128.g == 253);
+        REQUIRE(entry128.b == 253);
+        REQUIRE(entry255.r == 128);
+        REQUIRE(entry255.g == 0);
+        REQUIRE(entry255.b == 0);
+    }
+
+    SECTION("Jet colormap has expected RGB values")
+    {
+        settings.SetColorMap(0, Settings::ColorMapType::Jet);
+        const auto entry0 = settings.GetColorMapValue(0, 0);
+        const auto entry128 = settings.GetColorMapValue(0, 128);
+        const auto entry255 = settings.GetColorMapValue(0, 255);
+
+        // Jet: dark blue, cyan-green, dark red
+        REQUIRE(entry0.r == 0);
+        REQUIRE(entry0.g == 0);
+        REQUIRE(entry0.b == 128);
+        REQUIRE(entry128.r == 125);
+        REQUIRE(entry128.g == 255);
+        REQUIRE(entry128.b == 122);
+        REQUIRE(entry255.r == 128);
+        REQUIRE(entry255.g == 0);
+        REQUIRE(entry255.b == 0);
+    }
 }
 
 TEST_CASE("Settings::SetAperture", "[settings]")

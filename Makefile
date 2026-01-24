@@ -14,48 +14,53 @@ MAKEFLAGS += --no-print-directory
 # Detect if running in Docker and use separate build directory
 ifeq ($(shell test -f /.dockerenv && echo yes),yes)
     BUILD_DIR := build-docker
-    ANALYSIS_DIR := build-docker
+    UNITY_DIR := build-docker
 else
-    BUILD_DIR := build-unity
-    ANALYSIS_DIR := build
+    BUILD_DIR := build
+    UNITY_DIR := build-unity
 endif
 BUILD_TYPE := Debug
 JOBS := $(shell nproc 2>/dev/null || echo 4)
 
-.PHONY: all build configure clean rebuild test test-one \
-        tdd release lint lint-fix-changed lint-fix lint-files help run bench \
-        configure-analysis
+.PHONY: all clean \
+		build configure \
+		unity configure-unity \
+		test test-one \
+		lint lint-fix-changed lint-fix lint-files \
+        release \
+		run bench
 
 # Default target
 all: build
 
 # Configure CMake (run once or after CMakeLists.txt changes)
-configure:
-	@echo "Configuring CMake..."
+# This is the standard configuration without unity, which is needed for clangd analysis.
+configure: ${BUILD_DIR}/compile_commands.json
+
+${BUILD_DIR}/compile_commands.json:
 	cmake --preset=default -B ${BUILD_DIR}
 
-# Configure for static analysis (without unity builds).  run-clang-tidy needs
-# compile_commands.json to be present and unity-free.
-configure-analysis:
-	@echo "Configuring CMake for static analysis (no unity builds)..."
-	cmake --preset=analysis -B ${ANALYSIS_DIR}
+
+# Configure CMake for unity builds (faster builds for development)
+configure-unity: ${UNITY_DIR}/compile_commands.json
+
+${UNITY_DIR}/compile_commands.json:
+	cmake --preset=unity -B ${UNITY_DIR}
 
 # Build the project (configures if needed)
-build: | $(BUILD_DIR)/Makefile
+build: configure
 	@echo "Building..."
 	cmake --build $(BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
 
-# Ensure build directory exists and is configured
-$(BUILD_DIR)/Makefile:
-	$(MAKE) configure
+# Build the project with unity
+unity: configure-unity
+	@echo "Building..."
+	cmake --build $(UNITY_DIR) --config $(BUILD_TYPE) -j $(JOBS)
 
 # Clean build artifacts
 clean:
 	@echo "Cleaning build directory..."
-	rm -rf $(BUILD_DIR) $(ANALYSIS_DIR)
-
-# Full rebuild (clean + configure + build)
-rebuild: clean configure build
+	rm -rf $(BUILD_DIR) $(UNITY_DIR)
 
 # Run tests via CTest
 test: build
@@ -68,39 +73,35 @@ test-one: build
 	ctest --test-dir $(BUILD_DIR) --output-on-failure -R "$(NAME)"
 
 # Release build
-release:
+release: clean
 	@echo "Building release..."
 	cmake --preset=release -B ${BUILD_DIR}
 	cmake --build $(BUILD_DIR) --config Release -j $(JOBS)
 
 # Lint with clang-tidy
-lint: $(ANALYSIS_DIR)/compile_commands.json
+lint: configure
 	@echo "Running clang-tidy on source files..."
-	find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -quiet
+	find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
 
 # Lint specific files (usage: make lint-file FILE="file1.cpp file2.cpp")
-lint-files: $(ANALYSIS_DIR)/compile_commands.json
+lint-files: configure
 	@echo "Running clang-tidy..."
-	run-clang-tidy -p $(ANALYSIS_DIR) -use-color -quiet $(filter-out $@,$(MAKECMDGOALS))
+	run-clang-tidy -p $(BUILD_DIR) -use-color -quiet $(filter-out $@,$(MAKECMDGOALS))
 
 # Lint with automatic fixes (use with caution)
-lint-fix: $(ANALYSIS_DIR)/compile_commands.json
+lint-fix: configure
 	@echo "Running clang-tidy with automatic fixes..."
-	find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -fix -quiet
+	find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet
 
 # Lint files changed in git
-lint-changed: $(ANALYSIS_DIR)/compile_commands.json
+lint-changed: configure
 	@echo "Running clang-tidy on changed files..."
-	git diff --name-only HEAD | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -quiet
+	git diff --name-only HEAD | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
 
 # Lint files changed in git
-lint-fix-changed: $(ANALYSIS_DIR)/compile_commands.json
+lint-fix-changed: configure
 	@echo "Running clang-tidy on changed files..."
-	git diff --name-only HEAD | xargs run-clang-tidy -p $(ANALYSIS_DIR) -use-color -fix -quiet
-
-# Ensure analysis build is configured
-$(ANALYSIS_DIR)/compile_commands.json:
-	$(MAKE) configure-analysis
+	git diff --name-only HEAD | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet
 
 run: build
 	@echo "Running spectro-v3..."
@@ -109,36 +110,3 @@ run: build
 bench: build
 	@echo "Running benchmarks..."
 	$(BUILD_DIR)/qt6_gui/tests/test_spectrogram_view benchmark
-
-# Help target
-help:
-	@echo "Spectro-v3 Build System"
-	@echo ""
-	@echo "Build Targets:"
-	@echo "  make              - Build the project (default)"
-	@echo "  make configure    - Configure CMake"
-	@echo "  make configure-analysis - Configure for static analysis (no unity builds)"
-	@echo "  make build        - Build the project"
-	@echo "  make clean        - Remove build directory"
-	@echo "  make rebuild      - Clean + configure + build"
-	@echo "  make release      - Build with Release configuration"
-	@echo ""
-	@echo "Test Targets (TDD Workflow):"
-	@echo "  make test         - Run all tests via CTest"
-	@echo "  make test-verbose - Run tests with verbose output"
-	@echo "  make test-direct  - Run test executable directly (faster)"
-	@echo "  make test-one NAME=<pattern> - Run tests matching pattern"
-	@echo "  make tdd          - Quick build + test cycle"
-	@echo "  make bench        - Run benchmarks"
-	@echo ""
-	@echo "Code Quality:"
-	@echo "  make lint         - Run clang-tidy on all source files"
-	@echo "  make lint-files <file1> <file2> - Run clang-tidy on specific files"
-	@echo "  make lint-fix     - Run clang-tidy with automatic fixes"
-	@echo ""
-	@echo "Development:"
-	@echo "  make run          - Run application"
-	@echo ""
-	@echo "Configuration:"
-	@echo "  BUILD_TYPE=$(BUILD_TYPE) (Debug/Release/RelWithDebInfo)"
-	@echo "  JOBS=$(JOBS) (parallel jobs)"

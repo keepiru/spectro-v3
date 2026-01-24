@@ -13,8 +13,7 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "CMAKE_COLOR_DIAGNOSTICS": "ON",
-                "CMAKE_UNITY_BUILD": "ON"
+                "CMAKE_COLOR_DIAGNOSTICS": "ON"
             }
         },
         {
@@ -25,11 +24,11 @@
             }
         },
         {
-            "name": "analysis",
+            "name": "unity",
             "inherits": "default",
-            "description": "Config without Unity for clang-tidy / clangd",
+            "description": "Fast unity build for development",
             "cacheVariables": {
-                "CMAKE_UNITY_BUILD": "OFF"
+                "CMAKE_UNITY_BUILD": "ON"
             }
         }
     ],
@@ -43,8 +42,8 @@
             "configurePreset": "release"
         },
         {
-            "name": "analysis",
-            "configurePreset": "analysis"
+            "name": "unity",
+            "configurePreset": "unity"
         }
     ],
     "testPresets": [

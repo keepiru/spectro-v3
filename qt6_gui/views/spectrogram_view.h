@@ -110,6 +110,11 @@ class SpectrogramView : public QAbstractScrollArea
     /// @param aAvailableFrames Total number of frames available in the buffer
     void UpdateScrollbarRange(FrameCount aAvailableFrames);
 
+    /// @brief Update the QAbstractScrollArea viewport
+    ///
+    /// Trigger a viewport repaint in response to DisplaySettingsChanged.
+    void UpdateViewport() { mUpdateViewport(); }
+
   protected:
     void paintEvent(QPaintEvent* event) override;
 

@@ -130,7 +130,7 @@ MainWindow::SetupConnections()
     connect(&mSettings,
             &Settings::DisplaySettingsChanged,
             &mSpectrogramView,
-            QOverload<>::of(&SpectrogramView::update));
+            &SpectrogramView::UpdateViewport);
 
     // Stop recording when buffer is reset (e.g., when loading a new file)
     connect(&mAudioBuffer, &AudioBuffer::BufferReset, &mAudioRecorder, &AudioRecorder::Stop);

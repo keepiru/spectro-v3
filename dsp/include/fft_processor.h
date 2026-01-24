@@ -74,14 +74,6 @@ class FFTProcessor : public IFFTProcessor
     /// @throws std::invalid_argument if aTransformSize is not a power of 2
     explicit FFTProcessor(FFTSize aTransformSize);
 
-    ~FFTProcessor() override = default;
-
-    // Rule of five
-    FFTProcessor(const FFTProcessor&) = delete;
-    FFTProcessor& operator=(const FFTProcessor&) = delete;
-    FFTProcessor(FFTProcessor&&) = default;
-    FFTProcessor& operator=(FFTProcessor&&) = default;
-
     [[nodiscard]] FFTSize GetTransformSize() const noexcept override { return mTransformSize; }
     [[nodiscard]] std::vector<FftwfComplex> ComputeComplex(
       const std::span<float>& aSamples) const override;

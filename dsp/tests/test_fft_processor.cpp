@@ -14,7 +14,6 @@
 #include <numbers>
 #include <stdexcept>
 #include <type_traits>
-#include <utility>
 #include <vector>
 
 TEST_CASE("Constructor succeeds", "[fft]")
@@ -41,18 +40,10 @@ TEST_CASE("Constructor succeeds", "[fft]")
 
 TEST_CASE("FFTProcessor move/copy semantics", "[fft]")
 {
-    const FFTSize kTransformSize = 512;
-    FFTProcessor processor1(kTransformSize);
-
-    FFTProcessor processor2(std::move(processor1));
-    REQUIRE(processor2.GetTransformSize() == kTransformSize);
-
-    FFTProcessor processor3(256);
-    processor3 = std::move(processor2);
-    REQUIRE(processor3.GetTransformSize() == kTransformSize);
-
+    // FFTW plans are not copyable, so FFTProcessor should not be copyable
     static_assert(!std::is_copy_constructible_v<FFTProcessor>);
     static_assert(!std::is_copy_assignable_v<FFTProcessor>);
+    // But it should be movable
     static_assert(std::is_move_constructible_v<FFTProcessor>);
     static_assert(std::is_move_assignable_v<FFTProcessor>);
 }

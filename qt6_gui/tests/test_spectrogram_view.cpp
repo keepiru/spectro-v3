@@ -19,6 +19,10 @@ class TestableSpectrogramView : public SpectrogramView
   public:
     using SpectrogramView::SpectrogramView;
 
+    // Expose private methods for testing
+    using SpectrogramView::GenerateSpectrogramImage;
+    using SpectrogramView::GetRenderConfig;
+
     /// @brief Override the viewport dimension getters for testing.
     /// @param aWidthGetter Lambda to get viewport width.
     /// @param aHeightGetter Lambda to get viewport height.
@@ -85,7 +89,7 @@ TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
     AudioBuffer audioBuffer;
     const SpectrogramController controller(
       settings, audioBuffer, MockFFTProcessor::GetFactory(), nullptr);
-    SpectrogramView view(controller);
+    TestableSpectrogramView view(controller);
 
     SECTION("generates image of correct size")
     {
@@ -151,7 +155,7 @@ TEST_CASE("Benchmark", "[spectrogram_view][!benchmark]")
     Settings settings;
     const AudioBuffer audioBuffer; // No data loaded, so GetRows will return all zeros
     SpectrogramController controller(settings, audioBuffer);
-    SpectrogramView view(controller);
+    TestableSpectrogramView view(controller);
 
     SECTION("GenerateSpectrogramImage performance")
     {
@@ -196,7 +200,7 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
     Settings settings;
     const AudioBuffer audioBuffer;
     const SpectrogramController controller(settings, audioBuffer);
-    SpectrogramView view(controller);
+    TestableSpectrogramView view(controller);
 
     SECTION("returns correct RenderConfig values")
     {

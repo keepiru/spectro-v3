@@ -87,17 +87,6 @@ class SpectrogramView : public QAbstractScrollArea
     explicit SpectrogramView(const SpectrogramController& aController, QWidget* parent = nullptr);
     ~SpectrogramView() override = default;
 
-    /// @brief Generate spectrogram image for given dimensions
-    /// @param aWidth Width in pixels
-    /// @param aHeight Height in pixels
-    /// @return Generated spectrogram image
-    QImage GenerateSpectrogramImage(int aWidth, int aHeight);
-
-    /// @brief Gather configuration needed for rendering
-    /// @param aHeight Height in pixels (needed for topFrame calculation)
-    /// @return RenderConfig struct with all settings and precomputed values
-    [[nodiscard]] RenderConfig GetRenderConfig(size_t aHeight) const;
-
     /// @brief Update scrollbar range based on available audio data
     ///
     /// Called when new audio data arrives. Updates the scrollbar's maximum to
@@ -128,5 +117,17 @@ class SpectrogramView : public QAbstractScrollArea
     ViewportUpdater mUpdateViewport;
     ViewportDimensionGetter mGetViewportWidth;
     ViewportDimensionGetter mGetViewportHeight;
+
+    /// @brief Generate spectrogram image for given dimensions
+    /// @param aWidth Width in pixels
+    /// @param aHeight Height in pixels
+    /// @return Generated spectrogram image
+    QImage GenerateSpectrogramImage(int aWidth, int aHeight);
+
+    /// @brief Gather configuration needed for rendering
+    /// @param aHeight Height in pixels (needed for topFrame calculation)
+    /// @return RenderConfig struct with all settings and precomputed values
+    [[nodiscard]] RenderConfig GetRenderConfig(size_t aHeight) const;
+
     friend class TestableSpectrogramView;
 };

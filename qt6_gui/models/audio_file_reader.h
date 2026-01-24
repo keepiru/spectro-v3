@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "include/global_constants.h"
 #include <audio_types.h>
 #include <memory>
 #include <sndfile.h>

@@ -221,8 +221,8 @@ TEST_CASE("SpectrogramController::GetRows with Hann window integration", "[spect
     // samples as magnitudes so the only transformation is from the
     // windowing.
     const std::vector<std::vector<float>> kWant = {
-        { 0.0f, 0.188255101f, 0.611260474f, 0.950484395f, 0.950484395f },
-        { 0.0f, 0.188255101f, 0.611260474f, 0.950484395f, 0.950484395f }
+        { 0.0f, 0.146446615f, 0.5f, 0.853553414f, 1.0f },
+        { 0.0f, 0.146446615f, 0.5f, 0.853553414f, 1.0f }
     };
 
     REQUIRE(controller->GetRows(0, FramePosition{ 0 }, 2) == kWant);

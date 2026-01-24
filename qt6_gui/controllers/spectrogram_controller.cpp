@@ -3,7 +3,6 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "controllers/spectrogram_controller.h"
-#include "ifft_processor.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
 #include <QObject>
@@ -21,7 +20,7 @@
 
 SpectrogramController::SpectrogramController(const Settings& aSettings,
                                              const AudioBuffer& aAudioBuffer,
-                                             IFFTProcessorFactory aFFTProcessorFactory,
+                                             IFFTProcessor::Factory aFFTProcessorFactory,
                                              FFTWindowFactory aFFTWindowFactory,
                                              QObject* aParent)
   : QObject(aParent)

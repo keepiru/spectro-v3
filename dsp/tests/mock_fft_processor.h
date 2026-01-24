@@ -5,7 +5,7 @@
 #pragma once
 #include <audio_types.h>
 #include <cstddef>
-#include <ifft_processor.h>
+#include <fft_processor.h>
 #include <memory>
 #include <span>
 #include <stdexcept>
@@ -73,7 +73,7 @@ class MockFFTProcessor : public IFFTProcessor
 
     /// @brief Get factory function for creating IFFTProcessor instances
     /// @return Factory function
-    [[nodiscard]] static IFFTProcessorFactory GetFactory()
+    [[nodiscard]] static IFFTProcessor::Factory GetFactory()
     {
         return [](FFTSize size) { return std::make_unique<MockFFTProcessor>(size); };
     }

@@ -8,8 +8,8 @@
 #include <audio_types.h>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <fft_processor.h>
 #include <fft_window.h>
-#include <ifft_processor.h>
 #include <memory>
 #include <mock_fft_processor.h>
 #include <stdexcept>
@@ -29,7 +29,7 @@ TEST_CASE("SpectrogramController constructor", "[spectrogram_controller]")
 TEST_CASE("SpectrogramController::SetFFTSettings", "[spectrogram_controller]")
 {
     std::vector<FFTSize> procCalls;
-    const IFFTProcessorFactory procSpy = [&procCalls](FFTSize size) {
+    const IFFTProcessor::Factory procSpy = [&procCalls](FFTSize size) {
         procCalls.emplace_back(size);
         return std::make_unique<MockFFTProcessor>(size);
     };

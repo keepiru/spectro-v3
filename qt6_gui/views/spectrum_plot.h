@@ -31,6 +31,12 @@ class SpectrumPlot : public QWidget
     Q_OBJECT
 
   public:
+    explicit SpectrumPlot(const SpectrogramController& aController, QWidget* parent = nullptr);
+    ~SpectrumPlot() override = default;
+
+  protected:
+    void paintEvent(QPaintEvent* event) override;
+
     // The vertical scale paramaters used by GenerateDecibelScaleMarkers().
     struct DecibelScaleParameters
     {
@@ -84,9 +90,6 @@ class SpectrumPlot : public QWidget
         }
     };
 
-    explicit SpectrumPlot(const SpectrogramController& aController, QWidget* parent = nullptr);
-    ~SpectrumPlot() override = default;
-
     /// @brief Get the decibel values for the most recent stride in a given channel
     /// @param aChannel Channel index (0-based)
     /// @return std::vector<float> Vector of decibel values for the current FFT window
@@ -129,9 +132,6 @@ class SpectrumPlot : public QWidget
     [[nodiscard]] std::array<Marker, 2> ComputeCrosshair(QPoint aMousePos,
                                                          int aHeight,
                                                          int aWidth) const;
-
-  protected:
-    void paintEvent(QPaintEvent* event) override;
 
   private:
     const SpectrogramController& mController;

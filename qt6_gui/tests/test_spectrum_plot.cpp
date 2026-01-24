@@ -12,6 +12,24 @@
 #include <mock_fft_processor.h>
 #include <vector>
 
+/// @brief Test fixture for SpectrumPlot
+class TestableSpectrumPlot : public SpectrumPlot
+{
+  public:
+    using SpectrumPlot::SpectrumPlot;
+
+    // Expose private types for testing
+    using SpectrumPlot::DecibelScaleParameters;
+    using SpectrumPlot::Marker;
+
+    // Expose private methods for testing
+    using SpectrumPlot::CalculateDecibelScaleParameters;
+    using SpectrumPlot::ComputeCrosshair;
+    using SpectrumPlot::ComputePoints;
+    using SpectrumPlot::GenerateDecibelScaleMarkers;
+    using SpectrumPlot::GetDecibels;
+};
+
 TEST_CASE("SpectrumPlot constructor", "[spectrum_plot]")
 {
     const Settings settings;
@@ -37,7 +55,7 @@ TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
     Settings settings;
     AudioBuffer audioBuffer;
     const SpectrogramController controller(settings, audioBuffer, MockFFTProcessor::GetFactory());
-    const SpectrumPlot plot(controller);
+    const TestableSpectrumPlot plot(controller);
     settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
     settings.SetWindowScale(2); // Stride 4
 
@@ -89,7 +107,7 @@ TEST_CASE("SpectrumPlot::ComputePoints", "[spectrum_plot]")
     Settings settings;
     const AudioBuffer audioBuffer;
     const SpectrogramController controller(settings, audioBuffer);
-    const SpectrumPlot plot(controller);
+    const TestableSpectrumPlot plot(controller);
 
     SECTION("computes correct points for given decibel values")
     {
@@ -135,7 +153,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
     Settings settings;
     const AudioBuffer audioBuffer;
     const SpectrogramController controller(settings, audioBuffer);
-    const SpectrumPlot plot(controller);
+    const TestableSpectrumPlot plot(controller);
 
     SECTION("returns correct markers for given height and width")
     {
@@ -143,7 +161,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         settings.SetApertureMaxDecibels(0.0f);
 
         const auto params = plot.CalculateDecibelScaleParameters(120);
-        const SpectrumPlot::DecibelScaleParameters wantParams = {
+        const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
             .aperture_min_decibels = -60.0f,
             .aperture_max_decibels = 0.0f,
             .pixels_per_decibel = 2.0f,
@@ -153,7 +171,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         };
         REQUIRE(params == wantParams);
 
-        const std::vector<SpectrumPlot::Marker> want = {
+        const std::vector<TestableSpectrumPlot::Marker> want = {
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "0" },
             { .line = QLine(190, 20, 200, 20), .rect = QRect(165, 15, 20, 10), .text = "-10" },
             { .line = QLine(190, 40, 200, 40), .rect = QRect(165, 35, 20, 10), .text = "-20" },
@@ -171,7 +189,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         settings.SetApertureMaxDecibels(0.0f);
 
         const auto params = plot.CalculateDecibelScaleParameters(0);
-        const SpectrumPlot::DecibelScaleParameters wantParams = {
+        const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
             .aperture_min_decibels = -60.0f,
             .aperture_max_decibels = 0.0f,
             .pixels_per_decibel = 0.0f,
@@ -181,7 +199,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         };
         REQUIRE(params == wantParams);
 
-        const std::vector<SpectrumPlot::Marker> want = {
+        const std::vector<TestableSpectrumPlot::Marker> want = {
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "0" },
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-50" },
         };
@@ -194,7 +212,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         settings.SetApertureMaxDecibels(1.0f);
 
         const auto params = plot.CalculateDecibelScaleParameters(120);
-        const SpectrumPlot::DecibelScaleParameters wantParams = {
+        const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
             .aperture_min_decibels = -1.0f,
             .aperture_max_decibels = 1.0f,
             .pixels_per_decibel = 60.0f,
@@ -204,7 +222,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         };
         REQUIRE(params == wantParams);
 
-        const std::vector<SpectrumPlot::Marker> want = {
+        const std::vector<TestableSpectrumPlot::Marker> want = {
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "1" },
             { .line = QLine(190, 60, 200, 60), .rect = QRect(165, 55, 20, 10), .text = "0" },
             { .line = QLine(190, 120, 200, 120), .rect = QRect(165, 115, 20, 10), .text = "-1" },
@@ -218,7 +236,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         settings.SetApertureMaxDecibels(-60.0f);
 
         const auto params = plot.CalculateDecibelScaleParameters(120);
-        const SpectrumPlot::DecibelScaleParameters wantParams = {
+        const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
             .aperture_min_decibels = 0.0f,
             .aperture_max_decibels = -60.0f,
             .pixels_per_decibel = -2.0f,
@@ -228,7 +246,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         };
         REQUIRE(params == wantParams);
 
-        const std::vector<SpectrumPlot::Marker> want = {
+        const std::vector<TestableSpectrumPlot::Marker> want = {
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-60" },
             { .line = QLine(190, 20, 200, 20), .rect = QRect(165, 15, 20, 10), .text = "-50" },
             { .line = QLine(190, 40, 200, 40), .rect = QRect(165, 35, 20, 10), .text = "-40" },
@@ -246,7 +264,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         settings.SetApertureMaxDecibels(-50.0f);
 
         const auto params = plot.CalculateDecibelScaleParameters(120);
-        const SpectrumPlot::DecibelScaleParameters wantParams = {
+        const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
             .aperture_min_decibels = -50.0f,
             .aperture_max_decibels = -50.0f,
             .pixels_per_decibel = 0.0f,
@@ -256,7 +274,7 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         };
         REQUIRE(params == wantParams);
 
-        const std::vector<SpectrumPlot::Marker> want = {};
+        const std::vector<TestableSpectrumPlot::Marker> want = {};
         REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
 }
@@ -266,7 +284,7 @@ TEST_CASE("SpectrumPlot::CalculateDecibelScaleParameters", "[spectrum_plot]")
     Settings settings;
     const AudioBuffer audioBuffer;
     const SpectrogramController controller(settings, audioBuffer);
-    const SpectrumPlot plot(controller);
+    const TestableSpectrumPlot plot(controller);
 
     // We'll just do a basic smoke test here. Detailed correctness is
     // verified in GenerateDecibelScaleMarkers() tests.
@@ -275,7 +293,7 @@ TEST_CASE("SpectrumPlot::CalculateDecibelScaleParameters", "[spectrum_plot]")
     {
         settings.SetApertureMinDecibels(-60.0f);
         settings.SetApertureMaxDecibels(0.0f);
-        const SpectrumPlot::DecibelScaleParameters want = {
+        const TestableSpectrumPlot::DecibelScaleParameters want = {
             .aperture_min_decibels = -60.0f,
             .aperture_max_decibels = 0.0f,
             .pixels_per_decibel = 2.0f,
@@ -293,7 +311,7 @@ TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
     const AudioBuffer audioBuffer;
     settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
     const SpectrogramController controller(settings, audioBuffer, MockFFTProcessor::GetFactory());
-    const SpectrumPlot plot(controller);
+    const TestableSpectrumPlot plot(controller);
 
     SECTION("computes correct crosshair at center of widget")
     {

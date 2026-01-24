@@ -85,9 +85,11 @@ TEST_CASE("FFTWindow::ComputeWindowCoefficients", "[fft_window]")
         SECTION("size 8")
         {
             const auto kHave = computeCoefficients(8, FFTWindow::Type::Hann);
-            const std::vector<float> kWant = { 0.0f,       0.1882551f, 0.6112605f, 0.9504844f,
-                                               0.9504844f, 0.6112605f, 0.1882551f, 0.0f };
-            checkWindowCoefficients(kHave, kWant);
+            const std::vector<float> kExpectedHannWindow8 = {
+                0.0000000f, 0.1882551f, 0.6112605f, 0.9504844f, 
+                0.9504844f, 0.6112605f, 0.1882551f, 0.0000000f
+            };
+            checkWindowCoefficients(kHave, kExpectedHannWindow8);
         }
 
         SECTION("size 1024")
@@ -101,6 +103,87 @@ TEST_CASE("FFTWindow::ComputeWindowCoefficients", "[fft_window]")
             CHECK_THAT(kHave[0], Catch::Matchers::WithinAbs(0.0f, 1e-6f));
 
             // Middle coefficient is 1.0
+            CHECK_THAT(kHave[kSize / 2], Catch::Matchers::WithinAbs(1.0f, 1e-5f));
+        }
+    }
+
+    SECTION("Hamming")
+    {
+        SECTION("size 8")
+        {
+            const auto kHave = computeCoefficients(8, FFTWindow::Type::Hamming);
+            const std::vector<float> kExpectedHammingWindow8 = {
+                0.0800000f, 0.2531947f, 0.6423596f, 0.9544457f, 
+                0.9544457f, 0.6423596f, 0.2531947f, 0.0800000f
+            };
+            checkWindowCoefficients(kHave, kExpectedHammingWindow8);
+        }
+
+        SECTION("size 1024")
+        {
+            constexpr FFTSize kSize = 1024;
+            const auto kHave = computeCoefficients(kSize, FFTWindow::Type::Hamming);
+
+            checkSymmetry(kHave);
+
+            // End coefficients are 0.08 (Hamming window has non-zero endpoints)
+            CHECK_THAT(kHave[0], Catch::Matchers::WithinAbs(0.08f, 1e-6f));
+
+            // Middle coefficient is ~1.0
+            CHECK_THAT(kHave[kSize / 2], Catch::Matchers::WithinAbs(1.0f, 1e-5f));
+        }
+    }
+
+    SECTION("Blackman")
+    {
+        SECTION("size 8")
+        {
+            const auto kHave = computeCoefficients(8, FFTWindow::Type::Blackman);
+            const std::vector<float> kExpectedBlackmanWindow8 = {
+                -0.0000000f, 0.0904534f, 0.4591830f, 0.9203636f, 
+                0.9203636f, 0.4591830f, 0.0904534f, -0.0000000f
+            };
+            checkWindowCoefficients(kHave, kExpectedBlackmanWindow8);
+        }
+
+        SECTION("size 1024")
+        {
+            constexpr FFTSize kSize = 1024;
+            const auto kHave = computeCoefficients(kSize, FFTWindow::Type::Blackman);
+
+            checkSymmetry(kHave);
+
+            // End coefficients are ~0
+            CHECK_THAT(kHave[0], Catch::Matchers::WithinAbs(0.0f, 1e-6f));
+
+            // Middle coefficient is ~1.0
+            CHECK_THAT(kHave[kSize / 2], Catch::Matchers::WithinAbs(1.0f, 1e-5f));
+        }
+    }
+
+    SECTION("BlackmanHarris")
+    {
+        SECTION("size 8")
+        {
+            const auto kHave = computeCoefficients(8, FFTWindow::Type::BlackmanHarris);
+            const std::vector<float> kExpectedBlackmanHarrisWindow8 = {
+                0.0000600f, 0.0333917f, 0.3328335f, 0.8893698f, 
+                0.8893698f, 0.3328335f, 0.0333917f, 0.0000600f
+            };
+            checkWindowCoefficients(kHave, kExpectedBlackmanHarrisWindow8);
+        }
+
+        SECTION("size 1024")
+        {
+            constexpr FFTSize kSize = 1024;
+            const auto kHave = computeCoefficients(kSize, FFTWindow::Type::BlackmanHarris);
+
+            checkSymmetry(kHave);
+
+            // End coefficients are near zero
+            CHECK_THAT(kHave[0], Catch::Matchers::WithinAbs(0.00006f, 1e-5f));
+
+            // Middle coefficient is ~1.0
             CHECK_THAT(kHave[kSize / 2], Catch::Matchers::WithinAbs(1.0f, 1e-5f));
         }
     }
@@ -163,5 +246,23 @@ TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
     {
         const float kLeakage = measureLeakage(FFTWindow::Type::Hann);
         REQUIRE_THAT(kLeakage, Catch::Matchers::WithinRel(11.3f, 0.001f));
+    }
+
+    SECTION("Hamming window has moderate leakage")
+    {
+        const float kLeakage = measureLeakage(FFTWindow::Type::Hamming);
+        REQUIRE_THAT(kLeakage, Catch::Matchers::WithinRel(68.0f, 0.01f));
+    }
+
+    SECTION("Blackman window strongly reduces leakage")
+    {
+        const float kLeakage = measureLeakage(FFTWindow::Type::Blackman);
+        REQUIRE_THAT(kLeakage, Catch::Matchers::WithinRel(0.325f, 0.01f));
+    }
+
+    SECTION("BlackmanHarris window has minimal leakage")
+    {
+        const float kLeakage = measureLeakage(FFTWindow::Type::BlackmanHarris);
+        REQUIRE_THAT(kLeakage, Catch::Matchers::WithinRel(0.233f, 0.01f));
     }
 }

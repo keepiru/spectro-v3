@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
-#include <algorithm>
 #include <audio_types.h>
 #include <cassert>
 #include <cmath>
@@ -44,22 +43,39 @@ FFTWindow::Apply(std::span<const float> aInputSamples) const
 void
 FFTWindow::ComputeWindowCoefficients()
 {
-    switch (mType) {
-        case Type::Rectangular:
-            std::ranges::fill(mWindowCoefficients, 1.0f);
-            break;
-        case Type::Hann:
-            for (size_t i = 0; i < mSize; ++i) {
-                auto const kPi = std::numbers::pi_v<float>;
+    constexpr float kPi = std::numbers::pi_v<float>;
+    const auto kLastIndexAsFloat = static_cast<float>(mSize - 1);
+
+    // The inline constants are based on standard definitions of the window
+    // functions.  We will keep them inline so the formulas are recognizable.
+    // NOLINTBEGIN(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+    for (size_t i = 0; i < mSize; ++i) {
+        const auto kIndexAsFloat = static_cast<float>(i);
+        const auto kAngle = (2.0f * kPi * kIndexAsFloat) / kLastIndexAsFloat;
+
+        switch (mType) {
+            case Type::Rectangular:
+                mWindowCoefficients[i] = 1.0f;
+                break;
+            case Type::Hann:
+                mWindowCoefficients[i] = 0.5f * (1.0f - std::cosf(kAngle));
+                break;
+            case Type::Hamming:
+                mWindowCoefficients[i] = 0.54f - 0.46f * std::cosf(kAngle);
+                break;
+            case Type::Blackman:
                 mWindowCoefficients[i] =
-                  // The constants here are part of the kHann window definition.
-                  // NOLINTNEXTLINE(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
-                  0.5f * (1.0f - std::cosf((2.0f * kPi * static_cast<float>(i)) /
-                                           static_cast<float>(mSize - 1)));
-            }
-            break;
-        default:
-            assert(false && "Unsupported window type");
-            throw std::logic_error("Unsupported window type");
+                  0.42f - 0.5f * std::cosf(kAngle) + 0.08f * std::cosf(2.0f * kAngle);
+                break;
+            case Type::BlackmanHarris: // 4-term Blackman-Harris window
+                mWindowCoefficients[i] = 0.35875f - 0.48829f * std::cosf(kAngle) +
+                                         0.14128f * std::cosf(2.0f * kAngle) -
+                                         0.01168f * std::cosf(3.0f * kAngle);
+                break;
+            default:
+                assert(false && "Unsupported window type");
+                throw std::logic_error("Unsupported window type");
+        }
     }
+    // NOLINTEND(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
 }

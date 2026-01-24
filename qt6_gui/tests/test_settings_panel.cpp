@@ -38,9 +38,12 @@ TEST_CASE("SettingsPanel window type control", "[settings_panel]")
     REQUIRE(combo != nullptr);
 
     // Check that it has the expected items
-    REQUIRE(combo->count() == 2);
+    REQUIRE(combo->count() == 5);
     REQUIRE(combo->itemText(0) == "Rectangular");
     REQUIRE(combo->itemText(1) == "Hann");
+    REQUIRE(combo->itemText(2) == "Hamming");
+    REQUIRE(combo->itemText(3) == "Blackman");
+    REQUIRE(combo->itemText(4) == "Blackman-Harris");
 
     // Change the value and verify settings update
     combo->setCurrentIndex(0);
@@ -48,6 +51,15 @@ TEST_CASE("SettingsPanel window type control", "[settings_panel]")
 
     combo->setCurrentIndex(1);
     REQUIRE(settings.GetWindowType() == FFTWindow::Type::Hann);
+
+    combo->setCurrentIndex(2);
+    REQUIRE(settings.GetWindowType() == FFTWindow::Type::Hamming);
+
+    combo->setCurrentIndex(3);
+    REQUIRE(settings.GetWindowType() == FFTWindow::Type::Blackman);
+
+    combo->setCurrentIndex(4);
+    REQUIRE(settings.GetWindowType() == FFTWindow::Type::BlackmanHarris);
 }
 
 TEST_CASE("SettingsPanel FFT size control", "[settings_panel]")

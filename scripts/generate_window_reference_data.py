@@ -33,8 +33,6 @@ def format_cpp_vector(values, name):
         if i % 4 == 0:
             output += "\n    " 
         output += f"{v:.7f}f, "
-    # Remove trailing comma and space
-    output = output.rstrip(", ")
     output += "\n};\n"
     return output
 
@@ -50,7 +48,7 @@ def main():
     ]
     
     for scipy_name, cpp_name in window_types:
-        coeffs = signal.windows.get_window(scipy_name, 8, False)
+        coeffs = signal.windows.get_window(scipy_name, 8, True)
         print(format_cpp_vector(coeffs, f"kExpected{cpp_name}Window8"))
 
 if __name__ == '__main__':

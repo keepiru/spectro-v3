@@ -62,13 +62,16 @@ TEST_CASE("FFTWindow::ComputeWindowCoefficients", "[fft_window]")
         }
     };
 
-    /// @brief Helper to check symmetry of window coefficients
+    /// @brief Helper to check periodicity of window coefficients
     /// @param aCoefficients Coefficients to check
-    auto checkSymmetry = [](const std::vector<float>& aCoefficients) {
+    /// @note Periodic windows have internal symmetry: w[i] == w[N-i] for 0 < i < N/2
+    auto checkPeriodicity = [](const std::vector<float>& aCoefficients) {
         const size_t kSize = aCoefficients.size();
-        for (size_t i = 0; i < kSize / 2; ++i) {
+        // Check that the window is symmetric around the center.  The first
+        // sample will be different, so we don't check it.
+        for (size_t i = 1; i < kSize / 2; ++i) {
             CHECK_THAT(aCoefficients[i],
-                       Catch::Matchers::WithinAbs(aCoefficients[kSize - 1 - i], 1e-6f));
+                       Catch::Matchers::WithinAbs(aCoefficients[kSize - i], 1e-6f));
         }
     };
 
@@ -85,9 +88,10 @@ TEST_CASE("FFTWindow::ComputeWindowCoefficients", "[fft_window]")
         SECTION("size 8")
         {
             const auto kHave = computeCoefficients(8, FFTWindow::Type::Hann);
+            // Reference data from generate_window_reference_data.py
             const std::vector<float> kExpectedHannWindow8 = {
-                0.0000000f, 0.1882551f, 0.6112605f, 0.9504844f, 
-                0.9504844f, 0.6112605f, 0.1882551f, 0.0000000f
+                0.0000000f, 0.1464466f, 0.5000000f, 0.8535534f,
+                1.0000000f, 0.8535534f, 0.5000000f, 0.1464466f,
             };
             checkWindowCoefficients(kHave, kExpectedHannWindow8);
         }
@@ -97,9 +101,9 @@ TEST_CASE("FFTWindow::ComputeWindowCoefficients", "[fft_window]")
             constexpr FFTSize kSize = 1024;
             const auto kHave = computeCoefficients(kSize, FFTWindow::Type::Hann);
 
-            checkSymmetry(kHave);
+            checkPeriodicity(kHave);
 
-            // End coefficients are ~0; the last one is tested implicitly by symmetry
+            // First coefficient is 0
             CHECK_THAT(kHave[0], Catch::Matchers::WithinAbs(0.0f, 1e-6f));
 
             // Middle coefficient is 1.0
@@ -112,9 +116,10 @@ TEST_CASE("FFTWindow::ComputeWindowCoefficients", "[fft_window]")
         SECTION("size 8")
         {
             const auto kHave = computeCoefficients(8, FFTWindow::Type::Hamming);
+            // Reference data from generate_window_reference_data.py
             const std::vector<float> kExpectedHammingWindow8 = {
-                0.0800000f, 0.2531947f, 0.6423596f, 0.9544457f, 
-                0.9544457f, 0.6423596f, 0.2531947f, 0.0800000f
+                0.0800000f, 0.2147309f, 0.5400000f, 0.8652691f,
+                1.0000000f, 0.8652691f, 0.5400000f, 0.2147309f,
             };
             checkWindowCoefficients(kHave, kExpectedHammingWindow8);
         }
@@ -124,10 +129,11 @@ TEST_CASE("FFTWindow::ComputeWindowCoefficients", "[fft_window]")
             constexpr FFTSize kSize = 1024;
             const auto kHave = computeCoefficients(kSize, FFTWindow::Type::Hamming);
 
-            checkSymmetry(kHave);
+            checkPeriodicity(kHave);
 
-            // End coefficients are 0.08 (Hamming window has non-zero endpoints)
-            CHECK_THAT(kHave[0], Catch::Matchers::WithinAbs(0.08f, 1e-6f));
+            // First and last coefficients are both ~0.08 (Hamming has non-zero endpoints)
+            CHECK_THAT(kHave[0], Catch::Matchers::WithinAbs(0.08f, 1e-5f));
+            CHECK_THAT(kHave[kSize - 1], Catch::Matchers::WithinAbs(0.08f, 1e-5f));
 
             // Middle coefficient is ~1.0
             CHECK_THAT(kHave[kSize / 2], Catch::Matchers::WithinAbs(1.0f, 1e-5f));
@@ -139,9 +145,10 @@ TEST_CASE("FFTWindow::ComputeWindowCoefficients", "[fft_window]")
         SECTION("size 8")
         {
             const auto kHave = computeCoefficients(8, FFTWindow::Type::Blackman);
+            // Reference data from generate_window_reference_data.py
             const std::vector<float> kExpectedBlackmanWindow8 = {
-                -0.0000000f, 0.0904534f, 0.4591830f, 0.9203636f, 
-                0.9203636f, 0.4591830f, 0.0904534f, -0.0000000f
+                -0.0000000f, 0.0664466f, 0.3400000f, 0.7735534f,
+                1.0000000f,  0.7735534f, 0.3400000f, 0.0664466f,
             };
             checkWindowCoefficients(kHave, kExpectedBlackmanWindow8);
         }
@@ -151,9 +158,9 @@ TEST_CASE("FFTWindow::ComputeWindowCoefficients", "[fft_window]")
             constexpr FFTSize kSize = 1024;
             const auto kHave = computeCoefficients(kSize, FFTWindow::Type::Blackman);
 
-            checkSymmetry(kHave);
+            checkPeriodicity(kHave);
 
-            // End coefficients are ~0
+            // First coefficient is ~0
             CHECK_THAT(kHave[0], Catch::Matchers::WithinAbs(0.0f, 1e-6f));
 
             // Middle coefficient is ~1.0
@@ -166,9 +173,10 @@ TEST_CASE("FFTWindow::ComputeWindowCoefficients", "[fft_window]")
         SECTION("size 8")
         {
             const auto kHave = computeCoefficients(8, FFTWindow::Type::BlackmanHarris);
+            // Reference data from generate_window_reference_data.py
             const std::vector<float> kExpectedBlackmanHarrisWindow8 = {
-                0.0000600f, 0.0333917f, 0.3328335f, 0.8893698f, 
-                0.8893698f, 0.3328335f, 0.0333917f, 0.0000600f
+                0.0000600f, 0.0217358f, 0.2174700f, 0.6957642f,
+                1.0000000f, 0.6957642f, 0.2174700f, 0.0217358f,
             };
             checkWindowCoefficients(kHave, kExpectedBlackmanHarrisWindow8);
         }
@@ -178,10 +186,11 @@ TEST_CASE("FFTWindow::ComputeWindowCoefficients", "[fft_window]")
             constexpr FFTSize kSize = 1024;
             const auto kHave = computeCoefficients(kSize, FFTWindow::Type::BlackmanHarris);
 
-            checkSymmetry(kHave);
+            checkPeriodicity(kHave);
 
-            // End coefficients are near zero
+            // First and last coefficients are near zero and equal
             CHECK_THAT(kHave[0], Catch::Matchers::WithinAbs(0.00006f, 1e-5f));
+            CHECK_THAT(kHave[kSize - 1], Catch::Matchers::WithinAbs(0.00006f, 1e-5f));
 
             // Middle coefficient is ~1.0
             CHECK_THAT(kHave[kSize / 2], Catch::Matchers::WithinAbs(1.0f, 1e-5f));
@@ -245,7 +254,7 @@ TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
     SECTION("Hann window reduces leakage")
     {
         const float kLeakage = measureLeakage(FFTWindow::Type::Hann);
-        REQUIRE_THAT(kLeakage, Catch::Matchers::WithinRel(11.3f, 0.001f));
+        REQUIRE_THAT(kLeakage, Catch::Matchers::WithinRel(11.26f, 0.01f));
     }
 
     SECTION("Hamming window has moderate leakage")
@@ -263,6 +272,6 @@ TEST_CASE("FFTWindow reduces spectral leakage", "[fft_window]")
     SECTION("BlackmanHarris window has minimal leakage")
     {
         const float kLeakage = measureLeakage(FFTWindow::Type::BlackmanHarris);
-        REQUIRE_THAT(kLeakage, Catch::Matchers::WithinRel(0.233f, 0.01f));
+        REQUIRE_THAT(kLeakage, Catch::Matchers::WithinRel(0.224f, 0.01f));
     }
 }

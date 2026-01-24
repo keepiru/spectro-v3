@@ -44,14 +44,14 @@ void
 FFTWindow::ComputeWindowCoefficients()
 {
     constexpr float kPi = std::numbers::pi_v<float>;
-    const auto kLastIndexAsFloat = static_cast<float>(mSize - 1);
+    const auto kSizeAsFloat = static_cast<float>(mSize);
 
     // The inline constants are based on standard definitions of the window
     // functions.  We will keep them inline so the formulas are recognizable.
     // NOLINTBEGIN(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
     for (size_t i = 0; i < mSize; ++i) {
         const auto kIndexAsFloat = static_cast<float>(i);
-        const auto kAngle = (2.0f * kPi * kIndexAsFloat) / kLastIndexAsFloat;
+        const auto kAngle = (2.0f * kPi * kIndexAsFloat) / kSizeAsFloat;
 
         switch (mType) {
             case Type::Rectangular:

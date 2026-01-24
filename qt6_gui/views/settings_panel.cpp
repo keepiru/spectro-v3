@@ -97,6 +97,9 @@ SettingsPanel::CreateWindowTypeControl(QFormLayout* aLayout)
     mWindowTypeCombo->setObjectName("windowTypeCombo");
     mWindowTypeCombo->addItem("Rectangular", static_cast<int>(FFTWindow::Type::Rectangular));
     mWindowTypeCombo->addItem("Hann", static_cast<int>(FFTWindow::Type::Hann));
+    mWindowTypeCombo->addItem("Hamming", static_cast<int>(FFTWindow::Type::Hamming));
+    mWindowTypeCombo->addItem("Blackman", static_cast<int>(FFTWindow::Type::Blackman));
+    mWindowTypeCombo->addItem("Blackman-Harris", static_cast<int>(FFTWindow::Type::BlackmanHarris));
 
     // Set initial value
     const int currentIndex =

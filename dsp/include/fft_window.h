@@ -15,8 +15,13 @@ class FFTWindow
   public:
     enum class Type : uint8_t
     {
-        Rectangular,
-        Hann,
+        Rectangular,    // Narrow main lobe, high leakage
+        Hann,           // Balanced
+        Hamming,        // Slightly better frequency resolution than Hann, moderate leakage, smears
+                        // non-integer-bin signals
+        Blackman,       // Wider main lobe, low leakage
+        BlackmanHarris, // Wide main lobe, minimal side lobes and leakage, good for detecting weak
+                        // signals near strong ones
     };
 
     /// @brief Constructor

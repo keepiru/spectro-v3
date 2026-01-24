@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
-#include "ifft_processor.h"
+#include "fft_processor.h"
 #include "mock_fft_processor.h"
 #include <audio_types.h>
 #include <catch2/catch_message.hpp>
@@ -65,7 +65,7 @@ TEST_CASE("MockFFTProcessor throws on size mismatch", "[MockFFTProcessor]")
 
 TEST_CASE("MockFFTProcessor::GetFactory", "[MockFFTProcessor]")
 {
-    const IFFTProcessorFactory factory = MockFFTProcessor::GetFactory();
+    const IFFTProcessor::Factory factory = MockFFTProcessor::GetFactory();
 
     SECTION("Factory creates MockFFTProcessor instances")
     {

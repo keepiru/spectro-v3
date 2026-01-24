@@ -7,8 +7,8 @@
 #include "models/settings.h"
 #include <QObject>
 #include <audio_types.h>
+#include <fft_processor.h>
 #include <fft_window.h>
-#include <ifft_processor.h>
 #include <memory>
 #include <vector>
 
@@ -37,7 +37,7 @@ class SpectrogramController : public QObject
     /// for production use.
     SpectrogramController(const Settings& aSettings,
                           const AudioBuffer& aAudioBuffer,
-                          IFFTProcessorFactory aFFTProcessorFactory = nullptr,
+                          IFFTProcessor::Factory aFFTProcessorFactory = nullptr,
                           FFTWindowFactory aFFTWindowFactory = nullptr,
                           QObject* aParent = nullptr);
 
@@ -124,7 +124,7 @@ class SpectrogramController : public QObject
     std::vector<std::unique_ptr<IFFTProcessor>> mFFTProcessors;
     std::vector<std::unique_ptr<FFTWindow>> mFFTWindows;
 
-    IFFTProcessorFactory mFFTProcessorFactory;
+    IFFTProcessor::Factory mFFTProcessorFactory;
     FFTWindowFactory mFFTWindowFactory;
 
     // Spectrogram row cache.  Key: (channel, first frame).  Stores a single row

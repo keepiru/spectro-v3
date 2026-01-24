@@ -20,6 +20,17 @@ class ScaleView : public QWidget
     Q_OBJECT
 
   public:
+    /// @brief Constructor for ScaleView
+    /// @param aController Reference to SpectrogramController for accessing audio and settings data
+    /// @param parent Optional parent widget
+    explicit ScaleView(const SpectrogramController& aController, QWidget* parent = nullptr);
+    ~ScaleView() override = default;
+
+  protected:
+    /// @brief Paint event handler for rendering the frequency scale
+    /// @param event Paint event details
+    void paintEvent(QPaintEvent* event) override;
+
     struct TickMark
     {
         size_t position{};           // Horizontal in pixels
@@ -39,21 +50,10 @@ class ScaleView : public QWidget
         }
     };
 
-    /// @brief Constructor for ScaleView
-    /// @param aController Reference to SpectrogramController for accessing audio and settings data
-    /// @param parent Optional parent widget
-    explicit ScaleView(const SpectrogramController& aController, QWidget* parent = nullptr);
-    ~ScaleView() override = default;
-
     /// @brief Calculate tick marks for the frequency scale based on the current FFT settings
     /// @param aWidth Width of the ScaleView in pixels
     /// @return Vector of TickMark structures representing positions and labels
     [[nodiscard]] std::vector<TickMark> CalculateTickMarks(size_t aWidth) const;
-
-  protected:
-    /// @brief Paint event handler for rendering the frequency scale
-    /// @param event Paint event details
-    void paintEvent(QPaintEvent* event) override;
 
   private:
     const SpectrogramController& mController;

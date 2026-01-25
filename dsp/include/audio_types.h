@@ -224,7 +224,7 @@ class FrameCount
     /// @return The total sample count across all channels
     [[nodiscard]] constexpr SampleCount operator*(ChannelCount aChannels) const noexcept
     {
-        return SampleCount(Get() * aChannels);
+        return SampleCount{ Get() * aChannels };
     }
 
     /// @brief Cast to int with overflow check

@@ -69,11 +69,11 @@ class AudioBuffer : public QObject
     [[nodiscard]] FrameCount GetFrameCount() const
     {
         if (mChannelBuffers.empty()) {
-            return FrameCount(0);
+            return FrameCount{ 0 };
         }
         // Cast to FrameCount.  In AudioBuffer, all channels have the same
         // sample count, so we can use any channel to get the frame count.
-        return FrameCount(mChannelBuffers[0]->GetSampleCount().Get());
+        return FrameCount{ mChannelBuffers[0]->GetSampleCount().Get() };
     }
 
   signals:
@@ -94,7 +94,7 @@ class AudioBuffer : public QObject
     /// @note This is a helper function used by the constructor and Reset() method.
     void InitializeChannelBuffers(ChannelCount aChannelCount, SampleRate aSampleRate);
 
-    ChannelCount mChannelCount;
-    SampleRate mSampleRate;
+    ChannelCount mChannelCount{};
+    SampleRate mSampleRate{};
     std::vector<std::unique_ptr<SampleBuffer>> mChannelBuffers;
 };

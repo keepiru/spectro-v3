@@ -16,9 +16,6 @@
 
 AudioBuffer::AudioBuffer(QObject* aParent)
   : QObject(aParent)
-  , mChannelCount()
-  , mSampleRate()
-
 {
     constexpr ChannelCount kDefaultChannelCount = 2;
     constexpr SampleRate kDefaultSampleRate = 44100;

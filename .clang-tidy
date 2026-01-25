@@ -66,5 +66,6 @@ CheckOptions:
     value: 'L;uL;uLL'
 
 FormatStyle: file
-HeaderFilterRegex: '^(?!.*build/).*$'
+HeaderFilterRegex: '.*'
+ExcludeHeaderFilterRegex: '.*/build.*'
 SystemHeaders: false

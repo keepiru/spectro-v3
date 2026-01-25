@@ -26,11 +26,6 @@ AudioRecorder::AudioRecorder(AudioBuffer& aAudioBuffer, QObject* aParent)
 {
 }
 
-AudioRecorder::~AudioRecorder()
-{
-    Stop();
-}
-
 bool
 AudioRecorder::Start(const QAudioDevice& aQAudioDevice,
                      ChannelCount aChannelCount,

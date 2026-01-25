@@ -43,8 +43,6 @@ class AudioRecorder : public QObject
     /// @param aParent Qt parent object for memory management.
     explicit AudioRecorder(AudioBuffer& aAudioBuffer, QObject* aParent = nullptr);
 
-    ~AudioRecorder() override;
-
     /// @brief Starts audio capture, writing samples to the specified buffer.
     /// @param aQAudioDevice The audio input device to capture from.
     /// @param aChannelCount Number of audio channels (e.g., 1 for mono, 2 for stereo).

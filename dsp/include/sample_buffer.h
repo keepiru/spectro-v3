@@ -23,7 +23,7 @@ class SampleBuffer
 
     /// @brief Get the sample rate.
     /// @return Sample rate in Hz.
-    SampleRate GetSampleRate() const { return mSampleRate; }
+    [[nodiscard]] SampleRate GetSampleRate() const { return mSampleRate; }
 
     /// @brief Get the total number of samples stored.
     /// @return Number of samples.

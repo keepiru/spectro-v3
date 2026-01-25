@@ -41,15 +41,6 @@ class SpectrogramController : public QObject
                           FFTWindowFactory aFFTWindowFactory = nullptr,
                           QObject* aParent = nullptr);
 
-    /// @brief Destructor
-    ~SpectrogramController() override = default;
-
-    // Rule of five
-    SpectrogramController(const SpectrogramController&) = delete;
-    SpectrogramController& operator=(const SpectrogramController&) = delete;
-    SpectrogramController(SpectrogramController&&) = delete;
-    SpectrogramController& operator=(SpectrogramController&&) = delete;
-
     /// @brief Get spectrogram rows for a channel
     /// @param aChannel Channel index (0-based)
     /// @param aFirstFrame First frame position (aligned to stride)

@@ -37,6 +37,9 @@ class MainWindow : public QMainWindow
     /// @brief Sets up signal-slot connections between components
     void SetupConnections();
 
+    /// @brief Applies dark mode theme to the application
+    static void SetDarkMode();
+
     // Models and controllers
     Settings mSettings;
     AudioBuffer mAudioBuffer;

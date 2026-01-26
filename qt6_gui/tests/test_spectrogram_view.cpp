@@ -439,4 +439,18 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
         view.UpdateScrollbarRange(FrameCount(kPageStepFrames + 4096));
         CHECK(viewportUpdateCount == 4); // another update should have been called
     }
+
+    SECTION("Scrollbar single step and page step are set correctly")
+    {
+        // Starting with stride = 1024
+        view.UpdateScrollbarRange(FrameCount(10000));
+        CHECK(scrollBar->singleStep() == 10240);
+        CHECK(scrollBar->pageStep() == 1024 * viewportHeight);
+
+        // Change FFT settings to change stride
+        settings.SetWindowScale(4); // stride = 512
+        view.UpdateScrollbarRange(FrameCount(10000));
+        CHECK(scrollBar->singleStep() == 5120);
+        CHECK(scrollBar->pageStep() == (512 * viewportHeight));
+    }
 }

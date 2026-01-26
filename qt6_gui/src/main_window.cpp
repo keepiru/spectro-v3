@@ -11,14 +11,18 @@
 #include "views/settings_panel.h"
 #include "views/spectrogram_view.h"
 #include "views/spectrum_plot.h"
+#include <QApplication>
+#include <QColor>
 #include <QHBoxLayout>
 #include <QLoggingCategory>
 #include <QMainWindow>
 #include <QMediaDevices>
 #include <QOverload>
+#include <QPalette>
 #include <QScrollBar>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <Qt>
 #include <audio_types.h>
 #include <cmath>
 #include <cstddef>
@@ -54,6 +58,7 @@ MainWindow::MainWindow(QWidget* parent)
     mAudioRecorder.Start(
       QMediaDevices::defaultAudioInput(), KDefaultChannelCount, KDefaultSampleRate);
 
+    SetDarkMode();
     CreateLayout();
     SetupConnections();
 }
@@ -145,4 +150,51 @@ MainWindow::SetupConnections()
             &QScrollBar::actionTriggered,
             &mSettings,
             &Settings::ClearLiveMode);
+}
+
+void
+MainWindow::SetDarkMode()
+{
+    // Dark theme color constants
+    constexpr QColor kDarkBackground(45, 45, 45);
+    constexpr QColor kDarkBase(30, 30, 30);
+    constexpr QColor kDarkText(212, 212, 212);
+    constexpr QColor kHighlight(42, 130, 218);
+    QPalette palette;
+
+    palette.setColor(QPalette::Window, kDarkBackground);
+    palette.setColor(QPalette::WindowText, kDarkText);
+    palette.setColor(QPalette::Base, kDarkBase);
+    palette.setColor(QPalette::AlternateBase, kDarkBackground);
+    palette.setColor(QPalette::ToolTipBase, kDarkText);
+    palette.setColor(QPalette::ToolTipText, kDarkText);
+    palette.setColor(QPalette::Text, kDarkText);
+    palette.setColor(QPalette::Button, kDarkBackground);
+    palette.setColor(QPalette::ButtonText, kDarkText);
+    palette.setColor(QPalette::BrightText, Qt::red);
+    palette.setColor(QPalette::Link, kHighlight);
+    palette.setColor(QPalette::Highlight, kHighlight);
+    palette.setColor(QPalette::HighlightedText, Qt::black);
+
+    QApplication::setPalette(palette);
+
+    // Fine-tune the scrollbars via stylesheet
+    const QString styleSheet = R"(
+        QScrollBar {
+            background: #222;
+            width: 16px;
+        }
+        QScrollBar::handle {
+            background: #557;
+            border-radius: 4px;
+        }
+        QScrollBar::handle:hover {
+            background: #668;
+        }
+
+        QScrollBar::add-line, QScrollBar::sub-line {
+            background: none;
+        }
+    )";
+    qApp->setStyleSheet(styleSheet);
 }

@@ -143,7 +143,7 @@ TEST_CASE("SettingsPanel aperture min control", "[settings_panel]")
 
     // Check range
     REQUIRE(slider->minimum() == -80);
-    REQUIRE(slider->maximum() == 30);
+    REQUIRE(slider->maximum() == 100);
 
     // Test setting values
     slider->setValue(-50);
@@ -170,7 +170,7 @@ TEST_CASE("SettingsPanel aperture max control", "[settings_panel]")
 
     // Check range
     REQUIRE(slider->minimum() == -80);
-    REQUIRE(slider->maximum() == 30);
+    REQUIRE(slider->maximum() == 100);
 
     // Test setting values
     slider->setValue(-20);

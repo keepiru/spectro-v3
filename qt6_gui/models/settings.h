@@ -221,8 +221,8 @@ class Settings : public QObject
 
     // The aperture is the visible decibel range in the spectrogram and spectrum
     // plot.
-    static constexpr float KDefaultApertureMinDecibels = -30.0f;
-    static constexpr float KDefaultApertureMaxDecibels = 30.0f;
+    static constexpr float KDefaultApertureMinDecibels = -20.0f;
+    static constexpr float KDefaultApertureMaxDecibels = 40.0f;
     float mApertureMinDecibels = KDefaultApertureMinDecibels;
     float mApertureMaxDecibels = KDefaultApertureMaxDecibels;
 

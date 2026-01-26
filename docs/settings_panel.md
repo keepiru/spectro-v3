@@ -26,8 +26,8 @@ Audio controls are disabled (grayed out) while recording is active.
 - Pulldown: "Window Type"
 - Pulldown: "FFT Size" - 512, 1024, 2048, 4096, 8192
 - Slider: "Window Scale"
-- Slider: Aperture min - from -80 to +30 db
-- Slider: Aperture max - from -80 to +30 db
+- Slider: Aperture min - from -80 to +100 db
+- Slider: Aperture max - from -80 to +100 db
 
 ## Color Map Controls
 

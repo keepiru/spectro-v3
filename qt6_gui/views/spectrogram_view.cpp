@@ -63,6 +63,7 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
           std::format("{}: scroll page step exceeds int max", __PRETTY_FUNCTION__));
     }
 
+    const FrameCount kScrollSingleStep(kStride.Get() * 10); // 10 rows per step
     const FrameCount kScrollPageStep(kStride.Get() * mGetViewportHeight());
 
     // The scrollbar's maximum is one page past the available frames, to allow
@@ -71,6 +72,7 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
 
     // Update scrollbar range
     verticalScrollBar()->setMaximum(kScrollMaximum.ToIntChecked());
+    verticalScrollBar()->setSingleStep(kScrollSingleStep.ToIntChecked());
     verticalScrollBar()->setPageStep(kScrollPageStep.ToIntChecked());
 
     // If we are in live mode, put the end of the data at the bottom of the view.

@@ -6,8 +6,6 @@
 
 #include "models/settings.h"
 #include <QAbstractScrollArea>
-#include <QScrollBar>
-#include <QWidget>
 #include <audio_types.h>
 #include <functional>
 

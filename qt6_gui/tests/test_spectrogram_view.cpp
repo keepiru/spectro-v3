@@ -5,6 +5,7 @@
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
 #include "views/spectrogram_view.h"
+#include <QScrollBar>
 #include <QSignalSpy>
 #include <catch2/catch_all.hpp>
 #include <mock_fft_processor.h>

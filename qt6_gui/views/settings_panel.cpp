@@ -194,7 +194,7 @@ void
 SettingsPanel::CreateApertureControls(QFormLayout* aLayout)
 {
     constexpr int kApertureMinValue = -80;
-    constexpr int kApertureMaxValue = 30;
+    constexpr int kApertureMaxValue = 100;
     constexpr int kApertureTickInterval = 10;
 
     // Aperture Min

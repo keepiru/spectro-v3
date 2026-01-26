@@ -94,13 +94,13 @@ TEST_CASE("Settings::GetStride computes stride", "[settings]")
 TEST_CASE("Settings::GetApertureMinDecibels", "[settings]")
 {
     const Settings settings;
-    REQUIRE(settings.GetApertureMinDecibels() == -30.0f);
+    REQUIRE(settings.GetApertureMinDecibels() == -20.0f);
 }
 
 TEST_CASE("Settings::GetApertureMaxDecibels", "[settings]")
 {
     const Settings settings;
-    REQUIRE(settings.GetApertureMaxDecibels() == 30.0f);
+    REQUIRE(settings.GetApertureMaxDecibels() == 40.0f);
 }
 
 TEST_CASE("Settings::SetColorMap invalid", "[settings]")

@@ -100,7 +100,7 @@ class SpectrogramView : public QAbstractScrollArea
     /// @brief Update the QAbstractScrollArea viewport
     ///
     /// Trigger a viewport repaint in response to DisplaySettingsChanged.
-    void UpdateViewport() { mUpdateViewport(); }
+    void UpdateViewport();
 
   protected:
     void paintEvent(QPaintEvent* event) override;

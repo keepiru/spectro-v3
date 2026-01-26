@@ -235,3 +235,13 @@ SpectrogramView::GenerateSpectrogramImage(int aWidth, int aHeight)
     }
     return image;
 }
+
+void
+SpectrogramView::UpdateViewport()
+{
+    // The scrollbar range needs to be updated if the stride has changed.
+    const FrameCount kAvailableFrames = mController.GetAvailableFrameCount();
+    UpdateScrollbarRange(kAvailableFrames);
+
+    mUpdateViewport();
+}

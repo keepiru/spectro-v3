@@ -13,12 +13,14 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "CMAKE_COLOR_DIAGNOSTICS": "ON"
+                "CMAKE_COLOR_DIAGNOSTICS": "ON",
+                "CMAKE_CXX_FLAGS_DEBUG": "-Og -g"
             }
         },
         {
             "name": "release",
             "inherits": "default",
+            "binaryDir": "${sourceDir}/build-release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
@@ -26,6 +28,7 @@
         {
             "name": "unity",
             "inherits": "default",
+            "binaryDir": "${sourceDir}/build-unity",
             "description": "Fast unity build for development",
             "cacheVariables": {
                 "CMAKE_UNITY_BUILD": "ON"

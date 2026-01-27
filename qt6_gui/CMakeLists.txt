@@ -74,11 +74,5 @@ target_link_libraries(spectro
         Qt6::Widgets
 )
 
-# Set C++ standard (inherited from root but explicit for clarity)
-set_target_properties(spectro PROPERTIES
-    CXX_STANDARD 23
-    CXX_STANDARD_REQUIRED ON
-)
-
 # Add tests subdirectory
 add_subdirectory(tests)

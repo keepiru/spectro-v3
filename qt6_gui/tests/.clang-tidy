@@ -4,5 +4,8 @@ InheritParentConfig: true
 Checks: >
   -readability-magic-numbers,
   -cppcoreguidelines-avoid-magic-numbers,
-  -misc-include-cleaner,
   -readability-function-cognitive-complexity,
+
+CheckOptions:
+  - key: misc-include-cleaner.IgnoreHeaders
+    value: 'catch_all\.hpp'

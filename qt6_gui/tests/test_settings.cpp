@@ -2,11 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
+#include "audio_types.h"
 #include "include/global_constants.h"
 #include "models/settings.h"
 #include <QSignalSpy>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
+#include <cstdint>
 #include <fft_window.h>
+#include <stdexcept>
 
 TEST_CASE("Settings::SetFFTSettings emits signals", "[settings]")
 {

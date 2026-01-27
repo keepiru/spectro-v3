@@ -5,15 +5,18 @@
 #include "controllers/audio_file.h"
 #include "include/global_constants.h"
 #include "models/audio_buffer.h"
+#include "models/audio_recorder.h"
 #include "models/settings.h"
 #include "views/settings_panel.h"
 #include <QComboBox>
 #include <QLabel>
+#include <QObject>
 #include <QPushButton>
 #include <QSignalSpy>
 #include <QSlider>
 #include <QSpinBox>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
 #include <fft_window.h>
 
 TEST_CASE("SettingsPanel constructor", "[settings_panel]")
@@ -389,7 +392,7 @@ TEST_CASE("SettingsPanel controls disabled while recording", "[settings_panel]")
     REQUIRE(channelSpinBox->isEnabled());
 
     // Simulate recording state change by emitting signal
-    emit audioRecorder.RecordingStateChanged(true);
+    emit audioRecorder.RecordingStateChanged(true); // NOLINT(misc-include-cleaner)
 
     // Controls should now be disabled
     REQUIRE(!deviceCombo->isEnabled());

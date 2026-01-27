@@ -18,8 +18,11 @@
 #include <QLabel>
 #include <QMediaDevices>
 #include <QMessageBox>
+#include <QObject>
 #include <QProgressDialog>
 #include <QPushButton>
+#include <QRgb>
+#include <QSize>
 #include <QSlider>
 #include <QSpinBox>
 #include <QVBoxLayout>
@@ -31,7 +34,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <format>
-#include <qrgb.h>
 #include <stdexcept>
 #include <string>
 

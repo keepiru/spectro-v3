@@ -5,9 +5,12 @@
 #include "spectrum_plot.h"
 #include "controllers/spectrogram_controller.h"
 #include <QCursor>
+#include <QFont>
 #include <QLine>
+#include <QObject>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QPoint>
 #include <QPolygonF>
 #include <QWidget>
 #include <Qt>

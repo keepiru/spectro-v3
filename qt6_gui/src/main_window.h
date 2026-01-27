@@ -13,6 +13,7 @@
 #include "views/spectrogram_view.h"
 #include "views/spectrum_plot.h"
 #include <QMainWindow>
+#include <QWidget>
 
 class Settings;
 

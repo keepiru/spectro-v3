@@ -2,11 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
+#include "audio_types.h"
 #include "controllers/audio_file.h"
+#include "models/audio_buffer.h"
 #include "models/audio_file_reader.h"
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_range_equals.hpp>
+#include <cstddef>
+#include <iterator>
+#include <stdexcept>
+#include <utility>
+#include <vector>
 
 /// @brief Mock implementation of IAudioFileReader for testing
 /// Returns predefined audio data.

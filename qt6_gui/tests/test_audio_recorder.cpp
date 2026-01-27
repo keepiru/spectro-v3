@@ -2,15 +2,25 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
+#include "audio_types.h"
 #include "include/global_constants.h"
 #include "models/audio_buffer.h"
 #include "models/audio_recorder.h"
 #include <QAudioDevice>
 #include <QAudioFormat>
+#include <QAudioSource>
+#include <QList>
 #include <QMediaDevices>
 #include <QSignalSpy>
+#include <QtMinMax>
+#include <QtTypes>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_range_equals.hpp>
+#include <cstddef>
+#include <cstring>
+#include <stdexcept>
+#include <vector>
 
 /// @brief Mock QIODevice to simulate audio input for testing.
 class MockQIODevice : public QIODevice
@@ -28,7 +38,7 @@ class MockQIODevice : public QIODevice
         const auto dataSize =
           static_cast<qint64>(samples.size()) * static_cast<qint64>(sizeof(float));
         mBuffer.append(dataPtr, dataSize);
-        emit readyRead();
+        emit readyRead(); // NOLINT(misc-include-cleaner)
     }
 
     /// @brief Reads data from the internal buffer.

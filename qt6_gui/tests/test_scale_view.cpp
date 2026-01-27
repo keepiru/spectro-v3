@@ -3,10 +3,13 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "controllers/spectrogram_controller.h"
+#include "fft_window.h"
 #include "models/audio_buffer.h"
+#include "models/settings.h"
 #include "views/scale_view.h"
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
 #include <mock_fft_processor.h>
 
 /// @brief Test fixture for ScaleView

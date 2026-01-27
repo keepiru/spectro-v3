@@ -29,6 +29,7 @@
 #pragma once
 
 #include "models/settings.h"
+#include <array>
 
 /// @brief Viridis colormap lookup table (256 entries)
 /// @copyright CC0 1.0 - Nathaniel J. Smith, Stefan van der Walt, Eric Firing

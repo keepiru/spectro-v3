@@ -6,6 +6,7 @@
 #include "models/audio_buffer.h"
 #include "models/audio_file_reader.h"
 #include <QObject>
+#include <functional>
 
 /// @brief Controller for audio file operations
 ///

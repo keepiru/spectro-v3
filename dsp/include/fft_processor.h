@@ -44,7 +44,7 @@ class IFFTProcessor
     ///         Where Fs is the sampling frequency and N is transform_size
     /// @throws std::invalid_argument if aSamples.size() != transform_size
     [[nodiscard]] virtual std::vector<FftwfComplex> ComputeComplex(
-      const std::span<float>& aSamples) const = 0;
+      const std::span<const float>& aSamples) const = 0;
 
     /// @brief Compute the frequency magnitudes from audio samples
     /// @param aSamples Input audio samples (size must be equal to transform_size)
@@ -53,7 +53,7 @@ class IFFTProcessor
     ///         Where Fs is the sampling frequency and N is transform_size
     /// @throws std::invalid_argument if aSamples.size() != transform_size
     [[nodiscard]] virtual std::vector<float> ComputeMagnitudes(
-      const std::span<float>& aSamples) const = 0;
+      const std::span<const float>& aSamples) const = 0;
 
     /// @brief Compute the frequency magnitudes in decibels from audio samples
     /// @param aSamples Input audio samples (size must be equal to transform_size)
@@ -63,7 +63,7 @@ class IFFTProcessor
     /// @throws std::invalid_argument if aSamples.size() != transform_size
     /// @note Zero magnitudes will produce -inf dB values.
     [[nodiscard]] virtual std::vector<float> ComputeDecibels(
-      const std::span<float>& aSamples) const = 0;
+      const std::span<const float>& aSamples) const = 0;
 };
 
 /// @brief Processes audio samples using FFT to produce frequency spectrum
@@ -77,11 +77,11 @@ class FFTProcessor : public IFFTProcessor
 
     [[nodiscard]] FFTSize GetTransformSize() const noexcept override { return mTransformSize; }
     [[nodiscard]] std::vector<FftwfComplex> ComputeComplex(
-      const std::span<float>& aSamples) const override;
+      const std::span<const float>& aSamples) const override;
     [[nodiscard]] std::vector<float> ComputeMagnitudes(
-      const std::span<float>& aSamples) const override;
+      const std::span<const float>& aSamples) const override;
     [[nodiscard]] std::vector<float> ComputeDecibels(
-      const std::span<float>& aSamples) const override;
+      const std::span<const float>& aSamples) const override;
 
   private:
     // Custom deleter for FFTW resources (implementation in .cpp)
@@ -100,5 +100,9 @@ class FFTProcessor : public IFFTProcessor
     FFTWRealPtr mFFTInput;
     FFTWComplexPtr mFFTOutput;
 
-    void Compute(const std::span<float>& aSamples) const;
+    /// @brief Perform the FFT computation on input samples
+    /// @param aSamples Input audio samples (size must be equal to transform_size)
+    /// @throws std::invalid_argument if aSamples.size() != transform_size
+    /// @note This method populates mFFTOutput with the FFT result
+    void Compute(const std::span<const float>& aSamples) const;
 };

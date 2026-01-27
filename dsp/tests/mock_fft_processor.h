@@ -3,6 +3,7 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #pragma once
+#include <algorithm>
 #include <audio_types.h>
 #include <cstddef>
 #include <fft_processor.h>
@@ -32,7 +33,7 @@ class MockFFTProcessor : public IFFTProcessor
     /// @return Vector of complex FFT output
     /// @throws std::invalid_argument if aInputSamples.size() != transform_size
     [[nodiscard]] std::vector<FftwfComplex> ComputeComplex(
-      const std::span<float>& aInputSamples) const override
+      const std::span<const float>& aInputSamples) const override
     {
         if (aInputSamples.size() != mTransformSize) {
             throw std::invalid_argument("Input sample size does not match transform size");
@@ -52,7 +53,7 @@ class MockFFTProcessor : public IFFTProcessor
     /// @return Vector of frequency magnitudes
     /// @throws std::invalid_argument if aInputSamples.size() != transform_size
     [[nodiscard]] std::vector<float> ComputeMagnitudes(
-      const std::span<float>& aInputSamples) const override
+      const std::span<const float>& aInputSamples) const override
     {
         if (aInputSamples.size() != mTransformSize) {
             throw std::invalid_argument("Input sample size does not match transform size");
@@ -66,7 +67,7 @@ class MockFFTProcessor : public IFFTProcessor
     }
 
     [[nodiscard]] std::vector<float> ComputeDecibels(
-      const std::span<float>& aInputSamples) const override
+      const std::span<const float>& aInputSamples) const override
     {
         return ComputeMagnitudes(aInputSamples);
     }

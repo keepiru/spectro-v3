@@ -34,7 +34,7 @@ FFTProcessor::FFTProcessor(FFTSize aTransformSize)
 }
 
 void
-FFTProcessor::Compute(const std::span<float>& aSamples) const
+FFTProcessor::Compute(const std::span<const float>& aSamples) const
 {
     if (aSamples.size() != mTransformSize) {
         throw std::invalid_argument("Input aSamples size must be equal to transform_size");
@@ -46,7 +46,7 @@ FFTProcessor::Compute(const std::span<float>& aSamples) const
 }
 
 std::vector<FftwfComplex>
-FFTProcessor::ComputeComplex(const std::span<float>& aSamples) const
+FFTProcessor::ComputeComplex(const std::span<const float>& aSamples) const
 {
     Compute(aSamples);
 
@@ -56,7 +56,7 @@ FFTProcessor::ComputeComplex(const std::span<float>& aSamples) const
 }
 
 std::vector<float>
-FFTProcessor::ComputeMagnitudes(const std::span<float>& aSamples) const
+FFTProcessor::ComputeMagnitudes(const std::span<const float>& aSamples) const
 {
     Compute(aSamples);
 
@@ -70,7 +70,7 @@ FFTProcessor::ComputeMagnitudes(const std::span<float>& aSamples) const
 }
 
 std::vector<float>
-FFTProcessor::ComputeDecibels(const std::span<float>& aSamples) const
+FFTProcessor::ComputeDecibels(const std::span<const float>& aSamples) const
 {
     const std::vector<float> magnitudes = ComputeMagnitudes(aSamples);
     std::vector<float> decibels(magnitudes.size());

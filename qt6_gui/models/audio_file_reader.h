@@ -7,6 +7,7 @@
 #include <audio_types.h>
 #include <memory>
 #include <sndfile.h>
+#include <string>
 #include <vector>
 
 /// @brief Thin abstraction to read audio files.

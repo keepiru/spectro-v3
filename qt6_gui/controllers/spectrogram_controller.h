@@ -7,9 +7,12 @@
 #include "models/settings.h"
 #include <QObject>
 #include <audio_types.h>
+#include <cstddef>
 #include <fft_processor.h>
 #include <fft_window.h>
+#include <map>
 #include <memory>
+#include <utility>
 #include <vector>
 
 /// @brief Controller for spectrogram data flow and view state

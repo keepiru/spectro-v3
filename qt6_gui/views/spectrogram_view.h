@@ -6,8 +6,13 @@
 
 #include "models/settings.h"
 #include <QAbstractScrollArea>
+#include <QImage>
+#include <QWidget>
 #include <audio_types.h>
+#include <cstddef>
+#include <format>
 #include <functional>
+#include <string>
 
 // Forward declarations
 class SpectrogramController;

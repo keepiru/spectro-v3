@@ -9,8 +9,10 @@
 #include <array>
 #include <audio_types.h>
 #include <cstddef>
+#include <cstdint>
 #include <fft_window.h>
 #include <string_view>
+#include <utility>
 
 // Forward declarations
 class SpectrogramView;

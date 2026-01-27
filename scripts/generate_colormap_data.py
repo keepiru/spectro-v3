@@ -132,6 +132,7 @@ def generate_header(output_path: Path) -> None:
         "#pragma once",
         "",
         '#include "models/settings.h"',
+        "#include <array>",
         "",
     ]
 

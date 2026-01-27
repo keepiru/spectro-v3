@@ -5,6 +5,7 @@
 #include "spectrogram_view.h"
 #include "controllers/spectrogram_controller.h"
 #include "include/global_constants.h"
+#include "models/settings.h"
 #include <QAbstractScrollArea>
 #include <QCursor>
 #include <QEvent>

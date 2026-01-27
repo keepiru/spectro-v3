@@ -17,6 +17,7 @@
 #include <QLoggingCategory>
 #include <QMainWindow>
 #include <QMediaDevices>
+#include <QObject>
 #include <QOverload>
 #include <QPalette>
 #include <QScrollBar>

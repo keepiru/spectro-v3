@@ -5,6 +5,8 @@
 #include "scale_view.h"
 #include "controllers/spectrogram_controller.h"
 #include <QColor>
+#include <QFont>
+#include <QObject>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QWidget>

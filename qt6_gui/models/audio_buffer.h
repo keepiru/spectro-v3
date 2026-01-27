@@ -3,6 +3,7 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #pragma once
+#include "audio_types.h"
 #include <QObject>
 #include <memory>
 #include <sample_buffer.h>

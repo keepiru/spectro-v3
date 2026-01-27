@@ -5,6 +5,10 @@ Diagnostics:
   Suppress:
     - "*.moc"
     - "moc_*.cpp"
+  MissingIncludes: Strict
+  Includes:
+    # Q_OBJECT, emit, slots, signals macros
+    IgnoreHeader: qtmetamacros.h
   
   # Maybe enable this later if it gets annoying
   # UnusedIncludes: None

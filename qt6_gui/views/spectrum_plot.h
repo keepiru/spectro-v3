@@ -10,8 +10,11 @@
 #include <QRect>
 #include <QString>
 #include <QWidget>
+#include <array>
+#include <cstddef>
 #include <format>
 #include <ostream>
+#include <vector>
 
 class SpectrogramController;
 

@@ -2,13 +2,33 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
+#include "audio_types.h"
 #include "controllers/spectrogram_controller.h"
+#include "fft_window.h"
 #include "models/audio_buffer.h"
+#include "models/settings.h"
 #include "views/spectrogram_view.h"
+#include <QAbstractScrollArea>
+#include <QAbstractSlider>
+#include <QImage>
+#include <QObject>
+#include <QRgb>
 #include <QScrollBar>
 #include <QSignalSpy>
+#include <QWidget>
+#include <Qt>
+#include <catch2/benchmark/catch_benchmark.hpp>
 #include <catch2/catch_all.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_exception.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
+#include <cstddef>
+#include <cstdint>
+#include <format>
 #include <mock_fft_processor.h>
+#include <stdexcept>
+#include <string>
 #include <utility>
 #include <vector>
 

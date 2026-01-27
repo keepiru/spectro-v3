@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
+#include "audio_types.h"
 #include "include/global_constants.h"
 #include "models/audio_buffer.h"
 #include <QSignalSpy>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_range_equals.hpp>
 #include <stdexcept>
 #include <vector>

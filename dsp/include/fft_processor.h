@@ -7,6 +7,7 @@
 #include <functional>
 #include <memory>
 #include <span>
+#include <type_traits>
 #include <vector>
 
 struct fftwf_plan_s;

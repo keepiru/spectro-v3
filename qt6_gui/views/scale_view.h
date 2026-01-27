@@ -5,9 +5,12 @@
 #pragma once
 
 #include <QWidget>
+#include <cstddef>
 #include <format>
 #include <optional>
 #include <ostream>
+#include <string>
+#include <vector>
 
 class SpectrogramController;
 

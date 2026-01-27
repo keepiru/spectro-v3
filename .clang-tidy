@@ -64,6 +64,8 @@ CheckOptions:
     value: true
   - key: readability-uppercase-literal-suffix.NewSuffixes
     value: 'L;uL;uLL'
+  - key: misc-include-cleaner.IgnoreHeaders
+    value: 'qtmetamacros\.h' # clang-tidy wants this for emit keyword
 
 FormatStyle: file
 HeaderFilterRegex: '.*'

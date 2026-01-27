@@ -62,8 +62,7 @@ class MockAudioFileReader : public IAudioFileReader
     /// @return Total frames
     [[nodiscard]] FrameCount GetFrameCount() const override
     {
-        // NOLINTNEXTLINE(modernize-return-braced-init-list) - explicit constructor required
-        return FrameCount(mSamples.size() / mChannelCount);
+        return FrameCount{ mSamples.size() / mChannelCount };
     }
 
   private:

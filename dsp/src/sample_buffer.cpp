@@ -12,8 +12,7 @@
 SampleCount
 SampleBuffer::GetSampleCount() const
 {
-    // NOLINTNEXTLINE(modernize-return-braced-init-list) - explicit constructor required
-    return SampleCount(mData.size());
+    return SampleCount{ mData.size() };
 }
 
 void

@@ -185,7 +185,6 @@ TEST_CASE("SettingsPanel aperture max control", "[settings_panel]")
     REQUIRE(label->text() == "20 dB");
 }
 
-// NOLINTNEXTLINE(readability-function-cognitive-complexity) -- caused by macro expansion
 TEST_CASE("SettingsPanel color map controls", "[settings_panel]")
 {
     Settings settings;

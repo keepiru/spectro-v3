@@ -121,7 +121,6 @@ TEST_CASE("Settings::SetColorMap invalid", "[settings]")
                       std::invalid_argument);
 }
 
-// NOLINTNEXTLINE(readability-function-cognitive-complexity) -- caused by macro expansion
 TEST_CASE("Settings default color maps", "[settings]")
 {
     const Settings settings;

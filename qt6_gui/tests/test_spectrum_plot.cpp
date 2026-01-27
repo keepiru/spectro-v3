@@ -59,7 +59,6 @@ TEST_CASE("SpectrumPlot is widget", "[spectrum_plot]")
     REQUIRE(qobject_cast<QWidget*>(&plot) != nullptr);
 }
 
-// NOLINTNEXTLINE(readability-function-cognitive-complexity) macro expansion
 TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
 {
     Settings settings;

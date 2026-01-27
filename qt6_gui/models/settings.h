@@ -29,8 +29,6 @@ class Settings : public QObject
     static constexpr size_t KColorMapLUTSize = 256;
     static constexpr std::array<WindowScale, 5> KValidWindowScales{ 1, 2, 4, 8, 16 };
 
-    // Linter complains because of the Last sentinel.  Ignore that.
-    // NOLINTNEXTLINE(readability-enum-initial-value)
     enum class ColorMapType : uint8_t
     {
         Disabled,

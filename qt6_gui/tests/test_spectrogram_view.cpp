@@ -102,7 +102,6 @@ TEST_CASE("SpectrogramView is widget", "[spectrogram_view]")
     REQUIRE(qobject_cast<QWidget*>(&view) != nullptr);
 }
 
-// NOLINTNEXTLINE(readability-function-cognitive-complexity) macro expansion
 TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
 {
     Settings settings;
@@ -170,7 +169,6 @@ TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
     }
 }
 
-// NOLINTNEXTLINE(readability-function-cognitive-complexity) macro expansion
 TEST_CASE("Benchmark", "[spectrogram_view][!benchmark]")
 {
     Settings settings;

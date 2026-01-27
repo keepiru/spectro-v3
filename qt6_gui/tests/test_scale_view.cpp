@@ -37,7 +37,6 @@ TEST_CASE("ScaleView constructor", "[scale_view]")
     REQUIRE(view.maximumHeight() == 20);
 }
 
-// NOLINTNEXTLINE(readability-function-cognitive-complexity) macro expansion
 TEST_CASE("ScaleView::CalculateTickMarks", "[scale_view]")
 {
     Settings settings;

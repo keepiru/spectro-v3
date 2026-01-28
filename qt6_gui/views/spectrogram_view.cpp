@@ -60,8 +60,7 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
     // Safety check for overflow.  This would only happen with an absurdly large
     // view height, but let's be safe.
     if (mGetViewportHeight() > std::numeric_limits<int>::max() / kStride) {
-        throw std::overflow_error(
-          std::format("{}: scroll page step exceeds int max", __PRETTY_FUNCTION__));
+        throw std::overflow_error("scroll page step exceeds int max");
     }
 
     const FrameCount kScrollSingleStep(kStride.Get() * 10); // 10 rows per step
@@ -139,10 +138,8 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
     // enforces channel count limits, but let's be safe.  This guards against
     // out-of-bounds access into the color map LUTs array.
     if (kChannels > GKMaxChannels || kChannels < 1) {
-        throw std::runtime_error(std::format("{}: channel count {} out of range [1, {}]",
-                                             __PRETTY_FUNCTION__,
-                                             kChannels,
-                                             GKMaxChannels));
+        throw std::runtime_error(
+          std::format("channel count {} out of range [1, {}]", kChannels, GKMaxChannels));
     }
 
     return RenderConfig{ .channels = kChannels,

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "models/audio_recorder.h"
+#include "controllers/audio_recorder.h"
 #include "models/settings.h"
 #include <QComboBox>
 #include <QPushButton>
@@ -12,6 +12,7 @@
 #include <QSpinBox>
 #include <QWidget>
 #include <array>
+#include <cstddef>
 
 // Forward declarations
 class QLabel;

@@ -3,9 +3,9 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "controllers/audio_file.h"
+#include "controllers/audio_recorder.h"
 #include "include/global_constants.h"
 #include "models/audio_buffer.h"
-#include "models/audio_recorder.h"
 #include "models/settings.h"
 #include "views/settings_panel.h"
 #include <QComboBox>

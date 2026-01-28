@@ -3,9 +3,9 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "audio_types.h"
+#include "controllers/audio_recorder.h"
 #include "include/global_constants.h"
 #include "models/audio_buffer.h"
-#include "models/audio_recorder.h"
 #include <QAudioDevice>
 #include <QAudioFormat>
 #include <QAudioSource>

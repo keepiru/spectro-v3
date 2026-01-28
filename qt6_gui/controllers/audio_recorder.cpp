@@ -107,7 +107,7 @@ AudioRecorder::ReadAudioData()
           "AudioRecorder::ReadAudioData: Read bytes not divisible by sample size");
     }
 
-    const auto sampleCount = static_cast<size_t>(audioData.size() / sizeof(float));
+    const size_t sampleCount = audioData.size() / sizeof(float);
 
     // Type punning is intentional: we need to interpret the byte stream as floats.
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)

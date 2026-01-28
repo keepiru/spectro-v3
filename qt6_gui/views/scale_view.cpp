@@ -36,7 +36,7 @@ ScaleView::paintEvent(QPaintEvent* /*event*/)
     const QFontMetrics kMetrics(painter.font());
     constexpr int kShortTickHeight = 3;
 
-    const auto tickMarks = CalculateTickMarks(static_cast<size_t>(width()));
+    const auto tickMarks = CalculateTickMarks(width());
 
     // Draw tick marks and labels
     for (const auto& tick : tickMarks) {

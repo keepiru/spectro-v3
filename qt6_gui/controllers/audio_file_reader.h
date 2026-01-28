@@ -5,6 +5,7 @@
 #pragma once
 
 #include <audio_types.h>
+#include <cstddef>
 #include <memory>
 #include <sndfile.h>
 #include <string>
@@ -49,7 +50,7 @@ class AudioFileReader : public IAudioFileReader
     [[nodiscard]] ChannelCount GetChannelCount() const override { return mSfInfo.channels; }
     [[nodiscard]] FrameCount GetFrameCount() const override
     {
-        return static_cast<FrameCount>(mSfInfo.frames);
+        return FrameCount{ static_cast<size_t>(mSfInfo.frames) };
     }
 
   private:

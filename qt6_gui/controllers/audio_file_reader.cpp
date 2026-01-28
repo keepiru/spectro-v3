@@ -4,7 +4,6 @@
 
 #include "audio_file_reader.h"
 #include "audio_types.h"
-#include <cstddef>
 #include <format>
 #include <sndfile.h>
 #include <stdexcept>
@@ -31,6 +30,6 @@ AudioFileReader::ReadInterleaved(FrameCount aFrames)
     std::vector<float> buffer(kTotalSamples.Get());
     const sf_count_t framesRead =
       sf_readf_float(mSndFile.get(), buffer.data(), aFrames.ToSfCountT());
-    buffer.resize(static_cast<size_t>(framesRead) * mSfInfo.channels);
+    buffer.resize(framesRead * mSfInfo.channels);
     return buffer;
 }

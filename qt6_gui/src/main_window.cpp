@@ -3,9 +3,9 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "main_window.h"
+#include "controllers/audio_recorder.h"
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
-#include "models/audio_recorder.h"
 #include "models/settings.h"
 #include "views/scale_view.h"
 #include "views/settings_panel.h"

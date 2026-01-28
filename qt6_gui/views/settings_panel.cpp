@@ -4,10 +4,10 @@
 
 #include "settings_panel.h"
 #include "controllers/audio_file.h"
+#include "controllers/audio_file_reader.h"
+#include "controllers/audio_recorder.h"
 #include "fft_window.h"
 #include "include/global_constants.h"
-#include "models/audio_file_reader.h"
-#include "models/audio_recorder.h"
 #include "models/settings.h"
 #include <QAudioDevice>
 #include <QComboBox>

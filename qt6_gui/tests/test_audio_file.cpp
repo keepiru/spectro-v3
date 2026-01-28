@@ -4,8 +4,8 @@
 
 #include "audio_types.h"
 #include "controllers/audio_file.h"
+#include "controllers/audio_file_reader.h"
 #include "models/audio_buffer.h"
-#include "models/audio_file_reader.h"
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>

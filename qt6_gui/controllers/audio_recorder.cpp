@@ -3,8 +3,8 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "audio_recorder.h"
-#include "audio_buffer.h"
 #include "include/global_constants.h"
+#include "models/audio_buffer.h"
 #include <QAudio>
 #include <QAudioDevice>
 #include <QAudioFormat>

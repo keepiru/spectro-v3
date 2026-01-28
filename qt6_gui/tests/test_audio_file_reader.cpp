@@ -3,7 +3,7 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "audio_types.h"
-#include "models/audio_file_reader.h"
+#include "controllers/audio_file_reader.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_exception.hpp>

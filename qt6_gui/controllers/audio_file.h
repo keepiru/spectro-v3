@@ -3,8 +3,8 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #pragma once
+#include "controllers/audio_file_reader.h"
 #include "models/audio_buffer.h"
-#include "models/audio_file_reader.h"
 #include <QObject>
 #include <functional>
 

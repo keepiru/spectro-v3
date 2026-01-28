@@ -7,7 +7,6 @@
 #include <QObject>
 #include <audio_types.h>
 #include <cstddef>
-#include <format>
 #include <memory>
 #include <sample_buffer.h>
 #include <span>
@@ -26,18 +25,15 @@ void
 AudioBuffer::InitializeChannelBuffers(ChannelCount aChannelCount, SampleRate aSampleRate)
 {
     if (aChannelCount == 0) {
-        throw std::invalid_argument(
-          std::format("{}: Channel count must be > 0", __PRETTY_FUNCTION__));
+        throw std::invalid_argument("Channel count must be > 0");
     }
 
     if (aChannelCount > GKMaxChannels) {
-        throw std::invalid_argument(
-          std::format("{}: Channel count exceeds maximum supported channels", __PRETTY_FUNCTION__));
+        throw std::invalid_argument("Channel count exceeds maximum supported channels");
     }
 
     if (aSampleRate <= 0) {
-        throw std::invalid_argument(
-          std::format("{}: Sample rate must be > 0", __PRETTY_FUNCTION__));
+        throw std::invalid_argument("Sample rate must be > 0");
     }
 
     mChannelCount = aChannelCount;

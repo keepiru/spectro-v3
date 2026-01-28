@@ -33,13 +33,11 @@ AudioRecorder::Start(const QAudioDevice& aQAudioDevice,
                      QIODevice* aMockQIODevice)
 {
     if (aChannelCount == 0 || aChannelCount > GKMaxChannels) {
-        throw std::invalid_argument(
-          std::format("{}: Invalid channel count {}", __PRETTY_FUNCTION__, aChannelCount));
+        throw std::invalid_argument(std::format("Invalid channel count {}", aChannelCount));
     }
 
     if (aSampleRate <= 0) {
-        throw std::invalid_argument(
-          std::format("{}: Invalid sample rate {}", __PRETTY_FUNCTION__, aSampleRate));
+        throw std::invalid_argument(std::format("Invalid sample rate {}", aSampleRate));
     }
 
     QAudioFormat format;

@@ -10,7 +10,6 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
 
 - **`AudioBuffer`**: Append-only multi-channel audio sample storage
   - Wraps multiple `SampleBuffer` from DSP library
-  - Emits `samplesAdded(count)` signal when new audio arrives
   - Source of truth for all audio data
 
 - **`Settings`**: Application configuration (QObject)
@@ -26,7 +25,7 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
 
 - **`SpectrogramController`**: Coordinates data flow and FFT computation
   - Owns `IFFTProcessor`, `FFTWindow` per channel; recreates on settings change
-  - Observes `FFTSettingsChanged` signal → recreates DSP objects
+  - Observes `FFTSettingsChanged` signal -> recreates DSP objects
   - Provides `GetRows()` method to compute spectrogram data on-demand
   - Implements per-row caching via `mSpectrogramRowCache` to avoid redundant FFT computation
   - Currently view-driven (future: may add live/historical mode tracking)
@@ -35,6 +34,15 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - Uses Qt Multimedia's `QAudioSource`
   - Captures audio samples from microphone/line-in
   - Writes samples to `AudioBuffer`
+
+- **`AudioFile`**: High level audio file orchestration
+  - Reads from `IAudioFileReader`
+  - Writes samples to `AudioBuffer`
+  - Updates progress callback
+
+- **`IAudioFileReader`**: Low level audio file IO
+  - Pure virtual interface can be mocked when testing `AudioFile`
+  - `AudioFileReader` implementation wraps libsndfile
 
 ### Views (UI Widgets)
 
@@ -49,14 +57,18 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - Y-axis: amplitude in dB (configurable range)
   - X-axis: frequency (Hz)
   - Queries `Settings` for aperture
-  - Listens to `Settings.apertureChanged()` → triggers repaint
+  - Listens to `Settings.apertureChanged()` -> triggers repaint
+
+- **`ScaleView`**: Horizontal frequency scale
+  - Sits between `SpectrogramView` and `SpectrumPlot`
+  - Provides ticks and frequency labels
 
 - **`SettingsPanel`**: Settings controls (UI for Settings model)
   - FFT settings: transform size, window stride, window function
   - Display settings: colormap, aperture (floor/ceiling dB)
   - Audio settings: input device selection
   - Initializes UI controls from `Settings` at construction
-  - UI changes → calls `Settings` setters (e.g., `Settings.setWindowStride()`)
+  - UI changes -> calls `Settings` setters (e.g., `Settings.setWindowStride()`)
   - Settings propagate automatically via `Settings` signals to all listeners
 
 - **`MainWindow`**: Top-level application window
@@ -69,130 +81,135 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
 
 ### Live Mode - New Audio Arrives
 ```
-AudioRecorder → AudioBuffer.AddSamples()
-    ↓
-AudioBuffer emits samplesAdded(count)
-    ↓
-DataAvailable Signal
-    ↓
-SpectrogramView.update()
-SpectrumPlot.update()
+AudioRecorder -> AudioBuffer.AddSamples()
+    DataAvailable() Signal
+        SpectrogramView.update()
+        SpectrumPlot.update()
 ```
 
-### Future: Historical Mode - User Scrolls Back
+### FFT Settings Change
 ```
-[Not yet implemented]
-User scrolls → SpectrogramController updates view position
-    ↓
-Controller: live_mode = false
-    → view_bottom_sample = scroll_position (snapped to stride)
-    → Triggers SpectrogramView update
-    ↓
-SpectrogramView.paint()
-    → Controller.GetRows() with historical position
-    → render spectrogram
+SettingsPanel UI change -> Settings.SetFFTSize,SetWindowScale
+    FFTSettingsChanged() signal
+        SpectrogramController receives signal
+            ResetFFT()
+            recreates IFFTProcessor, FFTWindow for each channel
+            clears mSpectrogramRowCache
+    DisplaySettingsChanged() signal
+        Views refresh
 ```
 
-### Settings Change
+### Display settings change
 ```
-SettingsPanel UI change → Settings.setFFTSize(new_size)
-    ↓
-Settings emits FFTSettingsChanged()
-    ↓
-SpectrogramController receives signal
-    → ResetFFT()
-    → recreates IFFTProcessor, FFTWindow for each channel
-    → clears mSpectrogramRowCache
-    ↓
-Next paint event:
-SpectrogramView.paint()
-    → queries Settings for FFT size, stride, aperture, colormap
-    → Controller.GetRows() recomputes with new settings
-    → render spectrogram
+SettingsPanel UI change -> Settings.SetApertureMinDecibels,SetApertureMaxDecibels,SetColorMap, etc
+    DisplaySettingsChanged() signal
+        Views refresh
 ```
 
-## Component Responsibilities
+### Live audio recording
+```
+AudioRecorder orchestrates process:
+    Hardware -> QAudioSource -> QIODevice -> readyRead signal
+    -> ReadAudioData() -> AudioBuffer.AddSamples()
+    -> DataAvailable() signal -> Views update
+```
 
-| Component                  | Responsibilities                                                             |
-|----------------------------|------------------------------------------------------------------------------|
-| **AudioBuffer**            | Store multi-channel samples (append-only), emit `samplesAdded()` signal      |
-| **Settings**               | Own all settings, validate and emit change signals, single source of truth   |
-| **SpectrogramController**  | Own DSP objects, mediate data access, coordinate modes                       |
-| **SpectrogramView**        | Paint rows at given position                                                 |
-| **SpectrumPlot**           | Paint frequency spectrum,                                                    |
-| **SettingsPanel**          | UI for Settings model, bidirectional sync                                    |
-| **AudioRecorder**          | Capture audio → `AudioBuffer`, own audio settings (device)                   |
+## FFT cache strategy
+- **Current approach**: populate on demand; cache everything until invalidated; never evict.
+    - Dead simple
+    - Minimizes stutters when seeking through the file.
+    - Maximum performance at the price of high memory usage
+    - Good tradeoff for now
+- **Future improvements**
+    - LRU eviction
+        - Low complexity
+        - Minimal memory usage
+        - Handles live-mode perfectly
+        - Scrolling performance needs to be measured
+        - Useless when seeking through history
+    - Windowed eviction
+        - Low-medium complexity
+        - Minimal memory usage
+        - Handles live-mode perfectly
+        - Better scrolling through recent history
+        - Long seeks will still stutter
+    - Look-ahead precache
+        - High complexity
+        - Significantly improved scrolling
+        - Offloads work from UI thread
+        - Useful with any eviction strategy
+
 
 ## Settings Management
 
 **Settings class is the single source of truth.** All components query Settings and listen to its signals.
 
-| Setting                    | Stored In | Consumed By                       | Recreates DSP? |
-|----------------------------|-----------|-----------------------------------|----------------|
-| Transform size             | Settings  | SpectrogramController             | Yes            |
-| Window function            | Settings  | SpectrogramController             | Yes            |
-| Window stride              | Settings  | SpectrogramController             | No             |
-| Colormap                   | Settings  | SpectrogramView                   | No             |
-| Aperture (floor/ceiling dB)| Settings  | SpectrogramView, SpectrumPlot     | No             |
-| Audio input device         | AudioRecorder | AudioRecorder (not in Settings) | No             |
+"FFT settings" (transform size, window function) change the transform output.  When changed, the DSP objects are recreated and the FFT cache is cleared, followed by a display refresh.
 
-**Settings Signal Flow:**
-```
-SettingsPanel (UI)
-    ├→ Settings.SetFFTSize(size)
-    ├→ Settings.SetWindowType(type)
-    ├→ Settings.SetWindowStride(stride)
-    ├→ Settings.SetApertureMinDecibels(min)
-    ├→ Settings.SetApertureMaxDecibels(max)
-    └→ Settings.SetColorMap(type)
-        ↓ (Settings emits signals)
-    Settings.FFTSettingsChanged()
-        → SpectrogramController (recreates DSP objects, clears cache)
-    Settings.ApertureChanged()
-        → Views (triggers repaint with new dB range)
-    Settings.ColorMapChanged()
-        → Views (rebuilds LUT, triggers repaint)
-```
+"Display settings" (stride, colormap, aperture) only change the display output and do not invalidate transforms.
 
 ## Key Design Decisions
 
-### Why MVC?
-- **Separation of concerns**: Business logic (models) separate from UI (views)
-- **Testability**: Models and controllers can be unit tested without UI
-- **Flexibility**: Multiple views can share same data (e.g., Spectrogram and Spectrum use same FFT results)
+### MVC
+- Separation of concerns: Business logic (models) separate from UI (views)
+- Testability: Models and controllers can be unit tested without UI
+- Flexibility: Multiple views can share same data (e.g., Spectrogram and Spectrum use same FFT results)
 
-### Why Settings class as single source of truth?
-- **Centralized defaults**: All default values in one place, no scattered constants
-- **Automatic propagation**: Change Settings → all listeners notified automatically via signals
-- **Trivial testing**: Pass `new Settings()` to components, no mocking required
-- **Validation**: Settings setters validate inputs (stride > 0, etc.)
-- **Prevents redundant updates**: Setters check if value changed before emitting
+### Settings class is the single source of truth
+- Centralized defaults: All default values in one place, no scattered constants
+- Automatic propagation: Change Settings -> all listeners notified automatically via signals
+- Trivial testing: Pass `Settings()` to components, no mocking required
+- Validation: Settings setters validate inputs (stride > 0, etc.)
+- Prevents redundant updates: Setters check if value changed before emitting
 
-### Why on-demand FFT computation (not pre-computed)?
-- **Unlimited scrollback**: Audio buffer grows indefinitely; can't pre-compute everything
-- **Settings invalidate cache**: Changing FFT size requires recomputation
-- **Lazy evaluation**: Only compute what's visible, defer the rest
-- **Future-proof**: Architecture supports background pre-computation later
+### view-driven rendering
+- View doesn't have to coordinate viewport size with controller
+- Controller is stateless, view simply pulls the data it needs
+- View's position is encapsulated in the scrollbar
+- Live mode lives in `Settings` - requires a little extra plumbing
+- Alternative considered: controller manages scrolling state.
+    - Simplifies view logic
+    - Might make sense when playback is implemented
 
-- **Settings invalidation**: Cache cleared on FFT settings change (size, window type)
-- **Future-proof**: Can expand to LRU cache or background pre-computation if needed
+### Tickless view architecture
+- Event-driven: audio arrival triggers computation, not arbitrary timer
+- Efficient: Only compute when new data available
+- Natural pacing: Display updates at rate of incoming audio
 
-### Why view-driven rendering (for now)?
-- **Simpler initial implementation**: View calculates position and drives data fetching
-- **No state tracking needed**: Controller is stateless except for cache
-- **Works for initial use case**: Always displays most recent audio
-- **Future enhancement**: Will add live/historical mode with controller-driven positioning
+### Scrollbar fully owns view position
+- "feels right"
+- Requires adhering to QScrollbar's semantics
+- Position is effectively a FrameOffset
+    - rounding is applied on render, not when position is set
+    - This makes it independent from stride settings
+    - Only downside: it's an int32_t, which arbitrarily limits data size
 
-### Why no timer?
-- **Event-driven**: Audio arrival triggers computation, not arbitrary timer
-- **Efficient**: Only compute when new data available
-- **Natural pacing**: Display updates at rate of incoming audio
+### Append-only SampleBuffer and AudioBuffer
+- Everything is stored in memory
+- Don't have to worry about range invalidation
+- Simple, performant zero-copy access, returning `std::span<const float>`
 
-### Future: Controller-managed scroll state
-- **Centralized state**: Live mode and scroll position will move to controller
-- **Mode switching**: Controller will decide when to exit live mode
-- **Sample-based positioning**: Position by sample (not row) to remain stable across stride changes
-- **Alignment**: Controller will snap positions to stride boundaries
+### SpectrogramView renders in main thread
+- Simple design
+- Rendering code is performance-critical
+    - Over 30% of all CPU cycles are spent in the inner loop
+- SIMD vectorization helps some
+- Many micro-optimizations still possible
+- It's fast enough for now, but this may be a bottleneck in the future
+- Future improvements:
+    - Threading the rendering pipeline
+        - Easy 4x performance gain
+        - The data access is simple, overhead should be minimal
+        - Low complexity
+    - QOpenGLWidget
+        - Easy way to offload compositing
+        - Unsure if this can offload all rendering
+        - Extra copying of textures might negate performance gain
+        - Medium complexity
+    - Raw GL, or other abstraction
+        - The rendering bottleneck is gone
+        - Replaced with more copy overhead, or complicated caching
+        - High complexity
 
 ## Future Architecture Considerations
 
@@ -205,16 +222,8 @@ SettingsPanel (UI)
 
 ### Performance
 
-#### Zero-Copy Audio Buffer Access
-- **`SampleBuffer::GetSamples()` and `AudioBuffer::GetSamples()` return `std::span<const float>`**
-  - Eliminates unnecessary vector copies in audio processing path
-  - Direct view into internal buffer data without allocation
-
 #### Future Optimizations
-- Profile and potentially migrate `SpectrogramView` to `QOpenGLWidget` with texture uploads
-- Expand per-row cache to LRU cache if memory becomes an issue
-- Consider background thread for pre-computation when live/historical mode is added
-- Batch AudioBuffer.GetSamples() calls to reduce locking overhead
+- Batch AudioBuffer.GetSamples() calls to reduce overhead
 
 ### Extensibility
 - Plugin architecture for custom window functions or color maps

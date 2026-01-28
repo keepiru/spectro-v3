@@ -2,10 +2,35 @@
 
 Real-time spectrum analyzer with waterfall spectrogram and scrollable history buffer.
 
-### Installing on Debian/Ubuntu
+## Status
+
+This is a work in progress.  The current emphasis is on core architecture before adding more features.
+
+Working:
+    Fast, smooth spectrogram display
+    DSP core
+    Realtime line-in / microphone capture
+    File loading
+    History view
+    Colormaps
+    Basic processing controls (transform parameters, aperture)
+    Basic Measurements (frequencies and magnitudes)
+    "Very utilitarian" placeholder control UI
+
+Planned features:
+    Playback
+    Scrubbing
+    Export recorded audio
+    Range-based selections for measurements
+    Automated measurements
+    Waveform display
+    Additional transform types and parameters
+
+
+## Build Instructions
 
 ```bash
-sudo apt update
+# Install dependencies
 sudo apt install \
     qt6-base-dev \
     qt6-multimedia-dev \
@@ -16,22 +41,12 @@ sudo apt install \
     ninja-build \
     libsndfile1-dev \
     mold
-```
 
-## Build Instructions
-
-```bash
 # Build
 make
 
 # Run tests
 make test
-
-# Run linter on all source files
-make lint
-
-# Run linter with automatic fixes (use with caution)
-make lint-fix
 ```
 
 ## Project Structure

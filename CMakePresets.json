@@ -14,7 +14,7 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "CMAKE_COLOR_DIAGNOSTICS": "ON",
-                "CMAKE_CXX_FLAGS_DEBUG": "-Og -g",
+                "CMAKE_CXX_FLAGS_DEBUG": "-Og -g --coverage",
                 "CMAKE_MESSAGE_LOG_LEVEL": "NOTICE"
             }
         },

@@ -40,7 +40,8 @@ sudo apt install \
     build-essential \
     ninja-build \
     libsndfile1-dev \
-    mold
+    mold \
+    lcov
 
 # Build
 make

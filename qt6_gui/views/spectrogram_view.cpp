@@ -32,8 +32,6 @@ SpectrogramView::SpectrogramView(const SpectrogramController& aController, QWidg
   : QAbstractScrollArea(parent)
   , mController(aController)
   , mUpdateViewport([this]() { viewport()->update(); })
-  , mGetViewportWidth([this]() { return viewport()->width(); })
-  , mGetViewportHeight([this]() { return viewport()->height(); })
 {
     constexpr int kMinWidth = 400;
     constexpr int kMinHeight = 300;
@@ -59,12 +57,12 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
 
     // Safety check for overflow.  This would only happen with an absurdly large
     // view height, but let's be safe.
-    if (mGetViewportHeight() > std::numeric_limits<int>::max() / kStride) {
+    if (viewport()->height() > std::numeric_limits<int>::max() / kStride) {
         throw std::overflow_error("scroll page step exceeds int max");
     }
 
     const FrameCount kScrollSingleStep(kStride.Get() * 10); // 10 rows per step
-    const FrameCount kScrollPageStep(kStride.Get() * mGetViewportHeight());
+    const FrameCount kScrollPageStep(kStride.Get() * viewport()->height());
 
     // The scrollbar's maximum is one page past the available frames, to allow
     // scrolling the end of data all the way to the top of the view.
@@ -83,7 +81,7 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
         // history).  However, we may have new data which needs to be displayed.
         const FramePosition kCurrentBottomFrame{ verticalScrollBar()->value() };
         const FramePosition kCurrentTopFrame =
-          kCurrentBottomFrame - FrameCount{ kStride.Get() * mGetViewportHeight() };
+          kCurrentBottomFrame - FrameCount{ kStride.Get() * viewport()->height() };
 
         // Check if the mPreviousAvailableFrames is inside the current view, and if
         // so, trigger a repaint - we added data that should be visible.
@@ -100,7 +98,7 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
 void
 SpectrogramView::paintEvent(QPaintEvent* /*event*/)
 {
-    QImage image = GenerateSpectrogramImage(mGetViewportWidth(), mGetViewportHeight());
+    QImage image = GenerateSpectrogramImage(viewport()->width(), viewport()->height());
 
     // Overlay crosshair.  We don't need to provide any labels here, just a
     // vertical line.  The measurements happen in the SpectrumPlot view.
@@ -108,7 +106,7 @@ SpectrogramView::paintEvent(QPaintEvent* /*event*/)
     const auto kMousePos = mapFromGlobal(QCursor::pos());
     const float kCrosshairPenWidth = 0.5f;
     painter.setPen(QPen(Qt::yellow, kCrosshairPenWidth, Qt::DashLine));
-    painter.drawLine(kMousePos.x(), 0, kMousePos.x(), mGetViewportHeight());
+    painter.drawLine(kMousePos.x(), 0, kMousePos.x(), viewport()->height());
 
     // Blit the result to the viewport
     QPainter viewportPainter(viewport());

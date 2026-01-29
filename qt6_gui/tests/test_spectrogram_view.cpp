@@ -44,16 +44,6 @@ class TestableSpectrogramView : public SpectrogramView
     using SpectrogramView::GenerateSpectrogramImage;
     using SpectrogramView::GetRenderConfig;
 
-    /// @brief Override the viewport dimension getters for testing.
-    /// @param aWidthGetter Lambda to get viewport width.
-    /// @param aHeightGetter Lambda to get viewport height.
-    void OverrideViewportDimensionGetters(ViewportDimensionGetter aWidthGetter,
-                                          ViewportDimensionGetter aHeightGetter)
-    {
-        mGetViewportWidth = std::move(aWidthGetter);
-        mGetViewportHeight = std::move(aHeightGetter);
-    }
-
     /// @brief Override the viewport updater for testing.
     /// @param aUpdater Lambda to call for viewport updates.
     void OverrideViewportUpdater(ViewportUpdater aUpdater)
@@ -287,16 +277,7 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
     Settings settings;
     const AudioBuffer audioBuffer;
     const SpectrogramController controller(settings, audioBuffer);
-
-    int viewportWidth = 640;
-    int viewportHeight = 478;
-
     TestableSpectrogramView view(controller);
-
-    // Override viewport dimension getters for testing.  The values are passed
-    // by reference so they can be modified in each test section.
-    view.OverrideViewportDimensionGetters([&viewportWidth]() { return viewportWidth; },
-                                          [&viewportHeight]() { return viewportHeight; });
 
     // Set up FFT settings with known stride
     settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
@@ -310,7 +291,7 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
 
     // Compute the page step in frames.  This offset is relevant in scrollbar tests
     // where we need to account for the page step in the maximum value.
-    const int kPageStepFrames = viewportHeight * settings.GetWindowStride();
+    const int kPageStepFrames = view.viewport()->height() * settings.GetWindowStride();
 
     SECTION("scrollbar is initialized on construction")
     {
@@ -325,7 +306,8 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
         // Stride is 1024.
         // Set viewport height to a large but valid value.
         constexpr size_t kMaxAllowedHeight = (1 << 21) - 1;
-        viewportHeight = kMaxAllowedHeight;
+        view.viewport()->setFixedHeight(kMaxAllowedHeight);
+
         // This makes page step:
         constexpr int kExpectedPageStep = (1LL << 31) - 1024;
 
@@ -333,8 +315,7 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
         CHECK(scrollBar->pageStep() == kExpectedPageStep);
 
         // Now increase height by 1 to cause overflow.
-        viewportHeight = kMaxAllowedHeight + 1;
-
+        view.viewport()->setFixedHeight(kMaxAllowedHeight + 1);
         REQUIRE_THROWS_MATCHES(
           view.UpdateScrollbarRange(FrameCount{ 1 }),
           std::overflow_error,
@@ -407,7 +388,7 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
 
     SECTION("UpdateScrollbarRange repaints view if current view includes new data")
     {
-        viewportHeight = 256;
+        view.viewport()->setFixedHeight(256);
 
         // Create a test spy to count viewport updates
         size_t viewportUpdateCount = 0;
@@ -463,12 +444,12 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
         // Starting with stride = 1024
         view.UpdateScrollbarRange(FrameCount(10000));
         CHECK(scrollBar->singleStep() == 10240);
-        CHECK(scrollBar->pageStep() == 1024 * viewportHeight);
+        CHECK(scrollBar->pageStep() == 1024 * view.viewport()->height());
 
         // Change FFT settings to change stride
         settings.SetWindowScale(4); // stride = 512
         view.UpdateScrollbarRange(FrameCount(10000));
         CHECK(scrollBar->singleStep() == 5120);
-        CHECK(scrollBar->pageStep() == (512 * viewportHeight));
+        CHECK(scrollBar->pageStep() == (512 * view.viewport()->height()));
     }
 }

@@ -118,8 +118,6 @@ class SpectrogramView : public QAbstractScrollArea
     // viewport.  The defaults are used in production, but can be overridden in
     // tests via derived test fixture classes.
     ViewportUpdater mUpdateViewport;
-    ViewportDimensionGetter mGetViewportWidth;
-    ViewportDimensionGetter mGetViewportHeight;
 
     /// @brief Generate spectrogram image for given dimensions
     /// @param aWidth Width in pixels

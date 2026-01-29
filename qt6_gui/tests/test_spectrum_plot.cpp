@@ -7,7 +7,9 @@
 #include "models/audio_buffer.h"
 #include "models/settings.h"
 #include "views/spectrum_plot.h"
+#include <QImage>
 #include <QLine>
+#include <QPainter>
 #include <QPoint>
 #include <QPolygon>
 #include <QWidget>
@@ -15,11 +17,14 @@
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_exception.hpp>
 #include <cstddef>
 #include <mock_fft_processor.h>
+#include <sstream>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 /// @brief Test fixture for SpectrumPlot
@@ -452,5 +457,130 @@ TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
         const auto& freqMarker = markers[0];
         CHECK(freqMarker.text == "11025 Hz");
         // The exact value depends on sample rate from settings
+    }
+}
+
+TEST_CASE("SpectrumPlot::DecibelScaleParameters stream output operator", "[spectrum_plot]")
+{
+    using DecibelScaleParameters = TestableSpectrumPlot::DecibelScaleParameters;
+
+    SECTION("formats parameters correctly")
+    {
+        const DecibelScaleParameters params{ .aperture_min_decibels = -80.0F,
+                                             .aperture_max_decibels = 0.0F,
+                                             .pixels_per_decibel = 2.5F,
+                                             .decibel_step = 10,
+                                             .top_marker_decibels = -10.0F,
+                                             .marker_count = 8 };
+        std::ostringstream oss;
+        oss << params;
+        CHECK(oss.str() == "DecibelScaleParameters(aperture_min_decibels=-80, "
+                           "aperture_max_decibels=0, pixels_per_decibel=2.5, "
+                           "decibel_step=10, top_marker_decibels=-10, marker_count=8)");
+    }
+
+    SECTION("formats parameters with negative step")
+    {
+        const DecibelScaleParameters params{ .aperture_min_decibels = 0.0F,
+                                             .aperture_max_decibels = -80.0F,
+                                             .pixels_per_decibel = -2.5F,
+                                             .decibel_step = -10,
+                                             .top_marker_decibels = 0.0F,
+                                             .marker_count = 8 };
+        std::ostringstream oss;
+        oss << params;
+        CHECK(oss.str() == "DecibelScaleParameters(aperture_min_decibels=0, "
+                           "aperture_max_decibels=-80, pixels_per_decibel=-2.5, "
+                           "decibel_step=-10, top_marker_decibels=0, marker_count=8)");
+    }
+}
+
+TEST_CASE("SpectrumPlot::Marker stream output operator", "[spectrum_plot]")
+{
+    using Marker = TestableSpectrumPlot::Marker;
+
+    SECTION("formats marker correctly")
+    {
+        const Marker marker{ .line = QLine(10, 20, 30, 40),
+                             .rect = QRect(50, 60, 70, 80),
+                             .text = "Test Label" };
+        std::ostringstream oss;
+        oss << marker;
+        CHECK(oss.str() == "Marker(line=(10, 20, 30, 40),rect=(50, 60, 70, 80),'Test Label')");
+    }
+
+    SECTION("formats marker with empty text")
+    {
+        const Marker marker{ .line = QLine(0, 0, 100, 100),
+                             .rect = QRect(5, 10, 15, 20),
+                             .text = "" };
+        std::ostringstream oss;
+        oss << marker;
+        CHECK(oss.str() == "Marker(line=(0, 0, 100, 100),rect=(5, 10, 15, 20),'')");
+    }
+}
+
+TEST_CASE("SpectrumPlot::paintEvent", "[spectrum_plot]")
+{
+    Settings settings;
+    AudioBuffer audioBuffer;
+    const SpectrogramController controller(settings, audioBuffer, MockFFTProcessor::GetFactory());
+    TestableSpectrumPlot plot(controller);
+    QImage image(800, 400, QImage::Format_RGB32);
+    QPainter painter(&image);
+
+    SECTION("renders without errors for various FFT sizes")
+    {
+        // Test with different FFT sizes to ensure paint event handles all cases
+        const FFTSize kFFTSize = GENERATE(512, 1024, 2048, 4096, 8192);
+        settings.SetFFTSettings(kFFTSize, FFTWindow::Type::Hann);
+
+        CHECK_NOTHROW(plot.render(&painter));
+    }
+
+    SECTION("renders with different widget sizes")
+    {
+        const std::vector<std::pair<int, int>> sizes = {
+            { 100, 100 }, { 400, 200 }, { 800, 600 }, { 1920, 1080 }
+        };
+
+        for (const auto& [width, height] : sizes) {
+            plot.setFixedSize(width, height);
+
+            QImage localImage(width, height, QImage::Format_RGB32);
+            QPainter localPainter(&localImage);
+            CHECK_NOTHROW(plot.render(&localPainter));
+        }
+    }
+
+    SECTION("renders with various channel counts")
+    {
+        // Test with different channel counts
+        const ChannelCount kChannelCount = GENERATE(1, 2, 3, 4, 5, 6);
+        audioBuffer.Reset(kChannelCount, 44100);
+
+        // Add some sample data
+        const std::vector<float> kSamples(static_cast<size_t>(kChannelCount) * 2048, 0.0f);
+        audioBuffer.AddSamples(kSamples);
+
+        CHECK_NOTHROW(plot.render(&painter));
+    }
+
+    SECTION("renders with different aperture ranges")
+    {
+        const std::vector<std::pair<float, float>> apertureRanges = {
+            { -120.0f, 0.0f },
+            { -80.0f, -20.0f },
+            { -60.0f, 0.0f },
+            { 0.0f, -60.0f },  // Inverted
+            { -50.0f, -50.0f } // Equal (edge case)
+        };
+
+        for (const auto& [minDb, maxDb] : apertureRanges) {
+            settings.SetApertureMinDecibels(minDb);
+            settings.SetApertureMaxDecibels(maxDb);
+
+            CHECK_NOTHROW(plot.render(&painter));
+        }
     }
 }

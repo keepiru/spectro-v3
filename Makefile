@@ -28,6 +28,7 @@ JOBS := $(shell nproc 2>/dev/null || echo 4)
 		test test-one \
 		lint lint-fix-changed lint-fix lint-files \
         release \
+		coverage-report coverage-html \
 		run bench
 
 # Default target
@@ -98,3 +99,14 @@ run: build
 
 bench: build
 	$(BUILD_DIR)/qt6_gui/tests/test_spectrogram_view benchmark
+
+# Coverage targets
+coverage: test
+	lcov --capture --directory $(BUILD_DIR) --output-file $(BUILD_DIR)/coverage.info \
+		--exclude '/usr/*' --exclude '*/tests/*' --exclude '*/qt6_gui/*_autogen/*' \
+		--ignore-errors inconsistent --quiet
+	lcov --list $(BUILD_DIR)/coverage.info --ignore-errors inconsistent
+	genhtml $(BUILD_DIR)/coverage.info --output-directory $(BUILD_DIR)/coverage_html \
+		--ignore-errors inconsistent --quiet
+	@echo "Coverage report generated at: $(BUILD_DIR)/coverage_html/index.html"
+	@echo "Open with: xdg-open $(BUILD_DIR)/coverage_html/index.html"

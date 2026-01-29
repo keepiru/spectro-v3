@@ -36,7 +36,8 @@ RUN apt-get update && \
 # Add new requirements here so we don't have to rebuild the whole image
 RUN eatmydata apt-get -yq install \
     gdb \
-    mold
+    mold \
+    lcov
 
 # Create user with matching UID/GID
 RUN groupadd -g ${GROUP_ID} builder && \

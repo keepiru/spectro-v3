@@ -194,14 +194,13 @@ SettingsPanel::CreateWindowScaleControl(QFormLayout* aLayout)
 void
 SettingsPanel::CreateApertureControls(QFormLayout* aLayout)
 {
-    constexpr int kApertureMinValue = -80;
-    constexpr int kApertureMaxValue = 100;
     constexpr int kApertureTickInterval = 10;
 
     // Aperture Floor
     mApertureFloorSlider = new QSlider(Qt::Horizontal, this);
     mApertureFloorSlider->setObjectName("apertureFloorSlider");
-    mApertureFloorSlider->setRange(kApertureMinValue, kApertureMaxValue); // -80 to +30 dB
+    mApertureFloorSlider->setRange(Settings::KApertureLimitsDecibels.first,
+                                   Settings::KApertureLimitsDecibels.second);
     mApertureFloorSlider->setValue(static_cast<int>(mSettings->GetApertureFloorDecibels()));
     mApertureFloorSlider->setTickPosition(QSlider::TicksBelow);
     mApertureFloorSlider->setTickInterval(kApertureTickInterval);
@@ -223,7 +222,8 @@ SettingsPanel::CreateApertureControls(QFormLayout* aLayout)
     // Aperture Ceiling
     mApertureCeilingSlider = new QSlider(Qt::Horizontal, this);
     mApertureCeilingSlider->setObjectName("apertureCeilingSlider");
-    mApertureCeilingSlider->setRange(kApertureMinValue, kApertureMaxValue); // -80 to +30 dB
+    mApertureCeilingSlider->setRange(Settings::KApertureLimitsDecibels.first,
+                                     Settings::KApertureLimitsDecibels.second);
     mApertureCeilingSlider->setValue(static_cast<int>(mSettings->GetApertureCeilingDecibels()));
     mApertureCeilingSlider->setTickPosition(QSlider::TicksBelow);
     mApertureCeilingSlider->setTickInterval(kApertureTickInterval);

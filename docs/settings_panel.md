@@ -26,8 +26,8 @@ Audio controls are disabled (grayed out) while recording is active.
 - Pulldown: "Window Type"
 - Pulldown: "FFT Size" - values from Settings::KValidFFTSizes
 - Slider: "Window Scale"
-- Slider: Aperture floor - from -80 to +100 db
-- Slider: Aperture ceiling - from -80 to +100 db
+- Slider: Aperture Floor - from Settings::KApertureLimitsDecibels
+- Slider: Aperture Ceiling - from Settings::KApertureLimtisDecibels
 
 ## Color Map Controls
 

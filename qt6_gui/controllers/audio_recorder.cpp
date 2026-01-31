@@ -12,7 +12,6 @@
 #include <QByteArray>
 #include <QIODevice>
 #include <QObject>
-#include <QtTypes>
 #include <audio_types.h>
 #include <cstddef>
 #include <format>

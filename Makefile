@@ -76,23 +76,22 @@ release:
 
 # Lint with clang-tidy
 lint: configure
-	find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
+	find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy-19 -p $(BUILD_DIR) -use-color -quiet
 
 # Lint specific files (usage: make lint-file FILE="file1.cpp file2.cpp")
 lint-files: configure
-	run-clang-tidy -p $(BUILD_DIR) -use-color -quiet $(filter-out $@,$(MAKECMDGOALS))
-
+	run-clang-tidy-19 -p $(BUILD_DIR) -use-color -quiet $(filter-out $@,$(MAKECMDGOALS))
 # Lint with automatic fixes (use with caution)
 lint-fix: configure
-	find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet
+	find dsp/ qt6_gui/ -name '*.cpp' | xargs run-clang-tidy-19 -p $(BUILD_DIR) -use-color -fix -quiet
 
 # Lint files changed in git
 lint-changed: configure
-	git diff --name-only HEAD | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -quiet
+	git diff --name-only HEAD | xargs run-clang-tidy-19 -p $(BUILD_DIR) -use-color -quiet
 
 # Lint files changed in git
 lint-fix-changed: configure
-	git diff --name-only HEAD | xargs run-clang-tidy -p $(BUILD_DIR) -use-color -fix -quiet
+	git diff --name-only HEAD | xargs run-clang-tidy-19 -p $(BUILD_DIR) -use-color -fix -quiet
 
 run: build
 	$(BUILD_DIR)/qt6_gui/spectro

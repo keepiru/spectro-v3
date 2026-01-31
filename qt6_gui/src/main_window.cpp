@@ -18,7 +18,6 @@
 #include <QMainWindow>
 #include <QMediaDevices>
 #include <QObject>
-#include <QOverload>
 #include <QPalette>
 #include <QScrollBar>
 #include <QVBoxLayout>
@@ -122,17 +121,15 @@ MainWindow::SetupConnections()
     connect(&mAudioBuffer,
             &AudioBuffer::DataAvailable,
             &mSpectrumPlot,
-            QOverload<>::of(&SpectrumPlot::update));
+            qOverload<>(&SpectrumPlot::update));
 
     // Update views when display settings change
-    connect(&mSettings,
-            &Settings::DisplaySettingsChanged,
-            &mScaleView,
-            QOverload<>::of(&ScaleView::update));
+    connect(
+      &mSettings, &Settings::DisplaySettingsChanged, &mScaleView, qOverload<>(&ScaleView::update));
     connect(&mSettings,
             &Settings::DisplaySettingsChanged,
             &mSpectrumPlot,
-            QOverload<>::of(&SpectrumPlot::update));
+            qOverload<>(&SpectrumPlot::update));
     connect(&mSettings,
             &Settings::DisplaySettingsChanged,
             &mSpectrogramView,

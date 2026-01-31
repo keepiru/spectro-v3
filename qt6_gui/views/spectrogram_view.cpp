@@ -11,7 +11,6 @@
 #include <QEvent>
 #include <QHBoxLayout>
 #include <QImage>
-#include <QOverload>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QRgb>
@@ -45,8 +44,7 @@ SpectrogramView::SpectrogramView(const SpectrogramController& aController, QWidg
 
     // Repaint when scrollbar value changes, either due to user interaction or
     // when UpdateScrollbarRange is called.
-    connect(
-      verticalScrollBar(), &QScrollBar::valueChanged, this, QOverload<>::of(&QWidget::update));
+    connect(verticalScrollBar(), &QScrollBar::valueChanged, this, qOverload<>(&QWidget::update));
 }
 
 void

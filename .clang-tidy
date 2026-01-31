@@ -65,7 +65,10 @@ CheckOptions:
   - key: readability-uppercase-literal-suffix.NewSuffixes
     value: 'L;uL;uLL'
   - key: misc-include-cleaner.IgnoreHeaders
-    value: 'qtmetamacros\.h' # clang-tidy wants this for emit keyword
+    # qmetamacros.h: Q_OBJECT, emit, slots, signals macros.  Handled by MOC.
+    # qtypes.h, qminmax.h, qoverload.h: Ubuntu 24.04 has Qt 6.4 which doesn't provide these
+    # as separate headers; they are included in QtGlobal.  So we ignore them here.
+    value: 'qtmetamacros\.h|qtypes\.h|qminmax\.h|qoverload\.h'
 
 FormatStyle: file
 HeaderFilterRegex: '.*'

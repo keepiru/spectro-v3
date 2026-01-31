@@ -77,12 +77,13 @@ TEST_CASE("SettingsPanel FFT size control", "[settings_panel]")
     REQUIRE(combo != nullptr);
 
     // Check that it has the expected items
-    REQUIRE(combo->count() == 5);
+    REQUIRE(combo->count() == 6);
     REQUIRE(combo->itemText(0) == "512");
     REQUIRE(combo->itemText(1) == "1024");
     REQUIRE(combo->itemText(2) == "2048");
     REQUIRE(combo->itemText(3) == "4096");
     REQUIRE(combo->itemText(4) == "8192");
+    REQUIRE(combo->itemText(5) == "16384");
 
     // Change the value and verify settings update
     combo->setCurrentIndex(0);

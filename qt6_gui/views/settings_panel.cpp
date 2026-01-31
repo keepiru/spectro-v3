@@ -127,8 +127,7 @@ SettingsPanel::CreateFFTSizeControl(QFormLayout* aLayout)
     mFFTSizeCombo->setObjectName("fftSizeCombo");
 
     // Add FFT size options
-    const std::array<FFTSize, 5> fftSizes{ 512, 1024, 2048, 4096, 8192 };
-    for (const auto size : fftSizes) {
+    for (const auto size : Settings::KValidFFTSizes) {
         mFFTSizeCombo->addItem(QString::number(size), static_cast<int>(size));
     }
 

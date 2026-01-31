@@ -13,6 +13,7 @@
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/generators/catch_generators_range.hpp>
 #include <cstddef>
 #include <mock_fft_processor.h>
 #include <optional>
@@ -55,7 +56,7 @@ TEST_CASE("ScaleView::paintEvent", "[scale_view]")
     SECTION("renders without errors for various FFT sizes")
     {
         // Test with different FFT sizes to ensure paint event handles all cases
-        const FFTSize kFFTSize = GENERATE(512, 1024, 2048, 4096, 8192, 16384);
+        const FFTSize kFFTSize = GENERATE(from_range(Settings::KValidFFTSizes));
 
         settings.SetFFTSettings(kFFTSize, FFTWindow::Type::Hann);
 

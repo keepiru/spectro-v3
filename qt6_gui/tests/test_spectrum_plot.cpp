@@ -18,6 +18,7 @@
 #include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/generators/catch_generators_range.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_exception.hpp>
 #include <cstddef>
@@ -532,7 +533,7 @@ TEST_CASE("SpectrumPlot::paintEvent", "[spectrum_plot]")
     SECTION("renders without errors for various FFT sizes")
     {
         // Test with different FFT sizes to ensure paint event handles all cases
-        const FFTSize kFFTSize = GENERATE(512, 1024, 2048, 4096, 8192);
+        const FFTSize kFFTSize = GENERATE(from_range(Settings::KValidFFTSizes));
         settings.SetFFTSettings(kFFTSize, FFTWindow::Type::Hann);
 
         CHECK_NOTHROW(plot.render(&painter));

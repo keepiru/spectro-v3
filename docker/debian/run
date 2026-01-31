@@ -1,0 +1,15 @@
+#!/bin/bash
+# Spectro-v3 -- Real-time spectrum analyzer
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2025-2026 Chris "Kai" Frederick
+
+# This is a wrapper script to build spectro-v3 inside a Docker container.  It
+# needs to be run from the root of the spectro-v3 source tree.  Simply prefix it
+# to any command you would normally run to build spectro-v3.  For example, to
+# build the project, run:
+#   docker/debian/run make
+
+set -ex
+
+docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t spectro-v3-builder docker/debian/
+docker run --rm -it -v "$PWD":/build -w /build spectro-v3-builder "$@"

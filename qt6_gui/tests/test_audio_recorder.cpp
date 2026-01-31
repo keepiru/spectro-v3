@@ -12,8 +12,6 @@
 #include <QList>
 #include <QMediaDevices>
 #include <QSignalSpy>
-#include <QtMinMax>
-#include <QtTypes>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_range_equals.hpp>
@@ -36,6 +34,7 @@ class MockQIODevice : public QIODevice
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         const char* dataPtr = reinterpret_cast<const char*>(samples.data());
         const auto dataSize =
+          // NOLINTNEXTLINE(misc-include-cleaner)
           static_cast<qint64>(samples.size()) * static_cast<qint64>(sizeof(float));
         mBuffer.append(dataPtr, dataSize);
         emit readyRead(); // NOLINT(misc-include-cleaner)
@@ -47,6 +46,7 @@ class MockQIODevice : public QIODevice
     /// @return Number of bytes actually read.
     qint64 readData(char* data, qint64 maxlen) override
     {
+        // NOLINTNEXTLINE(misc-include-cleaner)
         const qint64 bytesToRead = qMin(maxlen, static_cast<qint64>(mBuffer.size()));
         std::memcpy(data, mBuffer.constData(), static_cast<size_t>(bytesToRead));
         mBuffer.remove(0, static_cast<int>(bytesToRead));

@@ -7,8 +7,10 @@ Diagnostics:
     - "moc_*.cpp"
   MissingIncludes: Strict
   Includes:
-    # Q_OBJECT, emit, slots, signals macros
-    IgnoreHeader: qtmetamacros.h
+    # qmetamacros.h: Q_OBJECT, emit, slots, signals macros.  Handled by MOC.
+    # qtypes.h, qminmax.h, qoverload.h: Ubuntu 24.04 has Qt 6.4 which doesn't provide these
+    # as separate headers; they are included in QtGlobal.  So we ignore them here.
+    IgnoreHeader: qtmetamacros\.h|qtypes\.h|qminmax\.h|qoverload\.h
   
   # Maybe enable this later if it gets annoying
   # UnusedIncludes: None

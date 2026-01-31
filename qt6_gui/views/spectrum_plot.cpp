@@ -14,7 +14,6 @@
 #include <QPolygonF>
 #include <QWidget>
 #include <Qt>
-#include <QtTypes>
 #include <algorithm>
 #include <array>
 #include <audio_types.h>

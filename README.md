@@ -28,27 +28,24 @@ Planned features:
 
 
 ## Build Instructions
+This is developed against Debian 13 Trixie.  You can build with the Docker wrapper script:
 
 ```bash
-# Install dependencies
-sudo apt install \
-    qt6-base-dev \
-    qt6-multimedia-dev \
-    libfftw3-dev \
-    libcatch2-dev \
-    cmake \
-    build-essential \
-    ninja-build \
-    libsndfile1-dev \
-    mold \
-    lcov
+docker/debian/run make test
+```
 
+Or manually install the dependencies listed in the Dockerfiles, and build locally:
+
+```bash
 # Build
 make
 
 # Run tests
 make test
 ```
+
+This is also tested on Ubuntu 24.04, but you will get linter warnings due to
+different library versions.
 
 ## Project Structure
 

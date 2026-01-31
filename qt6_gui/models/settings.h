@@ -28,6 +28,7 @@ class Settings : public QObject
   public:
     static constexpr size_t KColorMapLUTSize = 256;
     static constexpr std::array<WindowScale, 5> KValidWindowScales{ 1, 2, 4, 8, 16 };
+    static constexpr std::array<FFTSize, 6> KValidFFTSizes{ 512, 1024, 2048, 4096, 8192, 16384 };
 
     enum class ColorMapType : uint8_t
     {

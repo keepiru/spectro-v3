@@ -24,7 +24,7 @@ Audio controls are disabled (grayed out) while recording is active.
 ## FFT Controls
 
 - Pulldown: "Window Type"
-- Pulldown: "FFT Size" - 512, 1024, 2048, 4096, 8192
+- Pulldown: "FFT Size" - values from Settings::KValidFFTSizes
 - Slider: "Window Scale"
 - Slider: Aperture min - from -80 to +100 db
 - Slider: Aperture max - from -80 to +100 db

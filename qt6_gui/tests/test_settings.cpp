@@ -95,16 +95,16 @@ TEST_CASE("Settings::GetStride computes stride", "[settings]")
     REQUIRE(settings.GetWindowStride() == 512);
 }
 
-TEST_CASE("Settings::GetApertureMinDecibels", "[settings]")
+TEST_CASE("Settings::GetApertureFloorDecibels", "[settings]")
 {
     const Settings settings;
-    REQUIRE(settings.GetApertureMinDecibels() == -20.0f);
+    REQUIRE(settings.GetApertureFloorDecibels() == -20.0f);
 }
 
-TEST_CASE("Settings::GetApertureMaxDecibels", "[settings]")
+TEST_CASE("Settings::GetApertureCeilingDecibels", "[settings]")
 {
     const Settings settings;
-    REQUIRE(settings.GetApertureMaxDecibels() == 40.0f);
+    REQUIRE(settings.GetApertureCeilingDecibels() == 40.0f);
 }
 
 TEST_CASE("Settings::SetColorMap invalid", "[settings]")
@@ -425,11 +425,11 @@ TEST_CASE("Settings::SetAperture", "[settings]")
     Settings settings;
     const QSignalSpy spy(&settings, &Settings::DisplaySettingsChanged);
 
-    settings.SetApertureMinDecibels(-40.0f);
-    settings.SetApertureMaxDecibels(20.0f);
+    settings.SetApertureFloorDecibels(-40.0f);
+    settings.SetApertureCeilingDecibels(20.0f);
     REQUIRE(spy.count() == 2);
-    REQUIRE(settings.GetApertureMinDecibels() == -40.0f);
-    REQUIRE(settings.GetApertureMaxDecibels() == 20.0f);
+    REQUIRE(settings.GetApertureFloorDecibels() == -40.0f);
+    REQUIRE(settings.GetApertureCeilingDecibels() == 20.0f);
 }
 
 TEST_CASE("Settings Live Mode", "[settings]")

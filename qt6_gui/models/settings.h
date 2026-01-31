@@ -136,23 +136,23 @@ class Settings : public QObject
     /// Display settings - Aperture (decibel range)
     ///
 
-    /// @brief Set the aperture minimum decibel value
-    /// @param aMinDecibels New minimum decibel value
-    /// @note May be greater than maximum decibel value, resulting in inverted display
-    void SetApertureMinDecibels(float aMinDecibels);
+    /// @brief Set the aperture floor decibel value
+    /// @param aFloorDecibels New floor decibel value
+    /// @note May be greater than ceiling decibel value, resulting in inverted display
+    void SetApertureFloorDecibels(float aFloorDecibels);
 
-    /// @brief Set the aperture maximum decibel value
-    /// @param aMaxDecibels New maximum decibel value
-    /// @note May be less than minimum decibel value, resulting in inverted display
-    void SetApertureMaxDecibels(float aMaxDecibels);
+    /// @brief Set the aperture ceiling decibel value
+    /// @param aCeilingDecibels New ceiling decibel value
+    /// @note May be less than floor decibel value, resulting in inverted display
+    void SetApertureCeilingDecibels(float aCeilingDecibels);
 
-    /// @brief Get the minimum decibel value of the aperture
-    /// @return Minimum decibel value
-    [[nodiscard]] float GetApertureMinDecibels() const { return mApertureMinDecibels; }
+    /// @brief Get the floor decibel value of the aperture
+    /// @return Floor decibel value
+    [[nodiscard]] float GetApertureFloorDecibels() const { return mApertureFloorDecibels; }
 
-    /// @brief Get the maximum decibel value of the aperture
-    /// @return Maximum decibel value
-    [[nodiscard]] float GetApertureMaxDecibels() const { return mApertureMaxDecibels; }
+    /// @brief Get the ceiling decibel value of the aperture
+    /// @return Ceiling decibel value
+    [[nodiscard]] float GetApertureCeilingDecibels() const { return mApertureCeilingDecibels; }
 
     ///
     /// Color map settings
@@ -222,10 +222,10 @@ class Settings : public QObject
 
     // The aperture is the visible decibel range in the spectrogram and spectrum
     // plot.
-    static constexpr float KDefaultApertureMinDecibels = -20.0f;
-    static constexpr float KDefaultApertureMaxDecibels = 40.0f;
-    float mApertureMinDecibels = KDefaultApertureMinDecibels;
-    float mApertureMaxDecibels = KDefaultApertureMaxDecibels;
+    static constexpr float KDefaultApertureFloorDecibels = -20.0f;
+    static constexpr float KDefaultApertureCeilingDecibels = 40.0f;
+    float mApertureFloorDecibels = KDefaultApertureFloorDecibels;
+    float mApertureCeilingDecibels = KDefaultApertureCeilingDecibels;
 
     // Default color maps for each channel.
     static constexpr std::array<ColorMapType, GKMaxChannels> KDefaultColorMaps = {

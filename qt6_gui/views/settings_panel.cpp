@@ -198,51 +198,50 @@ SettingsPanel::CreateApertureControls(QFormLayout* aLayout)
     constexpr int kApertureMaxValue = 100;
     constexpr int kApertureTickInterval = 10;
 
-    // Aperture Min
-    mApertureMinSlider = new QSlider(Qt::Horizontal, this);
-    mApertureMinSlider->setObjectName("apertureMinSlider");
-    mApertureMinSlider->setRange(kApertureMinValue, kApertureMaxValue); // -80 to +30 dB
-    mApertureMinSlider->setValue(static_cast<int>(mSettings->GetApertureMinDecibels()));
-    mApertureMinSlider->setTickPosition(QSlider::TicksBelow);
-    mApertureMinSlider->setTickInterval(kApertureTickInterval);
+    // Aperture Floor
+    mApertureFloorSlider = new QSlider(Qt::Horizontal, this);
+    mApertureFloorSlider->setObjectName("apertureFloorSlider");
+    mApertureFloorSlider->setRange(kApertureMinValue, kApertureMaxValue); // -80 to +30 dB
+    mApertureFloorSlider->setValue(static_cast<int>(mSettings->GetApertureFloorDecibels()));
+    mApertureFloorSlider->setTickPosition(QSlider::TicksBelow);
+    mApertureFloorSlider->setTickInterval(kApertureTickInterval);
 
-    mApertureMinLabel = new QLabel(this);
-    mApertureMinLabel->setObjectName("apertureMinLabel");
-    UpdateApertureMinLabel();
+    mApertureFloorLabel = new QLabel(this);
+    mApertureFloorLabel->setObjectName("apertureFloorLabel");
+    UpdateApertureFloorLabel();
 
-    connect(mApertureMinSlider, &QSlider::valueChanged, this, [this](int aValue) {
-        mSettings->SetApertureMinDecibels(static_cast<float>(aValue));
-        UpdateApertureMinLabel();
+    connect(mApertureFloorSlider, &QSlider::valueChanged, this, [this](int aValue) {
+        mSettings->SetApertureFloorDecibels(static_cast<float>(aValue));
+        UpdateApertureFloorLabel();
     });
 
-    auto* minHBox = new QHBoxLayout();
-    minHBox->addWidget(mApertureMinSlider);
-    minHBox->addWidget(mApertureMinLabel);
+    auto* floorHBox = new QHBoxLayout();
+    floorHBox->addWidget(mApertureFloorSlider);
+    floorHBox->addWidget(mApertureFloorLabel);
 
-    aLayout->addRow("Aperture Min:", minHBox);
+    aLayout->addRow("Aperture Floor:", floorHBox);
+    // Aperture Ceiling
+    mApertureCeilingSlider = new QSlider(Qt::Horizontal, this);
+    mApertureCeilingSlider->setObjectName("apertureCeilingSlider");
+    mApertureCeilingSlider->setRange(kApertureMinValue, kApertureMaxValue); // -80 to +30 dB
+    mApertureCeilingSlider->setValue(static_cast<int>(mSettings->GetApertureCeilingDecibels()));
+    mApertureCeilingSlider->setTickPosition(QSlider::TicksBelow);
+    mApertureCeilingSlider->setTickInterval(kApertureTickInterval);
 
-    // Aperture Max
-    mApertureMaxSlider = new QSlider(Qt::Horizontal, this);
-    mApertureMaxSlider->setObjectName("apertureMaxSlider");
-    mApertureMaxSlider->setRange(kApertureMinValue, kApertureMaxValue); // -80 to +30 dB
-    mApertureMaxSlider->setValue(static_cast<int>(mSettings->GetApertureMaxDecibels()));
-    mApertureMaxSlider->setTickPosition(QSlider::TicksBelow);
-    mApertureMaxSlider->setTickInterval(kApertureTickInterval);
+    mApertureCeilingLabel = new QLabel(this);
+    mApertureCeilingLabel->setObjectName("apertureCeilingLabel");
+    UpdateApertureCeilingLabel();
 
-    mApertureMaxLabel = new QLabel(this);
-    mApertureMaxLabel->setObjectName("apertureMaxLabel");
-    UpdateApertureMaxLabel();
-
-    connect(mApertureMaxSlider, &QSlider::valueChanged, this, [this](int aValue) {
-        mSettings->SetApertureMaxDecibels(static_cast<float>(aValue));
-        UpdateApertureMaxLabel();
+    connect(mApertureCeilingSlider, &QSlider::valueChanged, this, [this](int aValue) {
+        mSettings->SetApertureCeilingDecibels(static_cast<float>(aValue));
+        UpdateApertureCeilingLabel();
     });
 
-    auto* maxHBox = new QHBoxLayout();
-    maxHBox->addWidget(mApertureMaxSlider);
-    maxHBox->addWidget(mApertureMaxLabel);
+    auto* ceilingHBox = new QHBoxLayout();
+    ceilingHBox->addWidget(mApertureCeilingSlider);
+    ceilingHBox->addWidget(mApertureCeilingLabel);
 
-    aLayout->addRow("Aperture Max:", maxHBox);
+    aLayout->addRow("Aperture Ceiling:", ceilingHBox);
 }
 
 void
@@ -314,17 +313,17 @@ SettingsPanel::UpdateWindowScaleLabel()
 }
 
 void
-SettingsPanel::UpdateApertureMinLabel()
+SettingsPanel::UpdateApertureFloorLabel()
 {
-    const float value = mSettings->GetApertureMinDecibels();
-    mApertureMinLabel->setText(QString::fromStdString(std::format("{:.0f} dB", value)));
+    const float value = mSettings->GetApertureFloorDecibels();
+    mApertureFloorLabel->setText(QString::fromStdString(std::format("{:.0f} dB", value)));
 }
 
 void
-SettingsPanel::UpdateApertureMaxLabel()
+SettingsPanel::UpdateApertureCeilingLabel()
 {
-    const float value = mSettings->GetApertureMaxDecibels();
-    mApertureMaxLabel->setText(QString::fromStdString(std::format("{:.0f} dB", value)));
+    const float value = mSettings->GetApertureCeilingDecibels();
+    mApertureCeilingLabel->setText(QString::fromStdString(std::format("{:.0f} dB", value)));
 }
 
 void

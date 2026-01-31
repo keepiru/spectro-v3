@@ -132,7 +132,7 @@ TEST_CASE("SettingsPanel window scale control", "[settings_panel]")
     REQUIRE(label->text() == "16");
 }
 
-TEST_CASE("SettingsPanel aperture min control", "[settings_panel]")
+TEST_CASE("SettingsPanel aperture floor control", "[settings_panel]")
 {
     Settings settings;
     AudioBuffer audioBuffer;
@@ -140,8 +140,8 @@ TEST_CASE("SettingsPanel aperture min control", "[settings_panel]")
     AudioFile audioFile(audioBuffer);
     SettingsPanel const panel(settings, audioRecorder, audioFile);
 
-    auto* slider = panel.findChild<QSlider*>("apertureMinSlider");
-    auto* label = panel.findChild<QLabel*>("apertureMinLabel");
+    auto* slider = panel.findChild<QSlider*>("apertureFloorSlider");
+    auto* label = panel.findChild<QLabel*>("apertureFloorLabel");
     REQUIRE(slider != nullptr);
     REQUIRE(label != nullptr);
 
@@ -151,15 +151,15 @@ TEST_CASE("SettingsPanel aperture min control", "[settings_panel]")
 
     // Test setting values
     slider->setValue(-50);
-    REQUIRE(settings.GetApertureMinDecibels() == -50.0f);
+    REQUIRE(settings.GetApertureFloorDecibels() == -50.0f);
     REQUIRE(label->text() == "-50 dB");
 
     slider->setValue(10);
-    REQUIRE(settings.GetApertureMinDecibels() == 10.0f);
+    REQUIRE(settings.GetApertureFloorDecibels() == 10.0f);
     REQUIRE(label->text() == "10 dB");
 }
 
-TEST_CASE("SettingsPanel aperture max control", "[settings_panel]")
+TEST_CASE("SettingsPanel aperture ceiling control", "[settings_panel]")
 {
     Settings settings;
     AudioBuffer audioBuffer;
@@ -167,8 +167,8 @@ TEST_CASE("SettingsPanel aperture max control", "[settings_panel]")
     AudioFile audioFile(audioBuffer);
     SettingsPanel const panel(settings, audioRecorder, audioFile);
 
-    auto* slider = panel.findChild<QSlider*>("apertureMaxSlider");
-    auto* label = panel.findChild<QLabel*>("apertureMaxLabel");
+    auto* slider = panel.findChild<QSlider*>("apertureCeilingSlider");
+    auto* label = panel.findChild<QLabel*>("apertureCeilingLabel");
     REQUIRE(slider != nullptr);
     REQUIRE(label != nullptr);
 
@@ -178,11 +178,11 @@ TEST_CASE("SettingsPanel aperture max control", "[settings_panel]")
 
     // Test setting values
     slider->setValue(-20);
-    REQUIRE(settings.GetApertureMaxDecibels() == -20.0f);
+    REQUIRE(settings.GetApertureCeilingDecibels() == -20.0f);
     REQUIRE(label->text() == "-20 dB");
 
     slider->setValue(20);
-    REQUIRE(settings.GetApertureMaxDecibels() == 20.0f);
+    REQUIRE(settings.GetApertureCeilingDecibels() == 20.0f);
     REQUIRE(label->text() == "20 dB");
 }
 
@@ -228,8 +228,8 @@ TEST_CASE("SettingsPanel initial values", "[settings_panel]")
     // Set some initial values
     settings.SetFFTSettings(4096, FFTWindow::Type::Rectangular);
     settings.SetWindowScale(8);
-    settings.SetApertureMinDecibels(-60.0f);
-    settings.SetApertureMaxDecibels(10.0f);
+    settings.SetApertureFloorDecibels(-60.0f);
+    settings.SetApertureCeilingDecibels(10.0f);
     settings.SetColorMap(0, Settings::ColorMapType::Magenta);
 
     // Create panel and verify controls reflect the settings
@@ -248,12 +248,11 @@ TEST_CASE("SettingsPanel initial values", "[settings_panel]")
     auto* windowScaleSlider = panel.findChild<QSlider*>("windowScaleSlider");
     REQUIRE(windowScaleSlider->value() == 3); // 8 is at index 3
 
-    auto* apertureMinSlider = panel.findChild<QSlider*>("apertureMinSlider");
-    REQUIRE(apertureMinSlider->value() == -60);
+    auto* apertureFloorSlider = panel.findChild<QSlider*>("apertureFloorSlider");
+    REQUIRE(apertureFloorSlider->value() == -60);
 
-    auto* apertureMaxSlider = panel.findChild<QSlider*>("apertureMaxSlider");
-    REQUIRE(apertureMaxSlider->value() == 10);
-
+    auto* apertureCeilingSlider = panel.findChild<QSlider*>("apertureCeilingSlider");
+    REQUIRE(apertureCeilingSlider->value() == 10);
     auto* colorMapCombo0 = panel.findChild<QComboBox*>("colorMapCombo0");
     REQUIRE(colorMapCombo0->currentData().toInt() ==
             static_cast<int>(Settings::ColorMapType::Magenta));
@@ -285,12 +284,12 @@ TEST_CASE("SettingsPanel signal connections", "[settings_panel]")
     windowScaleSlider->setValue(4);
     REQUIRE(displaySpy.count() == 3);
 
-    auto* apertureMinSlider = panel.findChild<QSlider*>("apertureMinSlider");
-    apertureMinSlider->setValue(-40);
+    auto* apertureFloorSlider = panel.findChild<QSlider*>("apertureFloorSlider");
+    apertureFloorSlider->setValue(-40);
     REQUIRE(displaySpy.count() == 4);
 
-    auto* apertureMaxSlider = panel.findChild<QSlider*>("apertureMaxSlider");
-    apertureMaxSlider->setValue(15);
+    auto* apertureCeilingSlider = panel.findChild<QSlider*>("apertureCeilingSlider");
+    apertureCeilingSlider->setValue(15);
     REQUIRE(displaySpy.count() == 5);
 }
 

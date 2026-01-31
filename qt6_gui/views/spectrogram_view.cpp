@@ -115,11 +115,11 @@ RenderConfig
 SpectrogramView::GetRenderConfig(size_t aHeight) const
 {
     const auto& kSettings = mController.GetSettings();
-    const float kMinDecibels = kSettings.GetApertureMinDecibels();
-    const float kMaxDecibels = kSettings.GetApertureMaxDecibels();
-    const float kDecibelRange = kMaxDecibels - kMinDecibels;
+    const float kApertureFloorDecibels = kSettings.GetApertureFloorDecibels();
+    const float kApertureCeilingDecibels = kSettings.GetApertureCeilingDecibels();
+    const float kApertureRangeDecibels = kApertureCeilingDecibels - kApertureFloorDecibels;
     constexpr auto kColorMapMaxIndex = static_cast<float>(Settings::KColorMapLUTSize - 1);
-    const float kInverseDecibelRange = kColorMapMaxIndex / kDecibelRange;
+    const float kApertureRangeInverseDecibels = kColorMapMaxIndex / kApertureRangeDecibels;
     const ChannelCount kChannels = mController.GetChannelCount();
     const FFTSize kStride = kSettings.GetWindowStride();
 
@@ -141,10 +141,10 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
     return RenderConfig{ .channels = kChannels,
                          .stride = kStride,
                          .top_frame = kTopFrame,
-                         .min_decibels = kMinDecibels,
-                         .max_decibels = kMaxDecibels,
-                         .decibel_range = kDecibelRange,
-                         .inverse_decibel_range = kInverseDecibelRange,
+                         .aperture_floor_decibels = kApertureFloorDecibels,
+                         .aperture_ceiling_decibels = kApertureCeilingDecibels,
+                         .aperture_range_decibels = kApertureRangeDecibels,
+                         .aperture_range_inverse_decibels = kApertureRangeInverseDecibels,
                          .color_map_lut = kSettings.GetColorMapLUTs() };
 }
 
@@ -157,8 +157,9 @@ SpectrogramView::GenerateSpectrogramImage(int aWidth, int aHeight)
     const auto renderConfig = GetRenderConfig(aHeight);
 
     constexpr float kImplausiblySmallDecibelRange = 1e-6f;
-    if (std::abs(renderConfig.decibel_range) < kImplausiblySmallDecibelRange) {
-        // inverse_decibel_range is infinity.  We can't draw anything if the range is zero.
+    if (std::abs(renderConfig.aperture_range_decibels) < kImplausiblySmallDecibelRange) {
+        // aperture_range_inverse_decibels is infinity.  We can't draw anything if the range is
+        // zero.
         return image;
     }
 
@@ -192,8 +193,8 @@ SpectrogramView::GenerateSpectrogramImage(int aWidth, int aHeight)
             for (ChannelCount ch = 0; ch < renderConfig.channels; ch++) {
                 const float kDecibels = decibelsChannelRowBin[ch][y][x];
                 // Map to 0-255
-                auto colorMapIndex =
-                  (kDecibels - renderConfig.min_decibels) * renderConfig.inverse_decibel_range;
+                auto colorMapIndex = (kDecibels - renderConfig.aperture_floor_decibels) *
+                                     renderConfig.aperture_range_inverse_decibels;
                 constexpr auto kColorMapMaxIndex =
                   static_cast<float>(Settings::KColorMapLUTSize - 1);
                 colorMapIndex = std::clamp(colorMapIndex, 0.0f, kColorMapMaxIndex);

@@ -43,12 +43,12 @@ class SpectrumPlot : public QWidget
     // The vertical scale paramaters used by GenerateDecibelScaleMarkers().
     struct DecibelScaleParameters
     {
-        float aperture_min_decibels; // Passed through from settings
-        float aperture_max_decibels; // Passed through from settings
-        float pixels_per_decibel;    // May be negative for inverted scale
-        int decibel_step;            // May be negative for inverted scale
-        float top_marker_decibels;   // Decibel value of the topmost marker
-        int marker_count;            // Number of markers to generate
+        float aperture_floor_decibels;   // Passed through from settings
+        float aperture_ceiling_decibels; // Passed through from settings
+        float pixels_per_decibel;        // May be negative for inverted scale
+        int decibel_step;                // May be negative for inverted scale
+        float top_marker_decibels;       // Decibel value of the topmost marker
+        int marker_count;                // Number of markers to generate
 
         // Comparison and output operators for testing
         friend bool operator==(const DecibelScaleParameters& aLHS,
@@ -56,10 +56,10 @@ class SpectrumPlot : public QWidget
         friend std::ostream& operator<<(std::ostream& aOS, const DecibelScaleParameters& aParams)
         {
             aOS << std::format(
-              "DecibelScaleParameters(aperture_min_decibels={}, aperture_max_decibels={}, "
+              "DecibelScaleParameters(aperture_floor_decibels={}, aperture_ceiling_decibels={}, "
               "pixels_per_decibel={}, decibel_step={}, top_marker_decibels={}, marker_count={})",
-              aParams.aperture_min_decibels,
-              aParams.aperture_max_decibels,
+              aParams.aperture_floor_decibels,
+              aParams.aperture_ceiling_decibels,
               aParams.pixels_per_decibel,
               aParams.decibel_step,
               aParams.top_marker_decibels,

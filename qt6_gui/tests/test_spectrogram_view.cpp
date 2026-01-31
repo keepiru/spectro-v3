@@ -112,8 +112,8 @@ TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
 
     SECTION("generates a black image if aperture range is zero")
     {
-        settings.SetApertureMinDecibels(10.0f);
-        settings.SetApertureMaxDecibels(10.0f); // zero range
+        settings.SetApertureFloorDecibels(10.0f);
+        settings.SetApertureCeilingDecibels(10.0f); // zero range
 
         const QImage image = view.GenerateSpectrogramImage(256, 256);
 
@@ -135,8 +135,8 @@ TEST_CASE("SpectrogramView::GenerateSpectrogramImage", "[spectrogram_view]")
         // With this aperture and a linear colormap, the input samples 0..255 will
         // go through the mock FFT, become decibel ranges 0..255, and map directly
         // to RGB values.
-        settings.SetApertureMinDecibels(0);
-        settings.SetApertureMaxDecibels(255);
+        settings.SetApertureFloorDecibels(0);
+        settings.SetApertureCeilingDecibels(255);
 
         // Fill audio buffer with known samples
         audioBuffer.Reset(1, 44100);
@@ -214,8 +214,8 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
     SECTION("returns correct RenderConfig values")
     {
 
-        settings.SetApertureMinDecibels(-100.0f);
-        settings.SetApertureMaxDecibels(0.0f);
+        settings.SetApertureFloorDecibels(-100.0f);
+        settings.SetApertureCeilingDecibels(0.0f);
         settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
         settings.SetWindowScale(2); // stride = 1024
 
@@ -226,10 +226,10 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
             .channels = 2,
             .stride = 1024,
             .top_frame = FramePosition{ 0 },
-            .min_decibels = -100.0f,
-            .max_decibels = 0.0f,
-            .decibel_range = 100.0f,
-            .inverse_decibel_range = 2.55f,
+            .aperture_floor_decibels = -100.0f,
+            .aperture_ceiling_decibels = 0.0f,
+            .aperture_range_decibels = 100.0f,
+            .aperture_range_inverse_decibels = 2.55f,
             .color_map_lut = settings.GetColorMapLUTs(),
         };
 

@@ -101,7 +101,7 @@ SettingsPanel UI change -> Settings.SetFFTSize,SetWindowScale
 
 ### Display settings change
 ```
-SettingsPanel UI change -> Settings.SetApertureMinDecibels,SetApertureMaxDecibels,SetColorMap, etc
+SettingsPanel UI change -> Settings.SetApertureFloorDecibels,SetApertureCeilingDecibels,SetColorMap, etc
     DisplaySettingsChanged() signal
         Views refresh
 ```

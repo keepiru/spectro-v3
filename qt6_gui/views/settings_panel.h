@@ -42,10 +42,10 @@ class SettingsPanel : public QWidget
     QComboBox* mFFTSizeCombo = nullptr;
     QSlider* mWindowScaleSlider = nullptr;
     QLabel* mWindowScaleLabel = nullptr;
-    QSlider* mApertureMinSlider = nullptr;
-    QLabel* mApertureMinLabel = nullptr;
-    QSlider* mApertureMaxSlider = nullptr;
-    QLabel* mApertureMaxLabel = nullptr;
+    QSlider* mApertureFloorSlider = nullptr;
+    QLabel* mApertureFloorLabel = nullptr;
+    QSlider* mApertureCeilingSlider = nullptr;
+    QLabel* mApertureCeilingLabel = nullptr;
 
     static constexpr size_t KNumColorMapSelectors = 6;
     std::array<QComboBox*, KNumColorMapSelectors> mColorMapCombos = {};
@@ -71,8 +71,8 @@ class SettingsPanel : public QWidget
     void CreateApertureControls(class QFormLayout* aLayout);
     void CreateColorMapControls(class QFormLayout* aLayout);
     void UpdateWindowScaleLabel();
-    void UpdateApertureMinLabel();
-    void UpdateApertureMaxLabel();
+    void UpdateApertureFloorLabel();
+    void UpdateApertureCeilingLabel();
     void UpdateRecordingControlsEnabled(bool aIsRecording);
     void UpdateSampleRatesForDevice(const QAudioDevice& aDevice);
     void UpdateChannelRangeForDevice(const QAudioDevice& aDevice);

@@ -128,15 +128,15 @@ Settings::SetColorMap(ChannelCount aChannel, ColorMapType aType)
 }
 
 void
-Settings::SetApertureMinDecibels(const float aMinDecibels)
+Settings::SetApertureFloorDecibels(const float aFloorDecibels)
 {
-    mApertureMinDecibels = aMinDecibels;
+    mApertureFloorDecibels = aFloorDecibels;
     emit DisplaySettingsChanged();
 }
 
 void
-Settings::SetApertureMaxDecibels(const float aMaxDecibels)
+Settings::SetApertureCeilingDecibels(const float aCeilingDecibels)
 {
-    mApertureMaxDecibels = aMaxDecibels;
+    mApertureCeilingDecibels = aCeilingDecibels;
     emit DisplaySettingsChanged();
 }

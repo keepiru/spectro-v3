@@ -127,8 +127,8 @@ TEST_CASE("SpectrumPlot::ComputePoints", "[spectrum_plot]")
     SECTION("computes correct points for given decibel values")
     {
         const std::vector<float> decibels = { -100.0f, -50.0f, 0.0f, 50.0f, 100.0f };
-        settings.SetApertureMinDecibels(-100.0f);
-        settings.SetApertureMaxDecibels(100.0f);
+        settings.SetApertureFloorDecibels(-100.0f);
+        settings.SetApertureCeilingDecibels(100.0f);
 
         const QPolygonF have = plot.ComputePoints(decibels, 10, 100);
         REQUIRE(have.size() == decibels.size());
@@ -142,8 +142,8 @@ TEST_CASE("SpectrumPlot::ComputePoints", "[spectrum_plot]")
     SECTION("does not include points outside the given width")
     {
         const std::vector<float> decibels = { -100.0f, -50.0f, 0.0f, 50.0f, 100.0f };
-        settings.SetApertureMinDecibels(-100.0f);
-        settings.SetApertureMaxDecibels(100.0f);
+        settings.SetApertureFloorDecibels(-100.0f);
+        settings.SetApertureCeilingDecibels(100.0f);
 
         const QPolygonF have = plot.ComputePoints(decibels, 3, 100);
         REQUIRE(have.size() == 3);
@@ -155,8 +155,8 @@ TEST_CASE("SpectrumPlot::ComputePoints", "[spectrum_plot]")
     SECTION("returns empty polygon if decibel range is zero")
     {
         const std::vector<float> decibels = { -50.0f, -50.0f, -50.0f };
-        settings.SetApertureMinDecibels(-50.0f);
-        settings.SetApertureMaxDecibels(-50.0f);
+        settings.SetApertureFloorDecibels(-50.0f);
+        settings.SetApertureCeilingDecibels(-50.0f);
 
         const QPolygonF have = plot.ComputePoints(decibels, 10, 100);
         REQUIRE(have.empty());
@@ -172,13 +172,13 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
 
     SECTION("returns correct markers for given height and width")
     {
-        settings.SetApertureMinDecibels(-60.0f);
-        settings.SetApertureMaxDecibels(0.0f);
+        settings.SetApertureFloorDecibels(-60.0f);
+        settings.SetApertureCeilingDecibels(0.0f);
 
         const auto params = plot.CalculateDecibelScaleParameters(120);
         const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
-            .aperture_min_decibels = -60.0f,
-            .aperture_max_decibels = 0.0f,
+            .aperture_floor_decibels = -60.0f,
+            .aperture_ceiling_decibels = 0.0f,
             .pixels_per_decibel = 2.0f,
             .decibel_step = 10,
             .top_marker_decibels = 0.0f,
@@ -200,13 +200,13 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
 
     SECTION("handles zero height")
     {
-        settings.SetApertureMinDecibels(-60.0f);
-        settings.SetApertureMaxDecibels(0.0f);
+        settings.SetApertureFloorDecibels(-60.0f);
+        settings.SetApertureCeilingDecibels(0.0f);
 
         const auto params = plot.CalculateDecibelScaleParameters(0);
         const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
-            .aperture_min_decibels = -60.0f,
-            .aperture_max_decibels = 0.0f,
+            .aperture_floor_decibels = -60.0f,
+            .aperture_ceiling_decibels = 0.0f,
             .pixels_per_decibel = 0.0f,
             .decibel_step = 50,
             .top_marker_decibels = 0.0f,
@@ -223,13 +223,13 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
 
     SECTION("handles small aperture")
     {
-        settings.SetApertureMinDecibels(-1.0f);
-        settings.SetApertureMaxDecibels(1.0f);
+        settings.SetApertureFloorDecibels(-1.0f);
+        settings.SetApertureCeilingDecibels(1.0f);
 
         const auto params = plot.CalculateDecibelScaleParameters(120);
         const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
-            .aperture_min_decibels = -1.0f,
-            .aperture_max_decibels = 1.0f,
+            .aperture_floor_decibels = -1.0f,
+            .aperture_ceiling_decibels = 1.0f,
             .pixels_per_decibel = 60.0f,
             .decibel_step = 1,
             .top_marker_decibels = 1.0f,
@@ -247,13 +247,13 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
 
     SECTION("handles inverted aperture")
     {
-        settings.SetApertureMinDecibels(0.0f);
-        settings.SetApertureMaxDecibels(-60.0f);
+        settings.SetApertureFloorDecibels(0.0f);
+        settings.SetApertureCeilingDecibels(-60.0f);
 
         const auto params = plot.CalculateDecibelScaleParameters(120);
         const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
-            .aperture_min_decibels = 0.0f,
-            .aperture_max_decibels = -60.0f,
+            .aperture_floor_decibels = 0.0f,
+            .aperture_ceiling_decibels = -60.0f,
             .pixels_per_decibel = -2.0f,
             .decibel_step = -10,
             .top_marker_decibels = -60.0f,
@@ -273,15 +273,15 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
 
-    SECTION("handles equal min and max aperture")
+    SECTION("handles equal floor and ceiling aperture")
     {
-        settings.SetApertureMinDecibels(-50.0f);
-        settings.SetApertureMaxDecibels(-50.0f);
+        settings.SetApertureFloorDecibels(-50.0f);
+        settings.SetApertureCeilingDecibels(-50.0f);
 
         const auto params = plot.CalculateDecibelScaleParameters(120);
         const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
-            .aperture_min_decibels = -50.0f,
-            .aperture_max_decibels = -50.0f,
+            .aperture_floor_decibels = -50.0f,
+            .aperture_ceiling_decibels = -50.0f,
             .pixels_per_decibel = 0.0f,
             .decibel_step = 0,
             .top_marker_decibels = 0.0f,
@@ -306,11 +306,11 @@ TEST_CASE("SpectrumPlot::CalculateDecibelScaleParameters", "[spectrum_plot]")
 
     SECTION("computes correct parameters for normal aperture")
     {
-        settings.SetApertureMinDecibels(-60.0f);
-        settings.SetApertureMaxDecibels(0.0f);
+        settings.SetApertureFloorDecibels(-60.0f);
+        settings.SetApertureCeilingDecibels(0.0f);
         const TestableSpectrumPlot::DecibelScaleParameters want = {
-            .aperture_min_decibels = -60.0f,
-            .aperture_max_decibels = 0.0f,
+            .aperture_floor_decibels = -60.0f,
+            .aperture_ceiling_decibels = 0.0f,
             .pixels_per_decibel = 2.0f,
             .decibel_step = 10,
             .top_marker_decibels = 0.0f,
@@ -330,8 +330,8 @@ TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
 
     SECTION("computes correct crosshair at center of widget")
     {
-        settings.SetApertureMinDecibels(-100.0f);
-        settings.SetApertureMaxDecibels(0.0f);
+        settings.SetApertureFloorDecibels(-100.0f);
+        settings.SetApertureCeilingDecibels(0.0f);
 
         const int kWidth = 512;
         const int kHeight = 200;
@@ -357,8 +357,8 @@ TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
 
     SECTION("computes correct crosshair at top left corner")
     {
-        settings.SetApertureMinDecibels(-100.0f);
-        settings.SetApertureMaxDecibels(0.0f);
+        settings.SetApertureFloorDecibels(-100.0f);
+        settings.SetApertureCeilingDecibels(0.0f);
 
         const int kWidth = 512;
         const int kHeight = 200;
@@ -382,8 +382,8 @@ TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
 
     SECTION("computes correct crosshair at bottom right corner")
     {
-        settings.SetApertureMinDecibels(-100.0f);
-        settings.SetApertureMaxDecibels(0.0f);
+        settings.SetApertureFloorDecibels(-100.0f);
+        settings.SetApertureCeilingDecibels(0.0f);
 
         const int kWidth = 512;
         const int kHeight = 200;
@@ -408,8 +408,8 @@ TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
 
     SECTION("handles different aperture ranges")
     {
-        settings.SetApertureMinDecibels(-60.0f);
-        settings.SetApertureMaxDecibels(-20.0f);
+        settings.SetApertureFloorDecibels(-60.0f);
+        settings.SetApertureCeilingDecibels(-20.0f);
 
         const int kWidth = 400;
         const int kHeight = 100;
@@ -426,8 +426,8 @@ TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
 
     SECTION("handles inverted aperture")
     {
-        settings.SetApertureMinDecibels(0.0f);
-        settings.SetApertureMaxDecibels(-100.0f);
+        settings.SetApertureFloorDecibels(0.0f);
+        settings.SetApertureCeilingDecibels(-100.0f);
 
         const int kWidth = 512;
         const int kHeight = 200;
@@ -467,31 +467,31 @@ TEST_CASE("SpectrumPlot::DecibelScaleParameters stream output operator", "[spect
 
     SECTION("formats parameters correctly")
     {
-        const DecibelScaleParameters params{ .aperture_min_decibels = -80.0F,
-                                             .aperture_max_decibels = 0.0F,
+        const DecibelScaleParameters params{ .aperture_floor_decibels = -80.0F,
+                                             .aperture_ceiling_decibels = 0.0F,
                                              .pixels_per_decibel = 2.5F,
                                              .decibel_step = 10,
                                              .top_marker_decibels = -10.0F,
                                              .marker_count = 8 };
         std::ostringstream oss;
         oss << params;
-        CHECK(oss.str() == "DecibelScaleParameters(aperture_min_decibels=-80, "
-                           "aperture_max_decibels=0, pixels_per_decibel=2.5, "
+        CHECK(oss.str() == "DecibelScaleParameters(aperture_floor_decibels=-80, "
+                           "aperture_ceiling_decibels=0, pixels_per_decibel=2.5, "
                            "decibel_step=10, top_marker_decibels=-10, marker_count=8)");
     }
 
     SECTION("formats parameters with negative step")
     {
-        const DecibelScaleParameters params{ .aperture_min_decibels = 0.0F,
-                                             .aperture_max_decibels = -80.0F,
+        const DecibelScaleParameters params{ .aperture_floor_decibels = 0.0F,
+                                             .aperture_ceiling_decibels = -80.0F,
                                              .pixels_per_decibel = -2.5F,
                                              .decibel_step = -10,
                                              .top_marker_decibels = 0.0F,
                                              .marker_count = 8 };
         std::ostringstream oss;
         oss << params;
-        CHECK(oss.str() == "DecibelScaleParameters(aperture_min_decibels=0, "
-                           "aperture_max_decibels=-80, pixels_per_decibel=-2.5, "
+        CHECK(oss.str() == "DecibelScaleParameters(aperture_floor_decibels=0, "
+                           "aperture_ceiling_decibels=-80, pixels_per_decibel=-2.5, "
                            "decibel_step=-10, top_marker_decibels=0, marker_count=8)");
     }
 }
@@ -577,9 +577,9 @@ TEST_CASE("SpectrumPlot::paintEvent", "[spectrum_plot]")
             { -50.0f, -50.0f } // Equal (edge case)
         };
 
-        for (const auto& [minDb, maxDb] : apertureRanges) {
-            settings.SetApertureMinDecibels(minDb);
-            settings.SetApertureMaxDecibels(maxDb);
+        for (const auto& [floorDb, ceilingDb] : apertureRanges) {
+            settings.SetApertureFloorDecibels(floorDb);
+            settings.SetApertureCeilingDecibels(ceilingDb);
 
             CHECK_NOTHROW(plot.render(&painter));
         }

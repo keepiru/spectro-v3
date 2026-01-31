@@ -49,9 +49,9 @@ SpectrumPlot::ComputePoints(const std::vector<float>& aDecibels,
     QPolygonF points;
     points.reserve(static_cast<qsizetype>(aDecibels.size()));
 
-    const float kApertureMinDecibels = mController.GetSettings().GetApertureMinDecibels();
-    const float kApertureMaxDecibels = mController.GetSettings().GetApertureMaxDecibels();
-    const float kDecibelRange = kApertureMaxDecibels - kApertureMinDecibels;
+    const float kApertureFloorDecibels = mController.GetSettings().GetApertureFloorDecibels();
+    const float kApertureCeilingDecibels = mController.GetSettings().GetApertureCeilingDecibels();
+    const float kDecibelRange = kApertureCeilingDecibels - kApertureFloorDecibels;
     const float kImplausiblySmallDecibelRange = 1e-6f;
     if (std::abs(kDecibelRange) < kImplausiblySmallDecibelRange) {
         // We can't draw anything if the range is zero.
@@ -62,7 +62,7 @@ SpectrumPlot::ComputePoints(const std::vector<float>& aDecibels,
     const size_t kMaxX = std::min(aWidth, aDecibels.size());
     for (size_t x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
         const float kNormalizedDecibels =
-          (aDecibels[x] - kApertureMinDecibels) * kInverseDecibelRange;
+          (aDecibels[x] - kApertureFloorDecibels) * kInverseDecibelRange;
         const float kYCoordinate =
           static_cast<float>(aHeight) - (kNormalizedDecibels * static_cast<float>(aHeight));
         points.emplace_back(static_cast<float>(x), kYCoordinate);
@@ -131,15 +131,15 @@ SpectrumPlot::CalculateDecibelScaleParameters(const int aHeight) const
 {
     // Compute the marker positions and spacing
     const auto& kSettings = mController.GetSettings();
-    const float kApertureMinDecibels = kSettings.GetApertureMinDecibels();
-    const float kApertureMaxDecibels = kSettings.GetApertureMaxDecibels();
+    const float kApertureFloorDecibels = kSettings.GetApertureFloorDecibels();
+    const float kApertureCeilingDecibels = kSettings.GetApertureCeilingDecibels();
 
-    if (kApertureMinDecibels == kApertureMaxDecibels) {
+    if (kApertureFloorDecibels == kApertureCeilingDecibels) {
         // Can't compute markers if the range is zero.  We'll set .marker_count
         // to 0, which will cause GenerateDecibelScaleMarkers() to return an
         // empty vector.
-        return { .aperture_min_decibels = kApertureMinDecibels,
-                 .aperture_max_decibels = kApertureMaxDecibels,
+        return { .aperture_floor_decibels = kApertureFloorDecibels,
+                 .aperture_ceiling_decibels = kApertureCeilingDecibels,
                  .pixels_per_decibel = 0.0f,
                  .decibel_step = 0,
                  .top_marker_decibels = 0.0f,
@@ -148,7 +148,7 @@ SpectrumPlot::CalculateDecibelScaleParameters(const int aHeight) const
 
     // Pixels per decibel - may be negative if min > max
     const float kPixelsPerDecibel =
-      static_cast<float>(aHeight) / (kApertureMaxDecibels - kApertureMinDecibels);
+      static_cast<float>(aHeight) / (kApertureCeilingDecibels - kApertureFloorDecibels);
 
     // Choose the smallest step which ensures minimum spacing
     constexpr int kMinSpacingPx = 20;
@@ -170,13 +170,13 @@ SpectrumPlot::CalculateDecibelScaleParameters(const int aHeight) const
     }
 
     const float kTopMarkerDecibels =
-      std::ceil(kApertureMaxDecibels / static_cast<float>(decibelStep)) *
+      std::ceil(kApertureCeilingDecibels / static_cast<float>(decibelStep)) *
       static_cast<float>(decibelStep);
     const int kMarkerCount =
-      (static_cast<int>(kApertureMaxDecibels - kApertureMinDecibels) / decibelStep) + 1;
+      (static_cast<int>(kApertureCeilingDecibels - kApertureFloorDecibels) / decibelStep) + 1;
 
-    return { .aperture_min_decibels = kApertureMinDecibels,
-             .aperture_max_decibels = kApertureMaxDecibels,
+    return { .aperture_floor_decibels = kApertureFloorDecibels,
+             .aperture_ceiling_decibels = kApertureCeilingDecibels,
              .pixels_per_decibel = kPixelsPerDecibel,
              .decibel_step = decibelStep,
              .top_marker_decibels = kTopMarkerDecibels,
@@ -206,8 +206,8 @@ SpectrumPlot::GenerateDecibelScaleMarkers(const DecibelScaleParameters& aParams,
         // Compute the Y position for this decibel level
         const float kDecibels =
           aParams.top_marker_decibels - static_cast<float>(i * aParams.decibel_step);
-        const auto kYPosition = static_cast<int32_t>((aParams.aperture_max_decibels - kDecibels) *
-                                                     aParams.pixels_per_decibel);
+        const auto kYPosition = static_cast<int32_t>(
+          (aParams.aperture_ceiling_decibels - kDecibels) * aParams.pixels_per_decibel);
 
         const QLine kTickLine(aWidth - kTickMarkWidth, kYPosition, aWidth, kYPosition);
         const QRect kLabelRect(
@@ -244,12 +244,12 @@ SpectrumPlot::ComputeCrosshair(QPoint aMousePos, int aHeight, int aWidth) const
 
     // Compute decibel value at mouse Y position
     const auto& kSettings = mController.GetSettings();
-    const float kApertureMinDecibels = kSettings.GetApertureMinDecibels();
-    const float kApertureMaxDecibels = kSettings.GetApertureMaxDecibels();
-    const float kDecibelRange = kApertureMaxDecibels - kApertureMinDecibels;
+    const float kApertureFloorDecibels = kSettings.GetApertureFloorDecibels();
+    const float kApertureCeilingDecibels = kSettings.GetApertureCeilingDecibels();
+    const float kDecibelRange = kApertureCeilingDecibels - kApertureFloorDecibels;
     const float kNormalizedY =
       1.0f - (static_cast<float>(aMousePos.y()) / static_cast<float>(aHeight));
-    const float kDecibelValue = kApertureMinDecibels + (kNormalizedY * kDecibelRange);
+    const float kDecibelValue = kApertureFloorDecibels + (kNormalizedY * kDecibelRange);
     const QString kDecibelText = QString::number(static_cast<int>(kDecibelValue)) + " dB";
 
     const Marker kDecibelMarker{ .line = kDecibelLine,

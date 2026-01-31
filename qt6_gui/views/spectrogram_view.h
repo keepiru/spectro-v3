@@ -24,10 +24,10 @@ struct RenderConfig
     ChannelCount channels{};
     FFTSize stride;
     FramePosition top_frame;
-    float min_decibels{};
-    float max_decibels{};
-    float decibel_range{};
-    float inverse_decibel_range{};
+    float aperture_floor_decibels{};
+    float aperture_ceiling_decibels{};
+    float aperture_range_decibels{};
+    float aperture_range_inverse_decibels{};
     const Settings::ColorMapLUTs& color_map_lut;
 
     /// @brief Debugging/testing helper for inspecting RenderConfig instances.
@@ -37,18 +37,18 @@ struct RenderConfig
     /// comparison of render parameters is needed.
     friend std::string ToString(const RenderConfig& config)
     {
-        return std::format(
-          "RenderConfig{{\n channels={}\n stride={}\n top_frame={}\n "
-          "min_decibels={}\n max_decibels={}\n decibel_range={}\n inverse_decibel_range={}\n "
-          "color_map_lut_ref=<ptr:{}>}}",
-          config.channels,
-          config.stride.Get(),
-          config.top_frame.Get(),
-          config.min_decibels,
-          config.max_decibels,
-          config.decibel_range,
-          config.inverse_decibel_range,
-          static_cast<const void*>(&config.color_map_lut));
+        return std::format("RenderConfig{{\n channels={}\n stride={}\n top_frame={}\n "
+                           "aperture_floor_decibels={}\n aperture_ceiling_decibels={}\n "
+                           "aperture_range_decibels={}\n aperture_range_inverse_decibels={}\n "
+                           "color_map_lut_ref=<ptr:{}>}}",
+                           config.channels,
+                           config.stride.Get(),
+                           config.top_frame.Get(),
+                           config.aperture_floor_decibels,
+                           config.aperture_ceiling_decibels,
+                           config.aperture_range_decibels,
+                           config.aperture_range_inverse_decibels,
+                           static_cast<const void*>(&config.color_map_lut));
     }
 };
 

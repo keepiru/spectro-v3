@@ -5,6 +5,7 @@
 #include "spectrogram_view.h"
 #include "controllers/spectrogram_controller.h"
 #include "include/global_constants.h"
+#include "models/colormap.h"
 #include "models/settings.h"
 #include <QAbstractScrollArea>
 #include <QCursor>
@@ -203,7 +204,7 @@ SpectrogramView::GenerateSpectrogramImage(int aWidth, int aHeight)
                 // and kChannels is asserted above to be <= GKMaxChannels.
                 // colorMapIndex is clamped to 0-255 above, and the static_cast
                 // to uint8_t guarantees that as well.
-                const Settings::ColorMapEntry kColor =
+                const ColorMap::Entry kColor =
                   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
                   renderConfig.color_map_lut[ch][static_cast<uint8_t>(colorMapIndex)];
                 r += kColor.r;

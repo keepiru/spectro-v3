@@ -31,19 +31,7 @@ class Settings : public QObject
     static constexpr std::array<FFTSize, 6> KValidFFTSizes{ 512, 1024, 2048, 4096, 8192, 16384 };
     static constexpr std::pair<int16_t, int16_t> KApertureLimitsDecibels = { -80, 100 };
 
-    /// @brief Lightweight RGB color representation for LUT
-    ///
-    /// Used in the color map lookup table (LUT) to represent colors as raw 8-bit
-    /// RGB values. This avoids repeated qRgb() calls in the hot path when
-    /// rendering the spectrogram.
-    struct ColorMapEntry
-    {
-        uint8_t r;
-        uint8_t g;
-        uint8_t b;
-    };
-
-    using ColorMapLUTs = std::array<std::array<ColorMapEntry, KColorMapLUTSize>, GKMaxChannels>;
+    using ColorMapLUTs = std::array<std::array<ColorMap::Entry, KColorMapLUTSize>, GKMaxChannels>;
 
     explicit Settings(QObject* aParent = nullptr);
 
@@ -122,7 +110,7 @@ class Settings : public QObject
     ///
     /// This is used to test LUT generation.  Prod code accesses the array
     /// directly for performance.
-    [[nodiscard]] ColorMapEntry GetColorMapValue(ChannelCount aChannel, uint8_t aIndex) const
+    [[nodiscard]] ColorMap::Entry GetColorMapValue(ChannelCount aChannel, uint8_t aIndex) const
     {
         return mColorMapLUTs.at(aChannel).at(aIndex);
     }

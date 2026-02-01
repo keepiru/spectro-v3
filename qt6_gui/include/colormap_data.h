@@ -28,12 +28,12 @@
 
 #pragma once
 
-#include "models/settings.h"
+#include "models/colormap.h"
 #include <array>
 
 /// @brief Viridis colormap lookup table (256 entries)
 /// @copyright CC0 1.0 - Nathaniel J. Smith, Stefan van der Walt, Eric Firing
-constexpr std::array<Settings::ColorMapEntry, 256> GKViridisLUT = {{
+constexpr std::array<ColorMap::Entry, 256> GKViridisLUT = {{
     { 68,   1,  84}, { 68,   2,  86}, { 69,   4,  87}, { 69,   5,  89},
     { 70,   7,  90}, { 70,   8,  92}, { 70,  10,  93}, { 70,  11,  94},
     { 71,  13,  96}, { 71,  14,  97}, { 71,  16,  99}, { 71,  17, 100},
@@ -102,7 +102,7 @@ constexpr std::array<Settings::ColorMapEntry, 256> GKViridisLUT = {{
 
 /// @brief Plasma colormap lookup table (256 entries)
 /// @copyright CC0 1.0 - Nathaniel J. Smith, Stefan van der Walt
-constexpr std::array<Settings::ColorMapEntry, 256> GKPlasmaLUT = {{
+constexpr std::array<ColorMap::Entry, 256> GKPlasmaLUT = {{
     { 13,   8, 135}, { 16,   7, 136}, { 19,   7, 137}, { 22,   7, 138},
     { 25,   6, 140}, { 27,   6, 141}, { 29,   6, 142}, { 32,   6, 143},
     { 34,   6, 144}, { 36,   6, 145}, { 38,   5, 145}, { 40,   5, 146},
@@ -171,7 +171,7 @@ constexpr std::array<Settings::ColorMapEntry, 256> GKPlasmaLUT = {{
 
 /// @brief Inferno colormap lookup table (256 entries)
 /// @copyright CC0 1.0 - Nathaniel J. Smith, Stefan van der Walt
-constexpr std::array<Settings::ColorMapEntry, 256> GKInfernoLUT = {{
+constexpr std::array<ColorMap::Entry, 256> GKInfernoLUT = {{
     {  0,   0,   4}, {  1,   0,   5}, {  1,   1,   6}, {  1,   1,   8},
     {  2,   1,  10}, {  2,   2,  12}, {  2,   2,  14}, {  3,   2,  16},
     {  4,   3,  18}, {  4,   3,  20}, {  5,   4,  23}, {  6,   4,  25},
@@ -240,7 +240,7 @@ constexpr std::array<Settings::ColorMapEntry, 256> GKInfernoLUT = {{
 
 /// @brief Magma colormap lookup table (256 entries)
 /// @copyright CC0 1.0 - Nathaniel J. Smith, Stefan van der Walt
-constexpr std::array<Settings::ColorMapEntry, 256> GKMagmaLUT = {{
+constexpr std::array<ColorMap::Entry, 256> GKMagmaLUT = {{
     {  0,   0,   4}, {  1,   0,   5}, {  1,   1,   6}, {  1,   1,   8},
     {  2,   1,   9}, {  2,   2,  11}, {  2,   2,  13}, {  3,   3,  15},
     {  3,   3,  18}, {  4,   4,  20}, {  5,   4,  22}, {  6,   5,  24},
@@ -309,7 +309,7 @@ constexpr std::array<Settings::ColorMapEntry, 256> GKMagmaLUT = {{
 
 /// @brief Turbo colormap lookup table (256 entries)
 /// @copyright Apache-2.0 - 2019 Google LLC
-constexpr std::array<Settings::ColorMapEntry, 256> GKTurboLUT = {{
+constexpr std::array<ColorMap::Entry, 256> GKTurboLUT = {{
     { 48,  18,  59}, { 50,  21,  67}, { 51,  24,  74}, { 52,  27,  81},
     { 53,  30,  88}, { 54,  33,  95}, { 55,  36, 102}, { 56,  39, 109},
     { 57,  42, 115}, { 58,  45, 121}, { 59,  47, 128}, { 60,  50, 134},
@@ -378,7 +378,7 @@ constexpr std::array<Settings::ColorMapEntry, 256> GKTurboLUT = {{
 
 /// @brief Cividis colormap lookup table (256 entries)
 /// @copyright PSF-style - Matplotlib Development Team
-constexpr std::array<Settings::ColorMapEntry, 256> GKCividisLUT = {{
+constexpr std::array<ColorMap::Entry, 256> GKCividisLUT = {{
     {  0,  34,  78}, {  0,  35,  79}, {  0,  36,  81}, {  0,  37,  83},
     {  0,  37,  84}, {  0,  38,  86}, {  0,  39,  88}, {  0,  40,  89},
     {  0,  40,  91}, {  0,  41,  93}, {  0,  42,  95}, {  0,  42,  97},
@@ -447,7 +447,7 @@ constexpr std::array<Settings::ColorMapEntry, 256> GKCividisLUT = {{
 
 /// @brief Hot colormap lookup table (256 entries)
 /// @copyright PSF-style - Matplotlib Development Team
-constexpr std::array<Settings::ColorMapEntry, 256> GKHotLUT = {{
+constexpr std::array<ColorMap::Entry, 256> GKHotLUT = {{
     { 11,   0,   0}, { 13,   0,   0}, { 16,   0,   0}, { 18,   0,   0},
     { 21,   0,   0}, { 24,   0,   0}, { 26,   0,   0}, { 29,   0,   0},
     { 32,   0,   0}, { 34,   0,   0}, { 37,   0,   0}, { 39,   0,   0},
@@ -516,7 +516,7 @@ constexpr std::array<Settings::ColorMapEntry, 256> GKHotLUT = {{
 
 /// @brief Cool colormap lookup table (256 entries)
 /// @copyright PSF-style - Matplotlib Development Team
-constexpr std::array<Settings::ColorMapEntry, 256> GKCoolLUT = {{
+constexpr std::array<ColorMap::Entry, 256> GKCoolLUT = {{
     {  0, 255, 255}, {  1, 254, 255}, {  2, 253, 255}, {  3, 252, 255},
     {  4, 251, 255}, {  5, 250, 255}, {  6, 249, 255}, {  7, 248, 255},
     {  8, 247, 255}, {  9, 246, 255}, { 10, 245, 255}, { 11, 244, 255},
@@ -585,7 +585,7 @@ constexpr std::array<Settings::ColorMapEntry, 256> GKCoolLUT = {{
 
 /// @brief Twilight colormap lookup table (256 entries)
 /// @copyright PSF-style - Matplotlib Development Team
-constexpr std::array<Settings::ColorMapEntry, 256> GKTwilightLUT = {{
+constexpr std::array<ColorMap::Entry, 256> GKTwilightLUT = {{
     {226, 217, 226}, {225, 217, 226}, {224, 217, 226}, {222, 217, 225},
     {221, 217, 224}, {220, 217, 223}, {218, 216, 223}, {216, 216, 222},
     {214, 215, 221}, {212, 214, 220}, {210, 213, 219}, {208, 212, 217},
@@ -654,7 +654,7 @@ constexpr std::array<Settings::ColorMapEntry, 256> GKTwilightLUT = {{
 
 /// @brief Seismic colormap lookup table (256 entries)
 /// @copyright PSF-style - Matplotlib Development Team
-constexpr std::array<Settings::ColorMapEntry, 256> GKSeismicLUT = {{
+constexpr std::array<ColorMap::Entry, 256> GKSeismicLUT = {{
     {  0,   0,  76}, {  0,   0,  79}, {  0,   0,  82}, {  0,   0,  85},
     {  0,   0,  88}, {  0,   0,  90}, {  0,   0,  93}, {  0,   0,  96},
     {  0,   0,  99}, {  0,   0, 102}, {  0,   0, 104}, {  0,   0, 107},
@@ -723,7 +723,7 @@ constexpr std::array<Settings::ColorMapEntry, 256> GKSeismicLUT = {{
 
 /// @brief Jet colormap lookup table (256 entries)
 /// @copyright PSF-style - Matplotlib Development Team
-constexpr std::array<Settings::ColorMapEntry, 256> GKJetLUT = {{
+constexpr std::array<ColorMap::Entry, 256> GKJetLUT = {{
     {  0,   0, 128}, {  0,   0, 132}, {  0,   0, 137}, {  0,   0, 141},
     {  0,   0, 146}, {  0,   0, 150}, {  0,   0, 155}, {  0,   0, 159},
     {  0,   0, 164}, {  0,   0, 168}, {  0,   0, 173}, {  0,   0, 178},

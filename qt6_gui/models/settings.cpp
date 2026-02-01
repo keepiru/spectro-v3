@@ -55,9 +55,9 @@ Settings::SetColorMap(ChannelCount aChannel, ColorMap::Type aType)
         for (size_t i = 0; i < KColorMapLUTSize; i++) {
             const auto intensity = static_cast<uint8_t>(i);
             mColorMapLUTs.at(aChannel).at(i) =
-              ColorMapEntry{ .r = enableRed ? intensity : uint8_t{ 0 },
-                             .g = enableGreen ? intensity : uint8_t{ 0 },
-                             .b = enableBlue ? intensity : uint8_t{ 0 } };
+              ColorMap::Entry{ .r = enableRed ? intensity : uint8_t{ 0 },
+                               .g = enableGreen ? intensity : uint8_t{ 0 },
+                               .b = enableBlue ? intensity : uint8_t{ 0 } };
         }
     };
 

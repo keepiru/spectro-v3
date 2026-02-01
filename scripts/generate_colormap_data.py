@@ -8,7 +8,7 @@ Generate colormap LUT data for spectro-v3 from matplotlib colormaps.
 
 This script extracts RGB values from matplotlib's perceptually uniform
 colormaps (viridis, plasma, inferno, magma) and generates a C++ header
-file with pre-computed ColorMapEntry arrays ready for direct use.
+file with pre-computed ColorMap::Entry arrays ready for direct use.
 
 Usage:
     python3 scripts/generate_colormap_data.py
@@ -80,7 +80,7 @@ def format_colormap_cpp(
 
     output = f"/// @brief {name.capitalize()} colormap lookup table (256 entries)\n"
     output += f"/// @copyright {copyright_info}\n"
-    output += f"constexpr std::array<Settings::ColorMapEntry, 256> {identifier} = {{{{"
+    output += f"constexpr std::array<ColorMap::Entry, 256> {identifier} = {{{{"
 
     # Format entries, 4 per line for readability
     for i, (r, g, b) in enumerate(rgb_values):
@@ -131,7 +131,7 @@ def generate_header(output_path: Path) -> None:
         "",
         "#pragma once",
         "",
-        '#include "models/settings.h"',
+        '#include "models/colormap.h"',
         "#include <array>",
         "",
     ]

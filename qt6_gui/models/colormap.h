@@ -14,6 +14,18 @@ class ColorMap
 {
 
   public:
+    /// @brief Lightweight RGB color representation for LUT
+    ///
+    /// Used in the color map lookup table (LUT) to represent colors as raw 8-bit
+    /// RGB values. This avoids repeated qRgb() calls in the hot path when
+    /// rendering the spectrogram.
+    struct Entry
+    {
+        uint8_t r;
+        uint8_t g;
+        uint8_t b;
+    };
+
     enum class Type : uint8_t
     {
         Disabled,

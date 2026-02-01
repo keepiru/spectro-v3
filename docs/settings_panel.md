@@ -1,5 +1,51 @@
 # Settings panel implementation notes
 
+```
++---------------------------------------------------------------+
+|                   SETTINGS PANEL                              |
+|                      (QVBoxLayout)                            |
++---------------------------------------------------------------+
+|                                                               |
+|  +-- Audio Source (QGroupBox) -----------------------------+  |
+|  |                                                         |  |
+|  |                  [ Open file ]                          |  |
+|  |                                                         |  |
+|  |  +-- QFormLayout --+----------------------------+       |  |
+|  |  |  Audio Device:  | [v Default Input Device ]  |       |  |
+|  |  |  Sample Rate:   | [v 44100 Hz             ]  |       |  |
+|  |  |  Channels:      | [v 2                    ]  |       |  |
+|  |  +-----------------+----------------------------+       |  |
+|  |                                                         |  |
+|  |                  [ Start Recording ]                    |  |
+|  |                                                         |  |
+|  +---------------------------------------------------------+  |
+|                                                               |
+|  +-- FFT (QGroupBox) --------------------------------------+  |
+|  |  +-- QFormLayout ------+-----------------------------+  |  |
+|  |  |  Window Type:       | [v Hann                  ]  |  |  |
+|  |  |  FFT Size:          | [v 2048                  ]  |  |  |
+|  |  |  Window Scale:      | [-----o-------------]  2    |  |  |
+|  |  |  Aperture Floor:    | [----o--------------] -20   |  |  |
+|  |  |  Aperture Ceiling:  | [-----------o-------]  40   |  |  |
+|  |  +---------------------+-----------------------------+  |  |
+|  +---------------------------------------------------------+  |
+|                                                               |
+|  +-- Color Map (QGroupBox) -------------------------------+   |
+|  |  +-- QFormLayout +----------------------------------+  |   |
+|  |  |  Color Map 1: | [v Viridis  ][################]  |  |   |
+|  |  |  Color Map 2: | [v Plasma   ][################]  |  |   |
+|  |  +---------------+----------------------------------+  |   |
+|  +--------------------------------------------------------+   |
+|                                                               |
+|  +-- Display (QGroupBox) ---------------------------------+   |
+|  |                                                        |   |
+|  |           [ Live Mode ]                                |   |
+|  |                                                        |   |
+|  +--------------------------------------------------------+   |
+|                                                               |
++---------------------------------------------------------------+
+```
+
 Include comprehensive tests.
 
 Make sure to name elements so you can reference them in tests.
@@ -14,26 +60,45 @@ It should include these elements:
 
 Audio controls are disabled (grayed out) while recording is active.
 
-| Control      | Widget        | Description                                                           |
-|--------------|---------------|-----------------------------------------------------------------------|
-| Audio Device | `QComboBox`   | Select audio input device                                             |
-| Sample Rate  | `QComboBox`   | Select sample rate (populated based on device capabilities)           |
-| Channels     | `QSpinBox`    | Number of channels (range limited by device capabilities, max 6)      |
-| Recording    | `QPushButton` | Start/Stop recording toggle                                           |
+- Pulldown: Audio Device
+  - values from QMediaDevices::audioInputs()
+- Pulldown: Sample rate
+  - values from QAudioDevice::supportedSampleRates()
+  - update when Audio Device changes
+- Pulldown: Channels
+  - populate from device
+  - clamp to GKMaxChannels
+- Button: Start/Stop Recording toggle
 
 ## FFT Controls
 
 - Pulldown: "Window Type"
-- Pulldown: "FFT Size" - values from Settings::KValidFFTSizes
+  - values from FFTWindow::Type
+  - default Settings::GetWindowType()
+- Pulldown: "FFT Size"
+  - values from Settings::KValidFFTSizes
+  - default Settings::GetFFTSize()
 - Slider: "Window Scale"
-- Slider: Aperture Floor - from Settings::KApertureLimitsDecibels
-- Slider: Aperture Ceiling - from Settings::KApertureLimtisDecibels
+  - range Settings::KValidWindowScales
+  - default Settings::GetWindowScale()
+- Slider: Aperture Floor
+  - range Settings::KApertureLimitsDecibels
+  - default Settings::GetApertureFloorDecibels
+- Slider: Aperture Ceiling
+  - range Settings::KApertureLimitsDecibels
+  - default Settings::GetApertureCeilingDecibels
 
 ## Color Map Controls
 
-- 6 pulldowns for colormaps:
+- pulldowns for colormaps:
   - Name
   - 128x16 Icon showing a sample of the gradient: setIconSize(QSize(128,16))
+    - generate gradient values by calling ColorMap::GeneratePreview()
+  - values from ColorMap::Type
+  - defaults from Settings::GetColorMapType()
+- The number of pulldowns:
+  - matches GetChannelCount()
+  - may change on BufferReset()
 
 ## Open File button
 

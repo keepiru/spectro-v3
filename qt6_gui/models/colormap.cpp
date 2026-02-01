@@ -4,6 +4,9 @@
 
 #include "colormap.h"
 #include "include/colormap_data.h"
+#include <QImage>
+#include <QPixmap>
+#include <QRgb>
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
@@ -69,4 +72,29 @@ ColorMap::GetLUT(ColorMap::Type aType)
         default:
             throw std::invalid_argument("Unsupported color map type");
     }
+}
+
+QPixmap
+ColorMap::GeneratePreview(const ColorMap::Type aType)
+{
+    constexpr int kWidth = 128;
+    constexpr int kHeight = 16;
+
+    // Create a preview image for this color map
+    QImage preview(kWidth, kHeight, QImage::Format_RGB888);
+
+    const auto lut = GetLUT(aType);
+
+    // Fill the preview image
+    for (int pixelX = 0; pixelX < kWidth; pixelX++) {
+        // Map x to LUT index (0-255)
+        const auto lutIndex = static_cast<uint8_t>((pixelX * KLUTSize) / kWidth);
+        const auto& color = lut.at(lutIndex);
+
+        for (int pixelY = 0; pixelY < kHeight; pixelY++) {
+            preview.setPixel(pixelX, pixelY, qRgb(color.r, color.g, color.b));
+        }
+    }
+
+    return QPixmap::fromImage(preview);
 }

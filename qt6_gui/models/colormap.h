@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <QPixmap>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -82,6 +83,14 @@ class ColorMap
     /// @return The corresponding LUT
     /// @throws std::invalid_argument if the type is unsupported
     [[nodiscard]] static LUT GetLUT(Type aType);
+
+    /// @brief Generate a preview icon for a color map type
+    /// @param aType Color map type to generate preview for
+    /// @return QPixmap containing the color map preview
+    ///
+    /// Creates a horizontal gradient showing the color map's appearance.
+    /// Used for display in UI combo boxes.
+    [[nodiscard]] static QPixmap GeneratePreview(Type aType);
 
   private:
     /// @brief Generate a gradient LUT with specified RGB channels enabled

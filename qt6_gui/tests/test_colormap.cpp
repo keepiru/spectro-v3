@@ -3,6 +3,9 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "models/colormap.h"
+#include <QImage>
+#include <QPixmap>
+#include <QRgb>
 #include <catch2/catch_test_macros.hpp>
 #include <cstddef>
 #include <cstdint>
@@ -269,4 +272,26 @@ TEST_CASE("ColorMap::GetLUT Jet colormap has expected RGB values", "[colormap]")
     REQUIRE(entry255.r == 128);
     REQUIRE(entry255.g == 0);
     REQUIRE(entry255.b == 0);
+}
+
+TEST_CASE("ColorMap::GeneratePreview Returns valid QPixmap for all color map types", "[colormap]")
+{
+    for (const auto& [type, name] : ColorMap::TypeNames) {
+        const QPixmap preview = ColorMap::GeneratePreview(type);
+        REQUIRE(!preview.isNull());
+        REQUIRE(preview.width() == 128);
+        REQUIRE(preview.height() == 16);
+    }
+}
+
+TEST_CASE("ColorMap::GeneratePreview produces correct gradient", "[colormap]")
+{
+    const QPixmap preview = ColorMap::GeneratePreview(ColorMap::Type::White);
+    const QImage previewImage = preview.toImage();
+
+    CHECK(previewImage.pixel(0, 0) == qRgb(0, 0, 0));        // Start is black
+    CHECK(previewImage.pixel(64, 8) == qRgb(128, 128, 128)); // Mid is gray
+
+    // The end is almost white, but due to rounding it's 254,254,254
+    CHECK(previewImage.pixel(127, 15) == qRgb(254, 254, 254));
 }

@@ -33,7 +33,6 @@
 #include <array>
 #include <audio_types.h>
 #include <cstddef>
-#include <cstdint>
 #include <format>
 #include <stdexcept>
 #include <string>
@@ -258,27 +257,7 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
 
         // Add color map types with preview icons
         for (const auto& [type, name] : ColorMap::TypeNames) {
-            // Create a preview image for this color map
-            QImage preview(kPreviewIconWidth, kPreviewIconHeight, QImage::Format_RGB888);
-
-            // Get a temporary copy of the color map LUT
-            Settings tempSettings;
-            tempSettings.SetColorMapType(0, type);
-            const auto& lut = tempSettings.GetColorMapLUTs().at(0);
-
-            // Fill the preview image
-            for (int pixelX = 0; pixelX < kPreviewIconWidth; pixelX++) {
-                // Map x to LUT index (0-255)
-                const auto lutIndex =
-                  static_cast<uint8_t>((pixelX * ColorMap::KLUTSize) / kPreviewIconWidth);
-                const auto& color = lut.at(lutIndex);
-
-                for (int pixelY = 0; pixelY < kPreviewIconHeight; pixelY++) {
-                    preview.setPixel(pixelX, pixelY, qRgb(color.r, color.g, color.b));
-                }
-            }
-
-            combo->addItem(QPixmap::fromImage(preview),
+            combo->addItem(ColorMap::GeneratePreview(type),
                            QString::fromStdString(std::string(name)),
                            static_cast<int>(type));
         }

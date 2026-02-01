@@ -18,7 +18,7 @@ Settings::Settings(QObject* aParent)
 {
     // Initialize default color maps
     for (ChannelCount ch = 0; ch < GKMaxChannels; ch++) {
-        SetColorMap(ch, KDefaultColorMaps.at(ch));
+        SetColorMapType(ch, KDefaultColorMaps.at(ch));
     }
 }
 
@@ -45,7 +45,7 @@ Settings::SetWindowScale(const WindowScale aScale)
 }
 
 void
-Settings::SetColorMap(ChannelCount aChannel, ColorMap::Type aType)
+Settings::SetColorMapType(ChannelCount aChannel, ColorMap::Type aType)
 {
     mColorMapLUTs.at(aChannel) = ColorMap::GetLUT(aType);
     mSelectedColorMaps.at(aChannel) = aType;

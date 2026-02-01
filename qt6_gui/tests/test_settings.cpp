@@ -108,17 +108,17 @@ TEST_CASE("Settings::GetApertureCeilingDecibels", "[settings]")
     REQUIRE(settings.GetApertureCeilingDecibels() == 40.0f);
 }
 
-TEST_CASE("Settings::SetColorMap invalid", "[settings]")
+TEST_CASE("Settings::SetColorMapType invalid", "[settings]")
 {
     Settings settings;
 
     // Invalid enum value (not in defined range)
     // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
     const auto invalidValue = static_cast<ColorMap::Type>(999);
-    REQUIRE_THROWS_AS(settings.SetColorMap(0, invalidValue), std::invalid_argument);
+    REQUIRE_THROWS_AS(settings.SetColorMapType(0, invalidValue), std::invalid_argument);
 
     // Also verify the Count sentinel is not accepted
-    REQUIRE_THROWS_AS(settings.SetColorMap(0, ColorMap::Type::Count), std::invalid_argument);
+    REQUIRE_THROWS_AS(settings.SetColorMapType(0, ColorMap::Type::Count), std::invalid_argument);
 }
 
 TEST_CASE("Settings default color maps", "[settings]")
@@ -150,17 +150,17 @@ TEST_CASE("Settings::GetColorMap", "[settings]")
     Settings settings;
 
     // Confirm default color maps
-    REQUIRE(settings.GetColorMap(0) == ColorMap::Type::Magenta);
-    REQUIRE(settings.GetColorMap(1) == ColorMap::Type::Green);
+    REQUIRE(settings.GetColorMapType(0) == ColorMap::Type::Magenta);
+    REQUIRE(settings.GetColorMapType(1) == ColorMap::Type::Green);
     for (ChannelCount ch = 2; ch < GKMaxChannels; ch++) {
-        REQUIRE(settings.GetColorMap(ch) == ColorMap::Type::White);
+        REQUIRE(settings.GetColorMapType(ch) == ColorMap::Type::White);
     }
 
     const QSignalSpy spy(&settings, &Settings::DisplaySettingsChanged);
     // Then change and confirm
-    settings.SetColorMap(0, ColorMap::Type::Blue);
+    settings.SetColorMapType(0, ColorMap::Type::Blue);
     REQUIRE(spy.count() == 1);
-    REQUIRE(settings.GetColorMap(0) == ColorMap::Type::Blue);
+    REQUIRE(settings.GetColorMapType(0) == ColorMap::Type::Blue);
 }
 
 TEST_CASE("Settings::SetAperture", "[settings]")

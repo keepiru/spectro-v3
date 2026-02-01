@@ -104,12 +104,12 @@ class Settings : public QObject
     /// @brief Set the color map type
     /// @param aChannel Channel index (0-based)
     /// @param aType Color map type
-    void SetColorMap(ChannelCount aChannel, ColorMap::Type aType);
+    void SetColorMapType(ChannelCount aChannel, ColorMap::Type aType);
 
     /// @brief Get the color map type for a channel
     /// @param aChannel Channel index (0-based)
     /// @return Current color map type
-    [[nodiscard]] ColorMap::Type GetColorMap(ChannelCount aChannel) const
+    [[nodiscard]] ColorMap::Type GetColorMapType(ChannelCount aChannel) const
     {
         return mSelectedColorMaps.at(aChannel);
     }

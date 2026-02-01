@@ -263,7 +263,7 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
 
             // Get a temporary copy of the color map LUT
             Settings tempSettings;
-            tempSettings.SetColorMap(0, type);
+            tempSettings.SetColorMapType(0, type);
             const auto& lut = tempSettings.GetColorMapLUTs().at(0);
 
             // Fill the preview image
@@ -285,7 +285,8 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
 
         // Set initial value if within channel range
         if (i < GKMaxChannels) {
-            const int currentIndex = combo->findData(static_cast<int>(mSettings->GetColorMap(i)));
+            const int currentIndex =
+              combo->findData(static_cast<int>(mSettings->GetColorMapType(i)));
             if (currentIndex >= 0) {
                 combo->setCurrentIndex(currentIndex);
             }
@@ -297,7 +298,7 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
             if (channelIndex < GKMaxChannels) {
                 const auto selectedType = static_cast<ColorMap::Type>(
                   mColorMapCombos.at(channelIndex)->currentData().toInt());
-                mSettings->SetColorMap(channelIndex, selectedType);
+                mSettings->SetColorMapType(channelIndex, selectedType);
             }
         });
 

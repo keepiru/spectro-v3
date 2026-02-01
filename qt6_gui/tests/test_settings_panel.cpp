@@ -215,10 +215,10 @@ TEST_CASE("SettingsPanel color map controls", "[settings_panel]")
         // Test changing color map (only for valid channels)
         if (i < GKMaxChannels) {
             combo->setCurrentIndex(static_cast<int>(ColorMap::Type::Red));
-            REQUIRE(settings.GetColorMap(i) == ColorMap::Type::Red);
+            REQUIRE(settings.GetColorMapType(i) == ColorMap::Type::Red);
 
             combo->setCurrentIndex(static_cast<int>(ColorMap::Type::Blue));
-            REQUIRE(settings.GetColorMap(i) == ColorMap::Type::Blue);
+            REQUIRE(settings.GetColorMapType(i) == ColorMap::Type::Blue);
         }
     }
 }
@@ -231,7 +231,7 @@ TEST_CASE("SettingsPanel initial values", "[settings_panel]")
     settings.SetWindowScale(8);
     settings.SetApertureFloorDecibels(-60.0f);
     settings.SetApertureCeilingDecibels(10.0f);
-    settings.SetColorMap(0, ColorMap::Type::Magenta);
+    settings.SetColorMapType(0, ColorMap::Type::Magenta);
 
     // Create panel and verify controls reflect the settings
     AudioBuffer audioBuffer;

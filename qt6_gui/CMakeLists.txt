@@ -20,6 +20,8 @@ set(CMAKE_AUTOUIC ON)
 add_library(spectro_qt6_gui
     models/audio_buffer.cpp
     models/audio_buffer.h
+    models/colormap.cpp
+    models/colormap.h
     models/settings.cpp
     models/settings.h
     controllers/audio_recorder.cpp

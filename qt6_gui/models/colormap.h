@@ -76,4 +76,19 @@ class ColorMap
                       { Type::Twilight, "Twilight" },
                       { Type::Seismic, "Seismic" },
                       { Type::Jet, "Jet" } } };
+
+    /// @brief Get the LUT for the specified color map type
+    /// @param aType The color map type
+    /// @return The corresponding LUT
+    /// @throws std::invalid_argument if the type is unsupported
+    [[nodiscard]] static LUT GetLUT(Type aType);
+
+  private:
+    /// @brief Generate a gradient LUT with specified RGB channels enabled
+    /// @param enableRed Whether to enable the red channel
+    /// @param enableGreen Whether to enable the green channel
+    /// @param enableBlue Whether to enable the blue channel
+    /// @return The generated gradient LUT
+    /// @note This is a helper for GetLUT
+    [[nodiscard]] static LUT GenerateGradientLUT(bool enableRed, bool enableGreen, bool enableBlue);
 };

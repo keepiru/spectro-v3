@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
-#include "settings_panel.h"
+#include "views/settings_panel.h"
+#include "audio_types.h"
 #include "controllers/audio_file.h"
 #include "controllers/audio_file_reader.h"
 #include "controllers/audio_recorder.h"
-#include "fft_window.h"
 #include "include/global_constants.h"
 #include "models/colormap.h"
 #include "models/settings.h"
@@ -15,494 +15,512 @@
 #include <QCoreApplication>
 #include <QFileDialog>
 #include <QFormLayout>
-#include <QImage>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QIcon>
 #include <QLabel>
 #include <QMediaDevices>
-#include <QMessageBox>
 #include <QObject>
 #include <QProgressDialog>
-#include <QPushButton>
-#include <QRgb>
 #include <QSize>
 #include <QSlider>
-#include <QSpinBox>
 #include <QVBoxLayout>
+#include <QVariant>
 #include <QWidget>
 #include <Qt>
 #include <algorithm>
 #include <array>
-#include <audio_types.h>
 #include <cstddef>
-#include <format>
+#include <fft_window.h>
 #include <stdexcept>
-#include <string>
 
 namespace {
-constexpr int KProgressMaximum = 100;
+constexpr int KPanelWidth = 300;
+constexpr int KPanelMargin = 8;
+constexpr int KPanelSpacing = 8;
+constexpr int KLabelMinWidth = 30;
+constexpr int KProgressMaxPercent = 100;
+constexpr int KColorMapIconWidth = 128;
+constexpr int KColorMapIconHeight = 16;
+
+/// @brief Map WindowScale index to value
+constexpr std::array<WindowScale, 5> KWindowScaleValues = { 1, 2, 4, 8, 16 };
+
+/// @brief Find the index of a window scale value
+int
+FindWindowScaleIndex(WindowScale aScale)
+{
+    for (size_t i = 0; i < KWindowScaleValues.size(); ++i) {
+        if (KWindowScaleValues.at(i) == aScale) {
+            return static_cast<int>(i);
+        }
+    }
+    return 0;
+}
+
 } // namespace
 
 SettingsPanel::SettingsPanel(Settings& aSettings,
-                             AudioRecorder& aAudioRecorder,
+                             AudioRecorder& aRecorder,
                              AudioFile& aAudioFile,
-                             QWidget* parent)
-  : QWidget(parent)
-  , mSettings(&aSettings)
-  , mAudioRecorder(&aAudioRecorder)
-  , mAudioFile(&aAudioFile)
+                             QWidget* aParent)
+  : QWidget(aParent)
+  , mSettings(aSettings)
+  , mRecorder(aRecorder)
+  , mAudioFile(aAudioFile)
+  , mAudioControlsGroup(CreateAudioControlsGroup())
 {
-    constexpr int kPanelWidth = 300;
-    setFixedWidth(kPanelWidth);
+    setFixedWidth(KPanelWidth);
+    setObjectName("SettingsPanel");
 
-    CreateLayout();
+    auto* mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(KPanelMargin, KPanelMargin, KPanelMargin, KPanelMargin);
+    mainLayout->setSpacing(KPanelSpacing);
 
-    // Connect to audio recorder state changes
-    connect(mAudioRecorder,
-            &AudioRecorder::RecordingStateChanged,
-            this,
-            &SettingsPanel::OnRecordingStateChanged);
+    // Add group boxes
 
-    // Set initial state based on current recording status
-    OnRecordingStateChanged(mAudioRecorder->IsRecording());
+    mainLayout->addWidget(mAudioControlsGroup);
+    mainLayout->addWidget(CreateFFTControlsGroup());
+    CreateColorMapControlsGroup();
+    mainLayout->addWidget(mColorMapControlsGroup);
+    mainLayout->addWidget(CreateDisplayControlsGroup());
+
+    // Add stretch to push everything to top
+    mainLayout->addStretch();
+
+    // Connect recorder state changes
+    connect(&mRecorder, &AudioRecorder::RecordingStateChanged, this, [this](bool aIsRecording) {
+        SetAudioControlsEnabled(!aIsRecording);
+        mRecordButton->setText(aIsRecording ? "Stop Recording" : "Start Recording");
+    });
+
+    // Initialize state
+    SetAudioControlsEnabled(!mRecorder.IsRecording());
+    if (mRecorder.IsRecording()) {
+        mRecordButton->setText("Stop Recording");
+    }
 }
 
-void
-SettingsPanel::CreateLayout()
+QGroupBox*
+SettingsPanel::CreateAudioControlsGroup()
 {
-    constexpr int kPanelMargin = 10;
-    constexpr int kPanelSpacing = 10;
-    constexpr int kFormSpacing = 8;
+    auto* group = new QGroupBox("Audio Source", this);
+    group->setObjectName("AudioControlsGroup");
+    auto* layout = new QVBoxLayout(group);
 
-    auto* layout = new QVBoxLayout(this);
-    layout->setContentsMargins(kPanelMargin, kPanelMargin, kPanelMargin, kPanelMargin);
-    layout->setSpacing(kPanelSpacing);
+    // Open file button
+    mOpenFileButton = new QPushButton("Open File", group);
+    mOpenFileButton->setObjectName("OpenFileButton");
+    layout->addWidget(mOpenFileButton);
+    connect(mOpenFileButton, &QPushButton::clicked, this, &SettingsPanel::OpenFile);
 
+    // Form layout for device settings
     auto* formLayout = new QFormLayout();
-    formLayout->setSpacing(kFormSpacing);
+    formLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
 
-    CreateAudioControls(formLayout);
-    CreateOpenFileButton(formLayout);
-    CreateLiveModeButton(formLayout);
-    CreateWindowTypeControl(formLayout);
-    CreateFFTSizeControl(formLayout);
-    CreateWindowScaleControl(formLayout);
-    CreateApertureControls(formLayout);
-    CreateColorMapControls(formLayout);
+    // Audio device combo box
+    mAudioDeviceComboBox = new QComboBox(group);
+    mAudioDeviceComboBox->setObjectName("AudioDeviceComboBox");
+    formLayout->addRow("Audio Device:", mAudioDeviceComboBox);
+    PopulateAudioDevices();
+
+    // Sample rate combo box
+    mSampleRateComboBox = new QComboBox(group);
+    mSampleRateComboBox->setObjectName("SampleRateComboBox");
+    formLayout->addRow("Sample Rate:", mSampleRateComboBox);
+
+    // Channels combo box
+    mChannelsComboBox = new QComboBox(group);
+    mChannelsComboBox->setObjectName("ChannelsComboBox");
+    formLayout->addRow("Channels:", mChannelsComboBox);
+
+    // Connect device selection to update sample rates and channels
+    connect(mAudioDeviceComboBox,
+            &QComboBox::currentIndexChanged,
+            this,
+            &SettingsPanel::PopulateSampleRates);
+    connect(mAudioDeviceComboBox,
+            &QComboBox::currentIndexChanged,
+            this,
+            &SettingsPanel::PopulateChannels);
+
+    // Initial population
+    PopulateSampleRates();
+    PopulateChannels();
 
     layout->addLayout(formLayout);
-    layout->addStretch();
+
+    // Record button
+    mRecordButton = new QPushButton("Start Recording", group);
+    mRecordButton->setObjectName("RecordButton");
+    layout->addWidget(mRecordButton);
+    connect(mRecordButton, &QPushButton::clicked, this, &SettingsPanel::ToggleRecording);
+
+    return group;
 }
 
-void
-SettingsPanel::CreateWindowTypeControl(QFormLayout* aLayout)
+QGroupBox*
+SettingsPanel::CreateFFTControlsGroup()
 {
-    mWindowTypeCombo = new QComboBox(this);
-    mWindowTypeCombo->setObjectName("windowTypeCombo");
-    mWindowTypeCombo->addItem("Rectangular", static_cast<int>(FFTWindow::Type::Rectangular));
-    mWindowTypeCombo->addItem("Hann", static_cast<int>(FFTWindow::Type::Hann));
-    mWindowTypeCombo->addItem("Hamming", static_cast<int>(FFTWindow::Type::Hamming));
-    mWindowTypeCombo->addItem("Blackman", static_cast<int>(FFTWindow::Type::Blackman));
-    mWindowTypeCombo->addItem("Blackman-Harris", static_cast<int>(FFTWindow::Type::BlackmanHarris));
+    auto* group = new QGroupBox("FFT", this);
+    group->setObjectName("FFTControlsGroup");
+    auto* formLayout = new QFormLayout(group);
+    formLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
 
-    // Set initial value
-    const int currentIndex =
-      mWindowTypeCombo->findData(static_cast<int>(mSettings->GetWindowType()));
-    if (currentIndex >= 0) {
-        mWindowTypeCombo->setCurrentIndex(currentIndex);
+    // Window type combo box
+    mWindowTypeComboBox = new QComboBox(group);
+    mWindowTypeComboBox->setObjectName("WindowTypeComboBox");
+    mWindowTypeComboBox->addItem("Rectangular", static_cast<int>(FFTWindow::Type::Rectangular));
+    mWindowTypeComboBox->addItem("Hann", static_cast<int>(FFTWindow::Type::Hann));
+    mWindowTypeComboBox->addItem("Hamming", static_cast<int>(FFTWindow::Type::Hamming));
+    mWindowTypeComboBox->addItem("Blackman", static_cast<int>(FFTWindow::Type::Blackman));
+    mWindowTypeComboBox->addItem("Blackman-Harris",
+                                 static_cast<int>(FFTWindow::Type::BlackmanHarris));
+
+    // Set default selection
+    const int windowTypeIndex =
+      mWindowTypeComboBox->findData(static_cast<int>(mSettings.GetWindowType()));
+    if (windowTypeIndex >= 0) {
+        mWindowTypeComboBox->setCurrentIndex(windowTypeIndex);
     }
+    formLayout->addRow("Window Type:", mWindowTypeComboBox);
 
-    // Connect to settings
-    connect(mWindowTypeCombo, &QComboBox::currentIndexChanged, this, [this](int /*aIndex*/) {
-        const auto selectedType =
-          static_cast<FFTWindow::Type>(mWindowTypeCombo->currentData().toInt());
-        mSettings->SetFFTSettings(mSettings->GetFFTSize(), selectedType);
+    // FFT size combo box
+    mFFTSizeComboBox = new QComboBox(group);
+    mFFTSizeComboBox->setObjectName("FFTSizeComboBox");
+    for (const auto& size : Settings::KValidFFTSizes) {
+        mFFTSizeComboBox->addItem(QString::number(size.Get()), static_cast<qulonglong>(size.Get()));
+    }
+    const int fftSizeIndex =
+      mFFTSizeComboBox->findData(static_cast<qulonglong>(mSettings.GetFFTSize().Get()));
+    if (fftSizeIndex >= 0) {
+        mFFTSizeComboBox->setCurrentIndex(fftSizeIndex);
+    }
+    formLayout->addRow("FFT Size:", mFFTSizeComboBox);
+
+    // Connect window type and FFT size changes
+    auto updateFFTSettings = [this]() {
+        const auto windowType =
+          static_cast<FFTWindow::Type>(mWindowTypeComboBox->currentData().toInt());
+        const auto fftSize = static_cast<FFTSize>(mFFTSizeComboBox->currentData().toInt());
+        mSettings.SetFFTSettings(fftSize, windowType);
+    };
+    connect(mWindowTypeComboBox, &QComboBox::currentIndexChanged, this, updateFFTSettings);
+    connect(mFFTSizeComboBox, &QComboBox::currentIndexChanged, this, updateFFTSettings);
+
+    // Window scale slider
+    auto* scaleLayout = new QHBoxLayout();
+    mWindowScaleSlider = new QSlider(Qt::Horizontal, group);
+    mWindowScaleSlider->setObjectName("WindowScaleSlider");
+    mWindowScaleSlider->setRange(0, static_cast<int>(KWindowScaleValues.size()) - 1);
+    mWindowScaleSlider->setValue(FindWindowScaleIndex(mSettings.GetWindowScale()));
+    mWindowScaleLabel = new QLabel(QString::number(mSettings.GetWindowScale()), group);
+    mWindowScaleLabel->setObjectName("WindowScaleLabel");
+    mWindowScaleLabel->setMinimumWidth(KLabelMinWidth);
+    scaleLayout->addWidget(mWindowScaleSlider);
+    scaleLayout->addWidget(mWindowScaleLabel);
+    formLayout->addRow("Window Scale:", scaleLayout);
+
+    connect(mWindowScaleSlider, &QSlider::valueChanged, this, [this](int aValue) {
+        const WindowScale scale = KWindowScaleValues.at(static_cast<size_t>(aValue));
+        mWindowScaleLabel->setText(QString::number(scale));
+        mSettings.SetWindowScale(scale);
     });
 
-    aLayout->addRow("Window Type:", mWindowTypeCombo);
-}
+    // Aperture floor slider
+    auto* floorLayout = new QHBoxLayout();
+    mApertureFloorSlider = new QSlider(Qt::Horizontal, group);
+    mApertureFloorSlider->setObjectName("ApertureFloorSlider");
+    mApertureFloorSlider->setRange(Settings::KApertureLimitsDecibels.first,
+                                   Settings::KApertureLimitsDecibels.second);
+    mApertureFloorSlider->setValue(static_cast<int>(mSettings.GetApertureFloorDecibels()));
+    mApertureFloorLabel =
+      new QLabel(QString::number(static_cast<int>(mSettings.GetApertureFloorDecibels())), group);
+    mApertureFloorLabel->setObjectName("ApertureFloorLabel");
+    mApertureFloorLabel->setMinimumWidth(KLabelMinWidth);
+    floorLayout->addWidget(mApertureFloorSlider);
+    floorLayout->addWidget(mApertureFloorLabel);
+    formLayout->addRow("Aperture Floor:", floorLayout);
 
-void
-SettingsPanel::CreateFFTSizeControl(QFormLayout* aLayout)
-{
-    mFFTSizeCombo = new QComboBox(this);
-    mFFTSizeCombo->setObjectName("fftSizeCombo");
-
-    // Add FFT size options
-    for (const auto size : Settings::KValidFFTSizes) {
-        mFFTSizeCombo->addItem(QString::number(size), static_cast<int>(size));
-    }
-
-    // Set initial value
-    const FFTSize kCurrentFFTSize = mSettings->GetFFTSize();
-    const int currentIndex = mFFTSizeCombo->findData(static_cast<int>(kCurrentFFTSize));
-    if (currentIndex >= 0) {
-        mFFTSizeCombo->setCurrentIndex(currentIndex);
-    }
-
-    // Connect to settings
-    connect(mFFTSizeCombo, &QComboBox::currentIndexChanged, this, [this](int aIndex) {
-        if (aIndex < 0) {
-            return; // No valid selection yet
-        }
-        const int sizeInt = mFFTSizeCombo->currentData().toInt();
-        if (sizeInt == 0) {
-            return; // Invalid data
-        }
-        const FFTSize selectedSize = sizeInt;
-        mSettings->SetFFTSettings(selectedSize, mSettings->GetWindowType());
+    connect(mApertureFloorSlider, &QSlider::valueChanged, this, [this](int aValue) {
+        mApertureFloorLabel->setText(QString::number(aValue));
+        mSettings.SetApertureFloorDecibels(static_cast<float>(aValue));
     });
 
-    aLayout->addRow("FFT Size:", mFFTSizeCombo);
+    // Aperture ceiling slider
+    auto* ceilingLayout = new QHBoxLayout();
+    mApertureCeilingSlider = new QSlider(Qt::Horizontal, group);
+    mApertureCeilingSlider->setObjectName("ApertureCeilingSlider");
+    mApertureCeilingSlider->setRange(Settings::KApertureLimitsDecibels.first,
+                                     Settings::KApertureLimitsDecibels.second);
+    mApertureCeilingSlider->setValue(static_cast<int>(mSettings.GetApertureCeilingDecibels()));
+    mApertureCeilingLabel =
+      new QLabel(QString::number(static_cast<int>(mSettings.GetApertureCeilingDecibels())), group);
+    mApertureCeilingLabel->setObjectName("ApertureCeilingLabel");
+    mApertureCeilingLabel->setMinimumWidth(KLabelMinWidth);
+    ceilingLayout->addWidget(mApertureCeilingSlider);
+    ceilingLayout->addWidget(mApertureCeilingLabel);
+    formLayout->addRow("Aperture Ceiling:", ceilingLayout);
+
+    connect(mApertureCeilingSlider, &QSlider::valueChanged, this, [this](int aValue) {
+        mApertureCeilingLabel->setText(QString::number(aValue));
+        mSettings.SetApertureCeilingDecibels(static_cast<float>(aValue));
+    });
+
+    return group;
+}
+
+QGroupBox*
+SettingsPanel::CreateColorMapControlsGroup()
+{
+    auto* group = new QGroupBox("Color Map", this);
+    group->setObjectName("ColorMapControlsGroup");
+    auto* formLayout = new QFormLayout(group);
+    formLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+
+    // Assign member now so UpdateColorMapDropdowns can access it
+    mColorMapControlsGroup = group;
+
+    // Create combo boxes for all possible channels (initially hidden)
+    for (ChannelCount i = 0; i < GKMaxChannels; ++i) {
+        mColorMapComboBoxes.at(i) = CreateColorMapComboBox(i);
+        formLayout->addRow(QString("Color Map %1:").arg(i + 1), mColorMapComboBoxes.at(i));
+        mColorMapComboBoxes.at(i)->setVisible(false);
+    }
+
+    // Default to showing 2 color maps (stereo)
+    UpdateColorMapDropdowns(2);
+
+    return group;
+}
+
+QGroupBox*
+SettingsPanel::CreateDisplayControlsGroup()
+{
+    auto* group = new QGroupBox("Display", this);
+    group->setObjectName("DisplayControlsGroup");
+    auto* layout = new QVBoxLayout(group);
+
+    mLiveModeButton = new QPushButton("Live Mode", group);
+    mLiveModeButton->setObjectName("LiveModeButton");
+    layout->addWidget(mLiveModeButton);
+
+    connect(
+      mLiveModeButton, &QPushButton::clicked, this, [this]() { mSettings.SetLiveMode(true); });
+
+    return group;
 }
 
 void
-SettingsPanel::CreateWindowScaleControl(QFormLayout* aLayout)
+SettingsPanel::PopulateAudioDevices()
 {
-    mWindowScaleSlider = new QSlider(Qt::Horizontal, this);
-    mWindowScaleSlider->setObjectName("windowScaleSlider");
-    mWindowScaleSlider->setRange(0, 4); // 0=1, 1=2, 2=4, 3=8, 4=16
-    mWindowScaleSlider->setTickPosition(QSlider::TicksBelow);
-    mWindowScaleSlider->setTickInterval(1);
+    mAudioDeviceComboBox->clear();
 
-    // Set initial value
-    const std::array<WindowScale, 5> scaleValues{ 1, 2, 4, 8, 16 };
-    const WindowScale currentScale = mSettings->GetWindowScale();
-    for (size_t i = 0; i < scaleValues.size(); i++) {
-        if (scaleValues.at(i) == currentScale) {
-            mWindowScaleSlider->setValue(static_cast<int>(i));
+    const auto devices = QMediaDevices::audioInputs();
+    for (const auto& device : devices) {
+        mAudioDeviceComboBox->addItem(device.description(), QVariant::fromValue(device.id()));
+    }
+
+    // Select default device
+    const auto defaultDevice = QMediaDevices::defaultAudioInput();
+    const int defaultIndex =
+      mAudioDeviceComboBox->findData(QVariant::fromValue(defaultDevice.id()));
+    if (defaultIndex >= 0) {
+        mAudioDeviceComboBox->setCurrentIndex(defaultIndex);
+    }
+}
+
+void
+SettingsPanel::PopulateSampleRates()
+{
+    mSampleRateComboBox->clear();
+
+    if (mAudioDeviceComboBox->currentIndex() < 0) {
+        return;
+    }
+
+    // Find the selected device
+    const auto deviceId = mAudioDeviceComboBox->currentData().toByteArray();
+    const auto devices = QMediaDevices::audioInputs();
+
+    for (const auto& device : devices) {
+        if (device.id() == deviceId) {
+            // Get supported sample rates
+            const auto minRate = device.minimumSampleRate();
+            const auto maxRate = device.maximumSampleRate();
+
+            // Add common sample rates within the supported range
+            const std::array<int, 5> commonRates = { 22050, 44100, 48000, 88200, 96000 };
+            for (const auto rate : commonRates) {
+                if (rate >= minRate && rate <= maxRate) {
+                    mSampleRateComboBox->addItem(QString("%1 Hz").arg(rate), rate);
+                }
+            }
+
+            // Default to 44100 if available
+            const int defaultIndex = mSampleRateComboBox->findData(44100);
+            if (defaultIndex >= 0) {
+                mSampleRateComboBox->setCurrentIndex(defaultIndex);
+            }
             break;
         }
     }
-
-    mWindowScaleLabel = new QLabel(this);
-    mWindowScaleLabel->setObjectName("windowScaleLabel");
-    UpdateWindowScaleLabel();
-
-    // Connect to settings
-    connect(mWindowScaleSlider, &QSlider::valueChanged, this, [this](int aValue) {
-        const std::array<WindowScale, 5> scaleValues{ 1, 2, 4, 8, 16 };
-        mSettings->SetWindowScale(scaleValues.at(static_cast<size_t>(aValue)));
-        UpdateWindowScaleLabel();
-    });
-
-    auto* hbox = new QHBoxLayout();
-    hbox->addWidget(mWindowScaleSlider);
-    hbox->addWidget(mWindowScaleLabel);
-
-    aLayout->addRow("Window Scale:", hbox);
 }
 
 void
-SettingsPanel::CreateApertureControls(QFormLayout* aLayout)
+SettingsPanel::PopulateChannels()
 {
-    constexpr int kApertureTickInterval = 10;
+    mChannelsComboBox->clear();
 
-    // Aperture Floor
-    mApertureFloorSlider = new QSlider(Qt::Horizontal, this);
-    mApertureFloorSlider->setObjectName("apertureFloorSlider");
-    mApertureFloorSlider->setRange(Settings::KApertureLimitsDecibels.first,
-                                   Settings::KApertureLimitsDecibels.second);
-    mApertureFloorSlider->setValue(static_cast<int>(mSettings->GetApertureFloorDecibels()));
-    mApertureFloorSlider->setTickPosition(QSlider::TicksBelow);
-    mApertureFloorSlider->setTickInterval(kApertureTickInterval);
+    if (mAudioDeviceComboBox->currentIndex() < 0) {
+        return;
+    }
 
-    mApertureFloorLabel = new QLabel(this);
-    mApertureFloorLabel->setObjectName("apertureFloorLabel");
-    UpdateApertureFloorLabel();
+    // Find the selected device
+    const auto deviceId = mAudioDeviceComboBox->currentData().toByteArray();
+    const auto devices = QMediaDevices::audioInputs();
 
-    connect(mApertureFloorSlider, &QSlider::valueChanged, this, [this](int aValue) {
-        mSettings->SetApertureFloorDecibels(static_cast<float>(aValue));
-        UpdateApertureFloorLabel();
-    });
+    for (const auto& device : devices) {
+        if (device.id() == deviceId) {
+            // Get supported channel counts, clamped to GKMaxChannels
+            const auto minChannels = device.minimumChannelCount();
+            const auto maxChannels =
+              std::min(device.maximumChannelCount(), static_cast<int>(GKMaxChannels));
 
-    auto* floorHBox = new QHBoxLayout();
-    floorHBox->addWidget(mApertureFloorSlider);
-    floorHBox->addWidget(mApertureFloorLabel);
-
-    aLayout->addRow("Aperture Floor:", floorHBox);
-    // Aperture Ceiling
-    mApertureCeilingSlider = new QSlider(Qt::Horizontal, this);
-    mApertureCeilingSlider->setObjectName("apertureCeilingSlider");
-    mApertureCeilingSlider->setRange(Settings::KApertureLimitsDecibels.first,
-                                     Settings::KApertureLimitsDecibels.second);
-    mApertureCeilingSlider->setValue(static_cast<int>(mSettings->GetApertureCeilingDecibels()));
-    mApertureCeilingSlider->setTickPosition(QSlider::TicksBelow);
-    mApertureCeilingSlider->setTickInterval(kApertureTickInterval);
-
-    mApertureCeilingLabel = new QLabel(this);
-    mApertureCeilingLabel->setObjectName("apertureCeilingLabel");
-    UpdateApertureCeilingLabel();
-
-    connect(mApertureCeilingSlider, &QSlider::valueChanged, this, [this](int aValue) {
-        mSettings->SetApertureCeilingDecibels(static_cast<float>(aValue));
-        UpdateApertureCeilingLabel();
-    });
-
-    auto* ceilingHBox = new QHBoxLayout();
-    ceilingHBox->addWidget(mApertureCeilingSlider);
-    ceilingHBox->addWidget(mApertureCeilingLabel);
-
-    aLayout->addRow("Aperture Ceiling:", ceilingHBox);
-}
-
-void
-SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
-{
-    constexpr int kPreviewIconWidth = 128;
-    constexpr int kPreviewIconHeight = 16;
-
-    for (size_t i = 0; i < KNumColorMapSelectors; i++) {
-        auto* combo = new QComboBox(this);
-        combo->setObjectName(QString("colorMapCombo%1").arg(i));
-        combo->setIconSize(QSize(kPreviewIconWidth, kPreviewIconHeight));
-
-        // Add color map types with preview icons
-        for (const auto& [type, name] : ColorMap::TypeNames) {
-            combo->addItem(ColorMap::GeneratePreview(type),
-                           QString::fromStdString(std::string(name)),
-                           static_cast<int>(type));
-        }
-
-        // Set initial value if within channel range
-        if (i < GKMaxChannels) {
-            const int currentIndex =
-              combo->findData(static_cast<int>(mSettings->GetColorMapType(i)));
-            if (currentIndex >= 0) {
-                combo->setCurrentIndex(currentIndex);
+            for (int ch = minChannels; ch <= maxChannels; ++ch) {
+                mChannelsComboBox->addItem(QString::number(ch), ch);
             }
-        }
 
-        // Connect to settings
-        const size_t channelIndex = i;
-        connect(combo, &QComboBox::currentIndexChanged, this, [this, channelIndex](int /*aIndex*/) {
-            if (channelIndex < GKMaxChannels) {
-                const auto selectedType = static_cast<ColorMap::Type>(
-                  mColorMapCombos.at(channelIndex)->currentData().toInt());
-                mSettings->SetColorMapType(channelIndex, selectedType);
+            // Default to 2 channels (stereo) if available
+            const int defaultIndex = mChannelsComboBox->findData(2);
+            if (defaultIndex >= 0) {
+                mChannelsComboBox->setCurrentIndex(defaultIndex);
             }
-        });
-
-        mColorMapCombos.at(i) = combo;
-        aLayout->addRow(QString("Color Map %1:").arg(i + 1), combo);
+            break;
+        }
     }
 }
 
 void
-SettingsPanel::UpdateWindowScaleLabel()
+SettingsPanel::SetAudioControlsEnabled(bool aEnabled)
 {
-    const size_t scale = mSettings->GetWindowScale();
-    mWindowScaleLabel->setText(QString::number(scale));
+    mAudioDeviceComboBox->setEnabled(aEnabled);
+    mSampleRateComboBox->setEnabled(aEnabled);
+    mChannelsComboBox->setEnabled(aEnabled);
+    mOpenFileButton->setEnabled(aEnabled);
 }
 
 void
-SettingsPanel::UpdateApertureFloorLabel()
+SettingsPanel::ToggleRecording()
 {
-    const float value = mSettings->GetApertureFloorDecibels();
-    mApertureFloorLabel->setText(QString::fromStdString(std::format("{:.0f} dB", value)));
-}
-
-void
-SettingsPanel::UpdateApertureCeilingLabel()
-{
-    const float value = mSettings->GetApertureCeilingDecibels();
-    mApertureCeilingLabel->setText(QString::fromStdString(std::format("{:.0f} dB", value)));
-}
-
-void
-SettingsPanel::CreateAudioControls(QFormLayout* aLayout)
-{
-    // Audio Device selection
-    mAudioDeviceCombo = new QComboBox(this);
-    mAudioDeviceCombo->setObjectName("audioDeviceCombo");
-
-    const auto audioInputs = QMediaDevices::audioInputs();
-    const auto defaultDevice = QMediaDevices::defaultAudioInput();
-    int defaultIndex = 0;
-
-    for (int i = 0; i < audioInputs.size(); ++i) {
-        const auto& device = audioInputs.at(i);
-        mAudioDeviceCombo->addItem(device.description(), QVariant::fromValue(device));
-        if (device == defaultDevice) {
-            defaultIndex = i;
-        }
-    }
-    mAudioDeviceCombo->setCurrentIndex(defaultIndex);
-
-    // Update sample rates and channel range when device changes
-    connect(mAudioDeviceCombo, &QComboBox::currentIndexChanged, this, [this](int /*aIndex*/) {
-        const auto device = mAudioDeviceCombo->currentData().value<QAudioDevice>();
-        UpdateSampleRatesForDevice(device);
-        UpdateChannelRangeForDevice(device);
-    });
-
-    aLayout->addRow("Audio Device:", mAudioDeviceCombo);
-
-    // Sample Rate selection
-    mSampleRateCombo = new QComboBox(this);
-    mSampleRateCombo->setObjectName("sampleRateCombo");
-
-    // Populate with rates from default device initially
-    UpdateSampleRatesForDevice(defaultDevice);
-
-    aLayout->addRow("Sample Rate:", mSampleRateCombo);
-
-    // Channel Count selection
-    mChannelCountSpinBox = new QSpinBox(this);
-    mChannelCountSpinBox->setObjectName("channelCountSpinBox");
-    mChannelCountSpinBox->setRange(1, static_cast<int>(GKMaxChannels));
-    mChannelCountSpinBox->setValue(2); // Default to stereo
-
-    // Update range based on default device capabilities
-    UpdateChannelRangeForDevice(defaultDevice);
-
-    aLayout->addRow("Channels:", mChannelCountSpinBox);
-
-    // Start/Stop Recording button
-    mRecordingButton = new QPushButton("Start Recording", this);
-    mRecordingButton->setObjectName("recordingButton");
-
-    connect(
-      mRecordingButton, &QPushButton::clicked, this, &SettingsPanel::OnRecordingButtonClicked);
-
-    aLayout->addRow("", mRecordingButton);
-}
-
-void
-SettingsPanel::UpdateSampleRatesForDevice(const QAudioDevice& aDevice)
-{
-    mSampleRateCombo->clear();
-
-    // Common sample rates to offer
-    constexpr SampleRate kDefaultSampleRate = 44100;
-    static const std::array<SampleRate, 5> CommonRates = { 22050, 44100, 48000, 88200, 96000 };
-
-    const SampleRate minRate = aDevice.minimumSampleRate();
-    const SampleRate maxRate = aDevice.maximumSampleRate();
-
-    int defaultIndex = 0;
-    for (const SampleRate rate : CommonRates) {
-        if (rate >= minRate && rate <= maxRate) {
-            mSampleRateCombo->addItem(QString::number(rate) + " Hz", rate);
-            if (rate == kDefaultSampleRate) {
-                defaultIndex = mSampleRateCombo->count() - 1;
-            }
-        }
-    }
-
-    mSampleRateCombo->setCurrentIndex(defaultIndex);
-}
-
-void
-SettingsPanel::UpdateChannelRangeForDevice(const QAudioDevice& aDevice)
-{
-    // Use the device's preferred format to get the actual channel count
-    // maximumChannelCount() returns theoretical max, not hardware reality
-    const auto preferredFormat = aDevice.preferredFormat();
-    const int actualChannels = preferredFormat.channelCount();
-
-    // Allow from 1 up to the device's actual channel count, clamped to our app max
-    const int effectiveMax = std::min(actualChannels, static_cast<int>(GKMaxChannels));
-
-    // Preserve current value if possible, otherwise clamp it
-    const int currentValue = mChannelCountSpinBox->value();
-    mChannelCountSpinBox->setRange(1, effectiveMax);
-
-    // Restore value or clamp to new range
-    if (currentValue > effectiveMax) {
-        mChannelCountSpinBox->setValue(effectiveMax);
-    } else if (currentValue < 1) {
-        mChannelCountSpinBox->setValue(1);
+    if (mRecorder.IsRecording()) {
+        mRecorder.Stop();
     } else {
-        mChannelCountSpinBox->setValue(currentValue);
+        // Get selected device
+        const auto deviceId = mAudioDeviceComboBox->currentData().toByteArray();
+        const auto devices = QMediaDevices::audioInputs();
+
+        for (const auto& device : devices) {
+            if (device.id() == deviceId) {
+                const auto sampleRate = mSampleRateComboBox->currentData().toInt();
+                const auto channels =
+                  static_cast<ChannelCount>(mChannelsComboBox->currentData().toInt());
+
+                UpdateColorMapDropdowns(channels);
+                mRecorder.Start(device, channels, sampleRate);
+                break;
+            }
+        }
     }
 }
 
 void
-SettingsPanel::UpdateRecordingControlsEnabled(bool aIsRecording)
+SettingsPanel::OpenFile()
 {
-    // Disable device/rate/channels controls while recording
-    mAudioDeviceCombo->setEnabled(!aIsRecording);
-    mSampleRateCombo->setEnabled(!aIsRecording);
-    mChannelCountSpinBox->setEnabled(!aIsRecording);
-}
-
-void
-SettingsPanel::OnRecordingButtonClicked()
-{
-    if (mAudioRecorder->IsRecording()) {
-        mAudioRecorder->Stop();
-    } else {
-        const auto device = mAudioDeviceCombo->currentData().value<QAudioDevice>();
-        const SampleRate sampleRate = mSampleRateCombo->currentData().toInt();
-        const int channelCount = mChannelCountSpinBox->value();
-
-        mAudioRecorder->Start(device, channelCount, sampleRate);
-    }
-}
-
-void
-SettingsPanel::OnRecordingStateChanged(bool aIsRecording)
-{
-    mRecordingButton->setText(aIsRecording ? "Stop Recording" : "Start Recording");
-    UpdateRecordingControlsEnabled(aIsRecording);
-}
-
-void
-SettingsPanel::CreateOpenFileButton(QFormLayout* aLayout)
-{
-    mOpenFileButton = new QPushButton("Open File", this);
-    mOpenFileButton->setObjectName("openFileButton");
-
-    connect(mOpenFileButton, &QPushButton::clicked, this, &SettingsPanel::OnOpenFileClicked);
-
-    aLayout->addRow("", mOpenFileButton);
-}
-
-void
-SettingsPanel::OnOpenFileClicked()
-{
-    // Open file dialog to choose an audio file
-    const QString fileName =
-      QFileDialog::getOpenFileName(this,
-                                   tr("Open Audio File"),
-                                   QString(),
-                                   tr("Audio Files (*.wav *.aiff *.flac *.ogg);;All Files (*)"));
+    const QString fileName = QFileDialog::getOpenFileName(
+      this,
+      "Open Audio File",
+      QString(),
+      "Audio Files (*.wav *.flac *.ogg *.mp3 *.aiff *.aif);;All Files (*)");
 
     if (fileName.isEmpty()) {
-        return; // User canceled
+        return;
     }
 
-    // Create progress dialog
-    QProgressDialog progressDialog("Loading audio file...", "Cancel", 0, KProgressMaximum, this);
-    progressDialog.setWindowModality(Qt::WindowModal);
-    progressDialog.setMinimumDuration(0); // Show immediately
+    QProgressDialog progress("Loading audio file...", "Cancel", 0, KProgressMaxPercent, this);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setMinimumDuration(0);
 
-    // Create progress callback
-    auto progressCallback = [&progressDialog](int aProgressPercent) {
-        progressDialog.setValue(aProgressPercent);
-    };
+    AudioFileReader reader(fileName.toStdString());
 
-    // Load the file
-    try {
-        AudioFileReader reader(fileName.toStdString());
-        const bool success = mAudioFile->LoadFile(reader, progressCallback);
+    // Update colormap dropdowns based on file channel count
+    UpdateColorMapDropdowns(reader.GetChannelCount());
 
-        if (!success) {
-            QMessageBox::warning(this, "Error", "Failed to load audio file.");
-        }
-    } catch (const std::runtime_error& e) {
-        QMessageBox::critical(
-          this, "Error", QString("Failed to load audio file: %1").arg(e.what()));
+    mAudioFile.LoadFile(reader, [&progress](int aPercent) {
+        progress.setValue(aPercent);
+        // Allow event processing so cancel button works
+        QCoreApplication::processEvents();
+    });
+
+    progress.close();
+}
+
+QComboBox*
+SettingsPanel::CreateColorMapComboBox(ChannelCount aChannel)
+{
+    auto* comboBox = new QComboBox(this);
+    comboBox->setObjectName(QString("ColorMapComboBox%1").arg(aChannel));
+    comboBox->setIconSize(QSize(KColorMapIconWidth, KColorMapIconHeight));
+
+    // Add all color map types with preview icons
+    for (const auto& [type, name] : ColorMap::TypeNames) {
+        comboBox->addItem(QIcon(ColorMap::GeneratePreview(type)),
+                          QString::fromUtf8(name.data(), static_cast<int>(name.size())),
+                          static_cast<int>(type));
     }
 
-    progressDialog.setValue(KProgressMaximum);
+    // Set default selection
+    const int defaultIndex =
+      comboBox->findData(static_cast<int>(mSettings.GetColorMapType(aChannel)));
+    if (defaultIndex >= 0) {
+        comboBox->setCurrentIndex(defaultIndex);
+    }
+
+    // Connect selection changes
+    connect(comboBox, &QComboBox::currentIndexChanged, this, [this, aChannel, comboBox]() {
+        const auto type = static_cast<ColorMap::Type>(comboBox->currentData().toInt());
+        mSettings.SetColorMapType(aChannel, type);
+    });
+
+    return comboBox;
+}
+
+QComboBox*
+SettingsPanel::GetColorMapComboBox(ChannelCount aChannel) const
+{
+    if (aChannel >= GKMaxChannels) {
+        throw std::out_of_range("Channel index out of range");
+    }
+    return mColorMapComboBoxes.at(aChannel);
 }
 
 void
-SettingsPanel::CreateLiveModeButton(QFormLayout* aLayout)
+SettingsPanel::UpdateColorMapDropdowns(ChannelCount aChannelCount)
 {
-    mLiveModeButton = new QPushButton("Live Mode", this);
-    mLiveModeButton->setObjectName("liveModeButton");
-    connect(
-      mLiveModeButton, &QPushButton::clicked, this, [this]() { mSettings->SetLiveMode(true); });
-    aLayout->addRow("", mLiveModeButton);
+    const auto clampedCount = std::min(aChannelCount, GKMaxChannels);
+
+    // Show/hide combo boxes based on channel count
+    for (ChannelCount i = 0; i < GKMaxChannels; ++i) {
+        const bool visible = i < clampedCount;
+        mColorMapComboBoxes.at(i)->setVisible(visible);
+
+        // Also hide the label in the form layout
+        if (auto* formLayout = qobject_cast<QFormLayout*>(mColorMapControlsGroup->layout())) {
+            if (QWidget* label = formLayout->labelForField(mColorMapComboBoxes.at(i))) {
+                label->setVisible(visible);
+            }
+        }
+    }
+
+    mVisibleColorMaps = clampedCount;
 }

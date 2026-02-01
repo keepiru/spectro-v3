@@ -4,42 +4,122 @@
 
 #pragma once
 
-#include "controllers/audio_recorder.h"
-#include "models/settings.h"
+#include "include/global_constants.h"
 #include <QComboBox>
+#include <QGroupBox>
 #include <QPushButton>
 #include <QSlider>
-#include <QSpinBox>
 #include <QWidget>
 #include <array>
-#include <cstddef>
+#include <audio_types.h>
 
 // Forward declarations
-class QLabel;
+class AudioBuffer;
 class AudioFile;
+class AudioRecorder;
+class QAudioDevice;
+class QLabel;
+class Settings;
 
-/// @brief Configuration panel widget
+/// @brief Settings panel widget for controlling audio and display settings
 ///
-/// Provides controls for adjusting FFT parameters, display settings, and color maps.
+/// Provides UI controls for audio device selection, recording, FFT parameters,
+/// display aperture, and color map selection. All controls are named for
+/// testability.
 class SettingsPanel : public QWidget
 {
     Q_OBJECT
 
   public:
+    /// @brief Constructor
+    /// @param aSettings Reference to Settings model
+    /// @param aRecorder Reference to AudioRecorder controller
+    /// @param aAudioFile Reference to AudioFile controller
+    /// @param aParent Qt parent widget (optional)
     explicit SettingsPanel(Settings& aSettings,
-                           AudioRecorder& aAudioRecorder,
+                           AudioRecorder& aRecorder,
                            AudioFile& aAudioFile,
-                           QWidget* parent = nullptr);
+                           QWidget* aParent = nullptr);
     ~SettingsPanel() override = default;
 
-  private:
-    Settings* mSettings = nullptr;
-    AudioFile* mAudioFile = nullptr;
-    AudioRecorder* mAudioRecorder = nullptr;
+    // Test accessors for named elements
+    [[nodiscard]] QComboBox* GetAudioDeviceComboBox() const { return mAudioDeviceComboBox; }
+    [[nodiscard]] QComboBox* GetSampleRateComboBox() const { return mSampleRateComboBox; }
+    [[nodiscard]] QComboBox* GetChannelsComboBox() const { return mChannelsComboBox; }
+    [[nodiscard]] QPushButton* GetRecordButton() const { return mRecordButton; }
+    [[nodiscard]] QPushButton* GetOpenFileButton() const { return mOpenFileButton; }
+    [[nodiscard]] QComboBox* GetWindowTypeComboBox() const { return mWindowTypeComboBox; }
+    [[nodiscard]] QComboBox* GetFFTSizeComboBox() const { return mFFTSizeComboBox; }
+    [[nodiscard]] QSlider* GetWindowScaleSlider() const { return mWindowScaleSlider; }
+    [[nodiscard]] QSlider* GetApertureFloorSlider() const { return mApertureFloorSlider; }
+    [[nodiscard]] QSlider* GetApertureCeilingSlider() const { return mApertureCeilingSlider; }
+    [[nodiscard]] QLabel* GetWindowScaleLabel() const { return mWindowScaleLabel; }
+    [[nodiscard]] QLabel* GetApertureFloorLabel() const { return mApertureFloorLabel; }
+    [[nodiscard]] QLabel* GetApertureCeilingLabel() const { return mApertureCeilingLabel; }
+    [[nodiscard]] QPushButton* GetLiveModeButton() const { return mLiveModeButton; }
+    [[nodiscard]] QComboBox* GetColorMapComboBox(ChannelCount aChannel) const;
 
-    // Control widgets
-    QComboBox* mWindowTypeCombo = nullptr;
-    QComboBox* mFFTSizeCombo = nullptr;
+    /// @brief Update the number of colormap dropdowns based on channel count
+    /// @param aChannelCount Number of channels
+    void UpdateColorMapDropdowns(ChannelCount aChannelCount);
+
+  private:
+    /// @brief Create the audio controls group box
+    /// @return Pointer to the created group box
+    QGroupBox* CreateAudioControlsGroup();
+
+    /// @brief Create the FFT controls group box
+    /// @return Pointer to the created group box
+    QGroupBox* CreateFFTControlsGroup();
+
+    /// @brief Create the color map controls group box
+    /// @return Pointer to the created group box
+    QGroupBox* CreateColorMapControlsGroup();
+
+    /// @brief Create the display controls group box
+    /// @return Pointer to the created group box
+    QGroupBox* CreateDisplayControlsGroup();
+
+    /// @brief Populate audio device combo box from available devices
+    void PopulateAudioDevices();
+
+    /// @brief Populate sample rate combo box for the selected device
+    void PopulateSampleRates();
+
+    /// @brief Populate channels combo box for the selected device
+    void PopulateChannels();
+
+    /// @brief Enable or disable audio controls based on recording state
+    /// @param aEnabled True to enable, false to disable
+    void SetAudioControlsEnabled(bool aEnabled);
+
+    /// @brief Start or stop recording
+    void ToggleRecording();
+
+    /// @brief Open a file dialog and load the selected audio file
+    void OpenFile();
+
+    /// @brief Create a colormap combo box with preview icons
+    /// @param aChannel Channel index
+    /// @return Pointer to the created combo box
+    QComboBox* CreateColorMapComboBox(ChannelCount aChannel);
+
+    // Model and controller references
+    Settings& mSettings;
+    AudioRecorder& mRecorder;
+    AudioFile& mAudioFile;
+
+    // Audio controls
+    QComboBox* mAudioDeviceComboBox = nullptr;
+    QComboBox* mSampleRateComboBox = nullptr;
+    QComboBox* mChannelsComboBox = nullptr;
+    QPushButton* mRecordButton = nullptr;
+    QPushButton* mOpenFileButton = nullptr;
+    QGroupBox* mAudioControlsGroup = nullptr;
+
+    // FFT controls
+    QComboBox* mWindowTypeComboBox = nullptr;
+    QComboBox* mFFTSizeComboBox = nullptr;
     QSlider* mWindowScaleSlider = nullptr;
     QLabel* mWindowScaleLabel = nullptr;
     QSlider* mApertureFloorSlider = nullptr;
@@ -47,36 +127,11 @@ class SettingsPanel : public QWidget
     QSlider* mApertureCeilingSlider = nullptr;
     QLabel* mApertureCeilingLabel = nullptr;
 
-    static constexpr size_t KNumColorMapSelectors = 6;
-    std::array<QComboBox*, KNumColorMapSelectors> mColorMapCombos = {};
+    // Color map controls
+    QGroupBox* mColorMapControlsGroup = nullptr;
+    std::array<QComboBox*, GKMaxChannels> mColorMapComboBoxes{};
+    ChannelCount mVisibleColorMaps = 0;
 
-    // Audio controls
-    QComboBox* mAudioDeviceCombo = nullptr;
-    QComboBox* mSampleRateCombo = nullptr;
-    QSpinBox* mChannelCountSpinBox = nullptr;
-    QPushButton* mRecordingButton = nullptr;
-
-    // File controls
-    QPushButton* mOpenFileButton = nullptr;
+    // Display controls
     QPushButton* mLiveModeButton = nullptr;
-
-    // Helper methods
-    void CreateLayout();
-    void CreateAudioControls(class QFormLayout* aLayout);
-    void CreateOpenFileButton(class QFormLayout* aLayout);
-    void CreateLiveModeButton(class QFormLayout* aLayout);
-    void CreateWindowTypeControl(class QFormLayout* aLayout);
-    void CreateFFTSizeControl(class QFormLayout* aLayout);
-    void CreateWindowScaleControl(class QFormLayout* aLayout);
-    void CreateApertureControls(class QFormLayout* aLayout);
-    void CreateColorMapControls(class QFormLayout* aLayout);
-    void UpdateWindowScaleLabel();
-    void UpdateApertureFloorLabel();
-    void UpdateApertureCeilingLabel();
-    void UpdateRecordingControlsEnabled(bool aIsRecording);
-    void UpdateSampleRatesForDevice(const QAudioDevice& aDevice);
-    void UpdateChannelRangeForDevice(const QAudioDevice& aDevice);
-    void OnRecordingButtonClicked();
-    void OnRecordingStateChanged(bool aIsRecording);
-    void OnOpenFileClicked();
 };

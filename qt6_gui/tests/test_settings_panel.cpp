@@ -6,6 +6,7 @@
 #include "controllers/audio_recorder.h"
 #include "include/global_constants.h"
 #include "models/audio_buffer.h"
+#include "models/colormap.h"
 #include "models/settings.h"
 #include "views/settings_panel.h"
 #include <QComboBox>
@@ -200,7 +201,7 @@ TEST_CASE("SettingsPanel color map controls", "[settings_panel]")
         auto* combo = panel.findChild<QComboBox*>(objectName);
         REQUIRE(combo != nullptr);
 
-        // Check that it exposes all color map types (see Settings::ColorMapType)
+        // Check that it exposes all color map types (see ColorMap::Type)
         REQUIRE(combo->count() == 19);
 
         // Check icon size
@@ -213,11 +214,11 @@ TEST_CASE("SettingsPanel color map controls", "[settings_panel]")
 
         // Test changing color map (only for valid channels)
         if (i < GKMaxChannels) {
-            combo->setCurrentIndex(static_cast<int>(Settings::ColorMapType::Red));
-            REQUIRE(settings.GetColorMap(i) == Settings::ColorMapType::Red);
+            combo->setCurrentIndex(static_cast<int>(ColorMap::Type::Red));
+            REQUIRE(settings.GetColorMap(i) == ColorMap::Type::Red);
 
-            combo->setCurrentIndex(static_cast<int>(Settings::ColorMapType::Blue));
-            REQUIRE(settings.GetColorMap(i) == Settings::ColorMapType::Blue);
+            combo->setCurrentIndex(static_cast<int>(ColorMap::Type::Blue));
+            REQUIRE(settings.GetColorMap(i) == ColorMap::Type::Blue);
         }
     }
 }
@@ -230,7 +231,7 @@ TEST_CASE("SettingsPanel initial values", "[settings_panel]")
     settings.SetWindowScale(8);
     settings.SetApertureFloorDecibels(-60.0f);
     settings.SetApertureCeilingDecibels(10.0f);
-    settings.SetColorMap(0, Settings::ColorMapType::Magenta);
+    settings.SetColorMap(0, ColorMap::Type::Magenta);
 
     // Create panel and verify controls reflect the settings
     AudioBuffer audioBuffer;
@@ -254,8 +255,7 @@ TEST_CASE("SettingsPanel initial values", "[settings_panel]")
     auto* apertureCeilingSlider = panel.findChild<QSlider*>("apertureCeilingSlider");
     REQUIRE(apertureCeilingSlider->value() == 10);
     auto* colorMapCombo0 = panel.findChild<QComboBox*>("colorMapCombo0");
-    REQUIRE(colorMapCombo0->currentData().toInt() ==
-            static_cast<int>(Settings::ColorMapType::Magenta));
+    REQUIRE(colorMapCombo0->currentData().toInt() == static_cast<int>(ColorMap::Type::Magenta));
 }
 
 TEST_CASE("SettingsPanel signal connections", "[settings_panel]")

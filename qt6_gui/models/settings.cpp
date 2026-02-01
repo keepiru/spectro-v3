@@ -5,6 +5,7 @@
 #include "models/settings.h"
 #include "include/colormap_data.h"
 #include "include/global_constants.h"
+#include "models/colormap.h"
 #include <QObject>
 #include <algorithm>
 #include <array>
@@ -47,7 +48,7 @@ Settings::SetWindowScale(const WindowScale aScale)
 }
 
 void
-Settings::SetColorMap(ChannelCount aChannel, ColorMapType aType)
+Settings::SetColorMap(ChannelCount aChannel, ColorMap::Type aType)
 {
     // Helper to set a gradient color map
     auto setGradientColorMap = [this, aChannel](bool enableRed, bool enableGreen, bool enableBlue) {
@@ -61,62 +62,62 @@ Settings::SetColorMap(ChannelCount aChannel, ColorMapType aType)
     };
 
     switch (aType) {
-        case ColorMapType::Disabled:
+        case ColorMap::Type::Disabled:
             // Disabled map is all black
             setGradientColorMap(false, false, false);
             break;
-        case ColorMapType::White:
+        case ColorMap::Type::White:
             setGradientColorMap(true, true, true);
             break;
-        case ColorMapType::Red:
+        case ColorMap::Type::Red:
             setGradientColorMap(true, false, false);
             break;
-        case ColorMapType::Green:
+        case ColorMap::Type::Green:
             setGradientColorMap(false, true, false);
             break;
-        case ColorMapType::Blue:
+        case ColorMap::Type::Blue:
             setGradientColorMap(false, false, true);
             break;
-        case ColorMapType::Cyan:
+        case ColorMap::Type::Cyan:
             setGradientColorMap(false, true, true);
             break;
-        case ColorMapType::Magenta:
+        case ColorMap::Type::Magenta:
             setGradientColorMap(true, false, true);
             break;
-        case ColorMapType::Yellow:
+        case ColorMap::Type::Yellow:
             setGradientColorMap(true, true, false);
             break;
-        case ColorMapType::Viridis:
+        case ColorMap::Type::Viridis:
             mColorMapLUTs.at(aChannel) = GKViridisLUT;
             break;
-        case ColorMapType::Plasma:
+        case ColorMap::Type::Plasma:
             mColorMapLUTs.at(aChannel) = GKPlasmaLUT;
             break;
-        case ColorMapType::Inferno:
+        case ColorMap::Type::Inferno:
             mColorMapLUTs.at(aChannel) = GKInfernoLUT;
             break;
-        case ColorMapType::Magma:
+        case ColorMap::Type::Magma:
             mColorMapLUTs.at(aChannel) = GKMagmaLUT;
             break;
-        case ColorMapType::Turbo:
+        case ColorMap::Type::Turbo:
             mColorMapLUTs.at(aChannel) = GKTurboLUT;
             break;
-        case ColorMapType::Cividis:
+        case ColorMap::Type::Cividis:
             mColorMapLUTs.at(aChannel) = GKCividisLUT;
             break;
-        case ColorMapType::Hot:
+        case ColorMap::Type::Hot:
             mColorMapLUTs.at(aChannel) = GKHotLUT;
             break;
-        case ColorMapType::Cool:
+        case ColorMap::Type::Cool:
             mColorMapLUTs.at(aChannel) = GKCoolLUT;
             break;
-        case ColorMapType::Twilight:
+        case ColorMap::Type::Twilight:
             mColorMapLUTs.at(aChannel) = GKTwilightLUT;
             break;
-        case ColorMapType::Seismic:
+        case ColorMap::Type::Seismic:
             mColorMapLUTs.at(aChannel) = GKSeismicLUT;
             break;
-        case ColorMapType::Jet:
+        case ColorMap::Type::Jet:
             mColorMapLUTs.at(aChannel) = GKJetLUT;
             break;
         default:

@@ -5,13 +5,13 @@
 #pragma once
 
 #include "include/global_constants.h"
+#include "models/colormap.h"
 #include <QObject>
 #include <array>
 #include <audio_types.h>
 #include <cstddef>
 #include <cstdint>
 #include <fft_window.h>
-#include <string_view>
 #include <utility>
 
 // Forward declarations
@@ -30,54 +30,6 @@ class Settings : public QObject
     static constexpr std::array<WindowScale, 5> KValidWindowScales{ 1, 2, 4, 8, 16 };
     static constexpr std::array<FFTSize, 6> KValidFFTSizes{ 512, 1024, 2048, 4096, 8192, 16384 };
     static constexpr std::pair<int16_t, int16_t> KApertureLimitsDecibels = { -80, 100 };
-
-    enum class ColorMapType : uint8_t
-    {
-        Disabled,
-        White,
-        Red,
-        Green,
-        Blue,
-        Cyan,
-        Magenta,
-        Yellow,
-        Viridis,
-        Plasma,
-        Inferno,
-        Magma,
-        Turbo,
-        Cividis,
-        Hot,
-        Cool,
-        Twilight,
-        Seismic,
-        Jet,
-        Count,
-    };
-
-    /// @brief Mapping of ColorMapType to string names
-    /// Used for the UI pulldown to select color maps.
-    static constexpr std::array<std::pair<ColorMapType, std::string_view>,
-                                static_cast<size_t>(ColorMapType::Count)>
-      KColorMapTypeNames = { { { ColorMapType::Disabled, "Disabled" },
-                               { ColorMapType::White, "White" },
-                               { ColorMapType::Red, "Red" },
-                               { ColorMapType::Green, "Green" },
-                               { ColorMapType::Blue, "Blue" },
-                               { ColorMapType::Cyan, "Cyan" },
-                               { ColorMapType::Magenta, "Magenta" },
-                               { ColorMapType::Yellow, "Yellow" },
-                               { ColorMapType::Viridis, "Viridis" },
-                               { ColorMapType::Plasma, "Plasma" },
-                               { ColorMapType::Inferno, "Inferno" },
-                               { ColorMapType::Magma, "Magma" },
-                               { ColorMapType::Turbo, "Turbo" },
-                               { ColorMapType::Cividis, "Cividis" },
-                               { ColorMapType::Hot, "Hot" },
-                               { ColorMapType::Cool, "Cool" },
-                               { ColorMapType::Twilight, "Twilight" },
-                               { ColorMapType::Seismic, "Seismic" },
-                               { ColorMapType::Jet, "Jet" } } };
 
     /// @brief Lightweight RGB color representation for LUT
     ///
@@ -178,12 +130,12 @@ class Settings : public QObject
     /// @brief Set the color map type
     /// @param aChannel Channel index (0-based)
     /// @param aType Color map type
-    void SetColorMap(ChannelCount aChannel, ColorMapType aType);
+    void SetColorMap(ChannelCount aChannel, ColorMap::Type aType);
 
     /// @brief Get the color map type for a channel
     /// @param aChannel Channel index (0-based)
     /// @return Current color map type
-    [[nodiscard]] ColorMapType GetColorMap(ChannelCount aChannel) const
+    [[nodiscard]] ColorMap::Type GetColorMap(ChannelCount aChannel) const
     {
         return mSelectedColorMaps.at(aChannel);
     }
@@ -229,9 +181,9 @@ class Settings : public QObject
     float mApertureCeilingDecibels = KDefaultApertureCeilingDecibels;
 
     // Default color maps for each channel.
-    static constexpr std::array<ColorMapType, GKMaxChannels> KDefaultColorMaps = {
-        ColorMapType::Magenta, ColorMapType::Green, ColorMapType::White,
-        ColorMapType::White,   ColorMapType::White, ColorMapType::White,
+    static constexpr std::array<ColorMap::Type, GKMaxChannels> KDefaultColorMaps = {
+        ColorMap::Type::Magenta, ColorMap::Type::Green, ColorMap::Type::White,
+        ColorMap::Type::White,   ColorMap::Type::White, ColorMap::Type::White,
     };
 
     // Color map lookup tables (LUTs) for each channel.  The simple nested array
@@ -239,7 +191,7 @@ class Settings : public QObject
     ColorMapLUTs mColorMapLUTs;
 
     // Selected color maps for each channel.
-    std::array<ColorMapType, GKMaxChannels> mSelectedColorMaps = KDefaultColorMaps;
+    std::array<ColorMap::Type, GKMaxChannels> mSelectedColorMaps = KDefaultColorMaps;
 
     bool mIsLiveMode{ true }; ///< Whether we are following live audio or viewing history
 };

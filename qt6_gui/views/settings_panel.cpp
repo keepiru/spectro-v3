@@ -8,6 +8,7 @@
 #include "controllers/audio_recorder.h"
 #include "fft_window.h"
 #include "include/global_constants.h"
+#include "models/colormap.h"
 #include "models/settings.h"
 #include <QAudioDevice>
 #include <QComboBox>
@@ -256,7 +257,7 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
         combo->setIconSize(QSize(kPreviewIconWidth, kPreviewIconHeight));
 
         // Add color map types with preview icons
-        for (const auto& [type, name] : Settings::KColorMapTypeNames) {
+        for (const auto& [type, name] : ColorMap::TypeNames) {
             // Create a preview image for this color map
             QImage preview(kPreviewIconWidth, kPreviewIconHeight, QImage::Format_RGB888);
 
@@ -294,7 +295,7 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
         const size_t channelIndex = i;
         connect(combo, &QComboBox::currentIndexChanged, this, [this, channelIndex](int /*aIndex*/) {
             if (channelIndex < GKMaxChannels) {
-                const auto selectedType = static_cast<Settings::ColorMapType>(
+                const auto selectedType = static_cast<ColorMap::Type>(
                   mColorMapCombos.at(channelIndex)->currentData().toInt());
                 mSettings->SetColorMap(channelIndex, selectedType);
             }

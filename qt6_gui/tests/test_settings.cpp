@@ -4,6 +4,7 @@
 
 #include "audio_types.h"
 #include "include/global_constants.h"
+#include "models/colormap.h"
 #include "models/settings.h"
 #include <QSignalSpy>
 #include <catch2/catch_test_macros.hpp>
@@ -113,12 +114,11 @@ TEST_CASE("Settings::SetColorMap invalid", "[settings]")
 
     // Invalid enum value (not in defined range)
     // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
-    const auto invalidValue = static_cast<Settings::ColorMapType>(999);
+    const auto invalidValue = static_cast<ColorMap::Type>(999);
     REQUIRE_THROWS_AS(settings.SetColorMap(0, invalidValue), std::invalid_argument);
 
     // Also verify the Count sentinel is not accepted
-    REQUIRE_THROWS_AS(settings.SetColorMap(0, Settings::ColorMapType::Count),
-                      std::invalid_argument);
+    REQUIRE_THROWS_AS(settings.SetColorMap(0, ColorMap::Type::Count), std::invalid_argument);
 }
 
 TEST_CASE("Settings default color maps", "[settings]")
@@ -149,17 +149,17 @@ TEST_CASE("Settings::GetColorMap", "[settings]")
     Settings settings;
 
     // Confirm default color maps
-    REQUIRE(settings.GetColorMap(0) == Settings::ColorMapType::Magenta);
-    REQUIRE(settings.GetColorMap(1) == Settings::ColorMapType::Green);
+    REQUIRE(settings.GetColorMap(0) == ColorMap::Type::Magenta);
+    REQUIRE(settings.GetColorMap(1) == ColorMap::Type::Green);
     for (ChannelCount ch = 2; ch < GKMaxChannels; ch++) {
-        REQUIRE(settings.GetColorMap(ch) == Settings::ColorMapType::White);
+        REQUIRE(settings.GetColorMap(ch) == ColorMap::Type::White);
     }
 
     const QSignalSpy spy(&settings, &Settings::DisplaySettingsChanged);
     // Then change and confirm
-    settings.SetColorMap(0, Settings::ColorMapType::Blue);
+    settings.SetColorMap(0, ColorMap::Type::Blue);
     REQUIRE(spy.count() == 1);
-    REQUIRE(settings.GetColorMap(0) == Settings::ColorMapType::Blue);
+    REQUIRE(settings.GetColorMap(0) == ColorMap::Type::Blue);
 }
 
 TEST_CASE("Settings::GetColorMapValue out of range", "[settings]")
@@ -176,7 +176,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Disabled colormap is black")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Disabled);
+        settings.SetColorMap(0, ColorMap::Type::Disabled);
         for (size_t i = 0; i < 256; i++) {
             const auto entry = settings.GetColorMapValue(0, i);
             REQUIRE(entry.r == 0);
@@ -187,7 +187,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("White colormap is white")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::White);
+        settings.SetColorMap(0, ColorMap::Type::White);
         for (size_t i = 0; i < 256; i++) {
             const auto entry = settings.GetColorMapValue(0, i);
             const auto intensity = static_cast<uint8_t>(i);
@@ -199,7 +199,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Red colormap is red gradient")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Red);
+        settings.SetColorMap(0, ColorMap::Type::Red);
         for (size_t i = 0; i < 256; i++) {
             const auto entry = settings.GetColorMapValue(0, i);
             const auto intensity = static_cast<uint8_t>(i);
@@ -211,7 +211,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Viridis colormap has expected RGB values")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Viridis);
+        settings.SetColorMap(0, ColorMap::Type::Viridis);
         // Check key points in the Viridis colormap
         const auto entry0 = settings.GetColorMapValue(0, 0);
         const auto entry128 = settings.GetColorMapValue(0, 128);
@@ -231,7 +231,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Plasma colormap has expected RGB values")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Plasma);
+        settings.SetColorMap(0, ColorMap::Type::Plasma);
         const auto entry0 = settings.GetColorMapValue(0, 0);
         const auto entry128 = settings.GetColorMapValue(0, 128);
         const auto entry255 = settings.GetColorMapValue(0, 255);
@@ -250,7 +250,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Inferno colormap has expected RGB values")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Inferno);
+        settings.SetColorMap(0, ColorMap::Type::Inferno);
         const auto entry0 = settings.GetColorMapValue(0, 0);
         const auto entry128 = settings.GetColorMapValue(0, 128);
         const auto entry255 = settings.GetColorMapValue(0, 255);
@@ -269,7 +269,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Magma colormap has expected RGB values")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Magma);
+        settings.SetColorMap(0, ColorMap::Type::Magma);
         const auto entry0 = settings.GetColorMapValue(0, 0);
         const auto entry128 = settings.GetColorMapValue(0, 128);
         const auto entry255 = settings.GetColorMapValue(0, 255);
@@ -288,7 +288,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Turbo colormap has expected RGB values")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Turbo);
+        settings.SetColorMap(0, ColorMap::Type::Turbo);
         const auto entry0 = settings.GetColorMapValue(0, 0);
         const auto entry128 = settings.GetColorMapValue(0, 128);
         const auto entry255 = settings.GetColorMapValue(0, 255);
@@ -307,7 +307,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Cividis colormap has expected RGB values")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Cividis);
+        settings.SetColorMap(0, ColorMap::Type::Cividis);
         const auto entry0 = settings.GetColorMapValue(0, 0);
         const auto entry128 = settings.GetColorMapValue(0, 128);
         const auto entry255 = settings.GetColorMapValue(0, 255);
@@ -326,7 +326,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Hot colormap has expected RGB values")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Hot);
+        settings.SetColorMap(0, ColorMap::Type::Hot);
         const auto entry0 = settings.GetColorMapValue(0, 0);
         const auto entry128 = settings.GetColorMapValue(0, 128);
         const auto entry255 = settings.GetColorMapValue(0, 255);
@@ -345,7 +345,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Cool colormap has expected RGB values")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Cool);
+        settings.SetColorMap(0, ColorMap::Type::Cool);
         const auto entry0 = settings.GetColorMapValue(0, 0);
         const auto entry128 = settings.GetColorMapValue(0, 128);
         const auto entry255 = settings.GetColorMapValue(0, 255);
@@ -364,7 +364,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Twilight colormap has expected RGB values")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Twilight);
+        settings.SetColorMap(0, ColorMap::Type::Twilight);
         const auto entry0 = settings.GetColorMapValue(0, 0);
         const auto entry128 = settings.GetColorMapValue(0, 128);
         const auto entry255 = settings.GetColorMapValue(0, 255);
@@ -383,7 +383,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Seismic colormap has expected RGB values")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Seismic);
+        settings.SetColorMap(0, ColorMap::Type::Seismic);
         const auto entry0 = settings.GetColorMapValue(0, 0);
         const auto entry128 = settings.GetColorMapValue(0, 128);
         const auto entry255 = settings.GetColorMapValue(0, 255);
@@ -402,7 +402,7 @@ TEST_CASE("Settings::SetColorMap colormap values", "[settings]")
 
     SECTION("Jet colormap has expected RGB values")
     {
-        settings.SetColorMap(0, Settings::ColorMapType::Jet);
+        settings.SetColorMap(0, ColorMap::Type::Jet);
         const auto entry0 = settings.GetColorMapValue(0, 0);
         const auto entry128 = settings.GetColorMapValue(0, 128);
         const auto entry255 = settings.GetColorMapValue(0, 255);

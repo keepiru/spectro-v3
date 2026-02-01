@@ -101,18 +101,6 @@ class Settings : public QObject
     /// @return Reference to the array of color map LUTs
     [[nodiscard]] const ColorMapLUTs& GetColorMapLUTs() const { return mColorMapLUTs; }
 
-    /// @brief Get the color map LUT value at a specific index
-    /// @param aChannel Channel index (0-based)
-    /// @param aIndex Index into the LUT (0-255)
-    /// @return RGB color value
-    ///
-    /// This is used to test LUT generation.  Prod code accesses the array
-    /// directly for performance.
-    [[nodiscard]] ColorMap::Entry GetColorMapValue(ChannelCount aChannel, uint8_t aIndex) const
-    {
-        return mColorMapLUTs.at(aChannel).at(aIndex);
-    }
-
     /// @brief Set the color map type
     /// @param aChannel Channel index (0-based)
     /// @param aType Color map type

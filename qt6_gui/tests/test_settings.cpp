@@ -124,22 +124,23 @@ TEST_CASE("Settings::SetColorMap invalid", "[settings]")
 TEST_CASE("Settings default color maps", "[settings]")
 {
     const Settings settings;
+    const auto& luts = settings.GetColorMapLUTs();
 
     for (size_t i = 0; i < 256; i++) {
         const auto intensity = static_cast<uint8_t>(i);
         // Channel 0: Magenta
-        REQUIRE(settings.GetColorMapValue(0, i).r == intensity);
-        REQUIRE(settings.GetColorMapValue(0, i).g == 0);
-        REQUIRE(settings.GetColorMapValue(0, i).b == intensity);
+        REQUIRE(luts.at(0).at(i).r == intensity);
+        REQUIRE(luts.at(0).at(i).g == 0);
+        REQUIRE(luts.at(0).at(i).b == intensity);
         // Channel 1: Green
-        REQUIRE(settings.GetColorMapValue(1, i).r == 0);
-        REQUIRE(settings.GetColorMapValue(1, i).g == intensity);
-        REQUIRE(settings.GetColorMapValue(1, i).b == 0);
+        REQUIRE(luts.at(1).at(i).r == 0);
+        REQUIRE(luts.at(1).at(i).g == intensity);
+        REQUIRE(luts.at(1).at(i).b == 0);
         // Rest of channels: White
         for (ChannelCount ch = 2; ch < GKMaxChannels; ch++) {
-            REQUIRE(settings.GetColorMapValue(ch, i).r == intensity);
-            REQUIRE(settings.GetColorMapValue(ch, i).g == intensity);
-            REQUIRE(settings.GetColorMapValue(ch, i).b == intensity);
+            REQUIRE(luts.at(ch).at(i).r == intensity);
+            REQUIRE(luts.at(ch).at(i).g == intensity);
+            REQUIRE(luts.at(ch).at(i).b == intensity);
         }
     }
 }
@@ -160,14 +161,6 @@ TEST_CASE("Settings::GetColorMap", "[settings]")
     settings.SetColorMap(0, ColorMap::Type::Blue);
     REQUIRE(spy.count() == 1);
     REQUIRE(settings.GetColorMap(0) == ColorMap::Type::Blue);
-}
-
-TEST_CASE("Settings::GetColorMapValue out of range", "[settings]")
-{
-    const Settings settings;
-
-    // Index out of range should throw
-    REQUIRE_THROWS_AS((void)settings.GetColorMapValue(GKMaxChannels, 0), std::out_of_range);
 }
 
 TEST_CASE("Settings::SetAperture", "[settings]")

@@ -119,7 +119,7 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
     const float kApertureFloorDecibels = kSettings.GetApertureFloorDecibels();
     const float kApertureCeilingDecibels = kSettings.GetApertureCeilingDecibels();
     const float kApertureRangeDecibels = kApertureCeilingDecibels - kApertureFloorDecibels;
-    constexpr auto kColorMapMaxIndex = static_cast<float>(Settings::KColorMapLUTSize - 1);
+    constexpr auto kColorMapMaxIndex = static_cast<float>(ColorMap::KLUTSize - 1);
     const float kApertureRangeInverseDecibels = kColorMapMaxIndex / kApertureRangeDecibels;
     const ChannelCount kChannels = mController.GetChannelCount();
     const FFTSize kStride = kSettings.GetWindowStride();
@@ -196,8 +196,7 @@ SpectrogramView::GenerateSpectrogramImage(int aWidth, int aHeight)
                 // Map to 0-255
                 auto colorMapIndex = (kDecibels - renderConfig.aperture_floor_decibels) *
                                      renderConfig.aperture_range_inverse_decibels;
-                constexpr auto kColorMapMaxIndex =
-                  static_cast<float>(Settings::KColorMapLUTSize - 1);
+                constexpr auto kColorMapMaxIndex = static_cast<float>(ColorMap::KLUTSize - 1);
                 colorMapIndex = std::clamp(colorMapIndex, 0.0f, kColorMapMaxIndex);
                 // Don't use .at() here for performance in the hot path.  ch is
                 // guaranteed to be in range because it's from 0 to kChannels-1,

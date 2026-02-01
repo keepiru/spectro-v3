@@ -52,7 +52,7 @@ Settings::SetColorMap(ChannelCount aChannel, ColorMap::Type aType)
 {
     // Helper to set a gradient color map
     auto setGradientColorMap = [this, aChannel](bool enableRed, bool enableGreen, bool enableBlue) {
-        for (size_t i = 0; i < KColorMapLUTSize; i++) {
+        for (size_t i = 0; i < ColorMap::KLUTSize; i++) {
             const auto intensity = static_cast<uint8_t>(i);
             mColorMapLUTs.at(aChannel).at(i) =
               ColorMap::Entry{ .r = enableRed ? intensity : uint8_t{ 0 },

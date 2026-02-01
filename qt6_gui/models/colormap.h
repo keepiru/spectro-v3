@@ -14,6 +14,8 @@ class ColorMap
 {
 
   public:
+    static constexpr size_t KLUTSize = 256;
+
     /// @brief Lightweight RGB color representation for LUT
     ///
     /// Used in the color map lookup table (LUT) to represent colors as raw 8-bit
@@ -25,6 +27,8 @@ class ColorMap
         uint8_t g;
         uint8_t b;
     };
+
+    using LUT = std::array<Entry, KLUTSize>;
 
     enum class Type : uint8_t
     {

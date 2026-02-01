@@ -270,7 +270,7 @@ SettingsPanel::CreateColorMapControls(QFormLayout* aLayout)
             for (int pixelX = 0; pixelX < kPreviewIconWidth; pixelX++) {
                 // Map x to LUT index (0-255)
                 const auto lutIndex =
-                  static_cast<uint8_t>((pixelX * Settings::KColorMapLUTSize) / kPreviewIconWidth);
+                  static_cast<uint8_t>((pixelX * ColorMap::KLUTSize) / kPreviewIconWidth);
                 const auto& color = lut.at(lutIndex);
 
                 for (int pixelY = 0; pixelY < kPreviewIconHeight; pixelY++) {

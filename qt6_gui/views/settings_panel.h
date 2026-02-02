@@ -20,6 +20,7 @@ class AudioRecorder;
 class QAudioDevice;
 class QLabel;
 class Settings;
+class SettingsController;
 
 /// @brief Settings panel widget for controlling audio and display settings
 ///
@@ -33,10 +34,12 @@ class SettingsPanel : public QWidget
   public:
     /// @brief Constructor
     /// @param aSettings Reference to Settings model
+    /// @param aSettingsController Reference to SettingsController
     /// @param aRecorder Reference to AudioRecorder controller
     /// @param aAudioFile Reference to AudioFile controller
     /// @param aParent Qt parent widget (optional)
     explicit SettingsPanel(Settings& aSettings,
+                           SettingsController& aSettingsController,
                            AudioRecorder& aRecorder,
                            AudioFile& aAudioFile,
                            QWidget* aParent = nullptr);
@@ -106,6 +109,7 @@ class SettingsPanel : public QWidget
 
     // Model and controller references
     Settings& mSettings;
+    SettingsController& mSettingsController;
     AudioRecorder& mRecorder;
     AudioFile& mAudioFile;
 

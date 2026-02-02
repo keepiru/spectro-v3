@@ -5,6 +5,7 @@
 #include "audio_types.h"
 #include "controllers/audio_file.h"
 #include "controllers/audio_recorder.h"
+#include "controllers/settings_controller.h"
 #include "include/global_constants.h"
 #include "models/audio_buffer.h"
 #include "models/colormap.h"
@@ -34,7 +35,8 @@ struct TestFixture
     AudioBuffer audio_buffer;
     AudioRecorder recorder{ audio_buffer };
     AudioFile audio_file{ audio_buffer };
-    SettingsPanel panel{ settings, recorder, audio_file };
+    SettingsController settings_controller{ settings };
+    SettingsPanel panel{ settings, settings_controller, recorder, audio_file };
 };
 
 } // namespace

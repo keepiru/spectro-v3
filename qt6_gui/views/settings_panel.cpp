@@ -7,6 +7,7 @@
 #include "controllers/audio_file.h"
 #include "controllers/audio_file_reader.h"
 #include "controllers/audio_recorder.h"
+#include "controllers/settings_controller.h"
 #include "include/global_constants.h"
 #include "models/colormap.h"
 #include "models/settings.h"
@@ -61,11 +62,13 @@ FindWindowScaleIndex(WindowScale aScale)
 } // namespace
 
 SettingsPanel::SettingsPanel(Settings& aSettings,
+                             SettingsController& aSettingsController,
                              AudioRecorder& aRecorder,
                              AudioFile& aAudioFile,
                              QWidget* aParent)
   : QWidget(aParent)
   , mSettings(aSettings)
+  , mSettingsController(aSettingsController)
   , mRecorder(aRecorder)
   , mAudioFile(aAudioFile)
   , mAudioControlsGroup(CreateAudioControlsGroup())
@@ -316,17 +319,19 @@ SettingsPanel::PopulateAudioDevices()
 {
     mAudioDeviceComboBox->clear();
 
-    const auto devices = QMediaDevices::audioInputs();
+    const auto devices = mSettingsController.GetAudioDevices();
     for (const auto& device : devices) {
         mAudioDeviceComboBox->addItem(device.description(), QVariant::fromValue(device.id()));
     }
 
     // Select default device
-    const auto defaultDevice = QMediaDevices::defaultAudioInput();
-    const int defaultIndex =
-      mAudioDeviceComboBox->findData(QVariant::fromValue(defaultDevice.id()));
-    if (defaultIndex >= 0) {
-        mAudioDeviceComboBox->setCurrentIndex(defaultIndex);
+    const auto defaultDevice = mSettingsController.GetDefaultAudioInput();
+    if (!defaultDevice.isNull()) {
+        const int defaultIndex =
+          mAudioDeviceComboBox->findData(QVariant::fromValue(defaultDevice.id()));
+        if (defaultIndex >= 0) {
+            mAudioDeviceComboBox->setCurrentIndex(defaultIndex);
+        }
     }
 }
 
@@ -339,31 +344,19 @@ SettingsPanel::PopulateSampleRates()
         return;
     }
 
-    // Find the selected device
     const auto deviceId = mAudioDeviceComboBox->currentData().toByteArray();
-    const auto devices = QMediaDevices::audioInputs();
+    const auto supportedRates = mSettingsController.GetSupportedSampleRates(deviceId);
 
-    for (const auto& device : devices) {
-        if (device.id() == deviceId) {
-            // Get supported sample rates
-            const auto minRate = device.minimumSampleRate();
-            const auto maxRate = device.maximumSampleRate();
-
-            // Add common sample rates within the supported range
-            const std::array<int, 5> commonRates = { 22050, 44100, 48000, 88200, 96000 };
-            for (const auto rate : commonRates) {
-                if (rate >= minRate && rate <= maxRate) {
-                    mSampleRateComboBox->addItem(QString("%1 Hz").arg(rate), rate);
-                }
-            }
-
-            // Default to 44100 if available
-            const int defaultIndex = mSampleRateComboBox->findData(44100);
-            if (defaultIndex >= 0) {
-                mSampleRateComboBox->setCurrentIndex(defaultIndex);
-            }
-            break;
+    if (supportedRates.has_value()) {
+        for (const auto rate : supportedRates.value()) {
+            mSampleRateComboBox->addItem(QString("%1 Hz").arg(rate), rate);
         }
+    }
+
+    // Default to 44100 if available
+    const int defaultIndex = mSampleRateComboBox->findData(44100);
+    if (defaultIndex >= 0) {
+        mSampleRateComboBox->setCurrentIndex(defaultIndex);
     }
 }
 
@@ -376,28 +369,19 @@ SettingsPanel::PopulateChannels()
         return;
     }
 
-    // Find the selected device
     const auto deviceId = mAudioDeviceComboBox->currentData().toByteArray();
-    const auto devices = QMediaDevices::audioInputs();
+    const auto supportedChannels = mSettingsController.GetSupportedChannels(deviceId);
 
-    for (const auto& device : devices) {
-        if (device.id() == deviceId) {
-            // Get supported channel counts, clamped to GKMaxChannels
-            const auto minChannels = device.minimumChannelCount();
-            const auto maxChannels =
-              std::min(device.maximumChannelCount(), static_cast<int>(GKMaxChannels));
-
-            for (int ch = minChannels; ch <= maxChannels; ++ch) {
-                mChannelsComboBox->addItem(QString::number(ch), ch);
-            }
-
-            // Default to 2 channels (stereo) if available
-            const int defaultIndex = mChannelsComboBox->findData(2);
-            if (defaultIndex >= 0) {
-                mChannelsComboBox->setCurrentIndex(defaultIndex);
-            }
-            break;
+    if (supportedChannels.has_value()) {
+        for (const auto channel : supportedChannels.value()) {
+            mChannelsComboBox->addItem(QString::number(channel), channel);
         }
+    }
+
+    // Default to 2 channels (stereo) if available
+    const int defaultIndex = mChannelsComboBox->findData(2);
+    if (defaultIndex >= 0) {
+        mChannelsComboBox->setCurrentIndex(defaultIndex);
     }
 }
 
@@ -416,20 +400,16 @@ SettingsPanel::ToggleRecording()
     if (mRecorder.IsRecording()) {
         mRecorder.Stop();
     } else {
-        // Get selected device
         const auto deviceId = mAudioDeviceComboBox->currentData().toByteArray();
-        const auto devices = QMediaDevices::audioInputs();
+        const auto deviceOpt = mSettingsController.GetAudioDeviceById(deviceId);
 
-        for (const auto& device : devices) {
-            if (device.id() == deviceId) {
-                const auto sampleRate = mSampleRateComboBox->currentData().toInt();
-                const auto channels =
-                  static_cast<ChannelCount>(mChannelsComboBox->currentData().toInt());
+        if (deviceOpt.has_value()) {
+            const auto sampleRate = mSampleRateComboBox->currentData().toInt();
+            const auto channels =
+              static_cast<ChannelCount>(mChannelsComboBox->currentData().toInt());
 
-                UpdateColorMapDropdowns(channels);
-                mRecorder.Start(device, channels, sampleRate);
-                break;
-            }
+            UpdateColorMapDropdowns(channels);
+            mRecorder.Start(deviceOpt.value(), channels, sampleRate);
         }
     }
 }

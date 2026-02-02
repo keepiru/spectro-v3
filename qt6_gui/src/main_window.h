@@ -6,6 +6,7 @@
 
 #include "controllers/audio_file.h"
 #include "controllers/audio_recorder.h"
+#include "controllers/settings_controller.h"
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
 #include "views/scale_view.h"
@@ -47,6 +48,7 @@ class MainWindow : public QMainWindow
     AudioRecorder mAudioRecorder;
     SpectrogramController mSpectrogramController;
     AudioFile mAudioFile;
+    SettingsController mSettingsController;
 
     // View widgets
     SpectrogramView mSpectrogramView;

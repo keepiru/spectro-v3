@@ -5,6 +5,7 @@
 #include "controllers/settings_controller.h"
 #include "audio_types.h"
 #include "controllers/audio_device.h"
+#include "controllers/audio_recorder.h"
 #include "controllers/media_devices.h"
 #include "models/settings.h"
 #include <QAudioFormat>
@@ -15,10 +16,12 @@
 
 SettingsController::SettingsController(Settings& aSettings,
                                        IMediaDevices& aAudioDeviceProvider,
+                                       AudioRecorder& aRecorder,
                                        QObject* aParent)
   : QObject(aParent)
   , mSettings(aSettings)
   , mAudioDeviceProvider(aAudioDeviceProvider)
+  , mRecorder(aRecorder)
 {
 }
 
@@ -91,4 +94,29 @@ std::optional<std::unique_ptr<IAudioDevice>>
 SettingsController::GetAudioDeviceById(const QByteArray& aDeviceId) const
 {
     return mAudioDeviceProvider.GetAudioInputById(aDeviceId);
+}
+
+bool
+SettingsController::StartRecording(const QByteArray& aDeviceId,
+                                   ChannelCount aChannels,
+                                   SampleRate aSampleRate)
+{
+    auto deviceOpt = GetAudioDeviceById(aDeviceId);
+    if (!deviceOpt.has_value()) {
+        return false;
+    }
+
+    return mRecorder.Start(*deviceOpt.value(), aChannels, aSampleRate);
+}
+
+void
+SettingsController::StopRecording()
+{
+    mRecorder.Stop();
+}
+
+bool
+SettingsController::IsRecording() const
+{
+    return mRecorder.IsRecording();
 }

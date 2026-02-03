@@ -6,6 +6,7 @@
 
 #include "audio_types.h"
 #include "controllers/audio_device.h"
+#include "controllers/audio_recorder.h"
 #include "controllers/media_devices.h"
 #include <QObject>
 #include <array>
@@ -19,7 +20,7 @@ class Settings;
 /// @brief Controller for application settings
 ///
 /// Coordinates the interaction between SettingsPanel (view) and Settings (model).
-/// Handles audio device enumeration and capability queries.
+/// Handles audio device enumeration, capability queries, and recording lifecycle.
 class SettingsController : public QObject
 {
     Q_OBJECT
@@ -31,6 +32,7 @@ class SettingsController : public QObject
     /// @param aParent Qt parent object (optional)
     explicit SettingsController(Settings& aSettings,
                                 IMediaDevices& aAudioDeviceProvider,
+                                AudioRecorder& aRecorder,
                                 QObject* aParent = nullptr);
 
     /// @brief Get available audio input devices
@@ -59,9 +61,26 @@ class SettingsController : public QObject
     [[nodiscard]] std::optional<std::unique_ptr<IAudioDevice>> GetAudioDeviceById(
       const QByteArray& aDeviceId) const;
 
+    /// @brief Start recording from a specific device
+    /// @param aDeviceId The device ID to record from
+    /// @param aChannels Number of channels to record
+    /// @param aSampleRate Sample rate in Hz
+    /// @return true if recording started successfully, false otherwise
+    [[nodiscard]] bool StartRecording(const QByteArray& aDeviceId,
+                                      ChannelCount aChannels,
+                                      SampleRate aSampleRate);
+
+    /// @brief Stop recording
+    void StopRecording();
+
+    /// @brief Check if currently recording
+    /// @return true if recording is active
+    [[nodiscard]] bool IsRecording() const;
+
   private:
     Settings& mSettings;
     IMediaDevices& mAudioDeviceProvider;
+    AudioRecorder& mRecorder;
 
     /// @brief Common sample rates to test for device support
     static constexpr std::array<SampleRate, 8> KValidSampleRates = { 8000,  11025, 16000, 22050,

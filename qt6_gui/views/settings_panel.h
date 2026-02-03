@@ -35,12 +35,10 @@ class SettingsPanel : public QWidget
     /// @brief Constructor
     /// @param aSettings Reference to Settings model
     /// @param aSettingsController Reference to SettingsController
-    /// @param aRecorder Reference to AudioRecorder controller
     /// @param aAudioFile Reference to AudioFile controller
     /// @param aParent Qt parent widget (optional)
     explicit SettingsPanel(Settings& aSettings,
                            SettingsController& aSettingsController,
-                           AudioRecorder& aRecorder,
                            AudioFile& aAudioFile,
                            QWidget* aParent = nullptr);
     ~SettingsPanel() override = default;
@@ -65,6 +63,10 @@ class SettingsPanel : public QWidget
     /// @brief Update the number of colormap dropdowns based on channel count
     /// @param aChannelCount Number of channels
     void UpdateColorMapDropdowns(ChannelCount aChannelCount);
+
+    /// @brief Update UI when recording state changes
+    /// @param aIsRecording true if now recording, false if stopped
+    void OnRecordingStateChanged(bool aIsRecording);
 
   private:
     /// @brief Create the audio controls group box
@@ -92,10 +94,6 @@ class SettingsPanel : public QWidget
     /// @brief Populate channels combo box for the selected device
     void PopulateChannels();
 
-    /// @brief Enable or disable audio controls based on recording state
-    /// @param aEnabled True to enable, false to disable
-    void SetAudioControlsEnabled(bool aEnabled);
-
     /// @brief Start or stop recording
     void ToggleRecording();
 
@@ -110,7 +108,6 @@ class SettingsPanel : public QWidget
     // Model and controller references
     Settings& mSettings;
     SettingsController& mSettingsController;
-    AudioRecorder& mRecorder;
     AudioFile& mAudioFile;
 
     // Audio controls

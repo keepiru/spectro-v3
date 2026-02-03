@@ -3,10 +3,13 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "audio_types.h"
+#include "controllers/audio_recorder.h"
 #include "controllers/settings_controller.h"
 #include "mock_media_devices.h"
+#include "models/audio_buffer.h"
 #include "models/settings.h"
 #include <QAudioFormat>
+#include <QSignalSpy>
 #include <catch2/catch_test_macros.hpp>
 #include <vector>
 
@@ -17,7 +20,9 @@ struct SettingsControllerFixture
 {
     Settings settings;
     MockMediaDevices provider;
-    SettingsController controller{ settings, provider };
+    AudioBuffer audio_buffer;
+    AudioRecorder recorder{ audio_buffer };
+    SettingsController controller{ settings, provider, recorder };
 };
 
 TEST_CASE("SettingsController constructor", "[settings_controller]")
@@ -143,6 +148,57 @@ TEST_CASE("SettingsController::GetAudioDeviceById", "[settings_controller]")
         REQUIRE(deviceOpt.has_value());
         REQUIRE(deviceOpt.value()->Id() == "device-2");
         REQUIRE(deviceOpt.value()->Description() == "USB Audio Interface");
+    }
+}
+
+TEST_CASE("SettingsController::IsRecording returns false initially", "[settings_controller]")
+{
+    const SettingsControllerFixture fixture;
+    REQUIRE(!fixture.controller.IsRecording());
+}
+
+TEST_CASE("SettingsController::StartRecording", "[settings_controller]")
+{
+    SettingsControllerFixture fixture;
+    fixture.provider.AddDevice(MockAudioDevice("device-1", "Test Microphone"));
+
+    SECTION("returns false for invalid device ID")
+    {
+        REQUIRE(!fixture.controller.StartRecording("nonexistent-device", 2, 44100));
+        REQUIRE(!fixture.controller.IsRecording());
+    }
+
+    SECTION("starts recording and emits channel count signal")
+    {
+        QSignalSpy channelSpy(&fixture.audio_buffer, &AudioBuffer::BufferReset);
+
+        REQUIRE(fixture.controller.StartRecording("device-1", 2, 44100));
+        REQUIRE(fixture.controller.IsRecording());
+
+        REQUIRE(channelSpy.count() == 1);
+        REQUIRE(channelSpy.takeFirst().at(0).toInt() == 2);
+    }
+}
+
+TEST_CASE("SettingsController::StopRecording", "[settings_controller]")
+{
+    SettingsControllerFixture fixture;
+    fixture.provider.AddDevice(MockAudioDevice("device-1", "Test Microphone"));
+
+    SECTION("stops recording after start")
+    {
+        const bool kRecordingStarted = fixture.controller.StartRecording("device-1", 2, 44100);
+        REQUIRE(kRecordingStarted);
+        REQUIRE(fixture.controller.IsRecording());
+
+        fixture.controller.StopRecording();
+        REQUIRE(!fixture.controller.IsRecording());
+    }
+
+    SECTION("is no-op when not recording")
+    {
+        fixture.controller.StopRecording(); // Should not crash
+        REQUIRE(!fixture.controller.IsRecording());
     }
 }
 

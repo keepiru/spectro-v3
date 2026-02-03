@@ -24,6 +24,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include <Qt>
+#include <QtLogging>
 #include <audio_types.h>
 #include <cmath>
 #include <cstddef>
@@ -40,11 +41,11 @@ MainWindow::MainWindow(QWidget* parent)
   , mAudioRecorder(mAudioBuffer, this)
   , mSpectrogramController(mSettings, mAudioBuffer, nullptr, nullptr, this)
   , mAudioFile(mAudioBuffer, this)
-  , mSettingsController(mSettings, mAudioDeviceProvider, this)
+  , mSettingsController(mSettings, mAudioDeviceProvider, mAudioRecorder, this)
   , mSpectrogramView(mSpectrogramController, this)
   , mScaleView(mSpectrogramController, this)
   , mSpectrumPlot(mSpectrogramController, this)
-  , mSettingsPanel(mSettings, mSettingsController, mAudioRecorder, mAudioFile, this)
+  , mSettingsPanel(mSettings, mSettingsController, mAudioFile, this)
 {
     constexpr int kDefaultWindowWidth = 1400;
     constexpr int kDefaultWindowHeight = 800;
@@ -56,13 +57,19 @@ MainWindow::MainWindow(QWidget* parent)
     // Suppress Qt multimedia FFmpeg logging noise
     QLoggingCategory::setFilterRules("qt.multimedia.ffmpeg=false");
 
-    // For now we don't have a config UI, so just start recording with defaults
-    auto defaultDevice = mAudioDeviceProvider.DefaultAudioInput();
-    mAudioRecorder.Start(*defaultDevice, KDefaultChannelCount, KDefaultSampleRate);
-
     SetDarkMode();
     CreateLayout();
     SetupConnections();
+
+    // Start recording from default audio input device.  This needs to happen
+    // after SetupConnections so the UI shows the recording state correctly.
+    auto defaultDevice = mAudioDeviceProvider.DefaultAudioInput();
+    const bool kRecordingStarted = mSettingsController.StartRecording(
+      defaultDevice->Id(), KDefaultChannelCount, KDefaultSampleRate);
+    if (!kRecordingStarted) {
+        qDebug("MainWindow: Failed to start recording from default audio input device; continuing "
+               "without audio.");
+    }
 }
 
 void
@@ -139,6 +146,18 @@ MainWindow::SetupConnections()
 
     // Stop recording when buffer is reset (e.g., when loading a new file)
     connect(&mAudioBuffer, &AudioBuffer::BufferReset, &mAudioRecorder, &AudioRecorder::Stop);
+
+    // Update channel count in UI when buffer is reset
+    connect(&mAudioBuffer,
+            &AudioBuffer::BufferReset,
+            &mSettingsPanel,
+            &SettingsPanel::UpdateColorMapDropdowns);
+
+    // Update settings panel UI when recording state changes
+    connect(&mAudioRecorder,
+            &AudioRecorder::RecordingStateChanged,
+            &mSettingsPanel,
+            &SettingsPanel::OnRecordingStateChanged);
 
     // Reset scrollbar when buffer is reset
     connect(&mAudioBuffer, &AudioBuffer::BufferReset, [&]() {

@@ -55,8 +55,8 @@ AudioBuffer::Reset(ChannelCount aChannelCount, SampleRate aSampleRate)
 {
     InitializeChannelBuffers(aChannelCount, aSampleRate);
 
-    // Invalidate any cached data in listeners
-    emit BufferReset();
+    // Invalidate any cached data in listeners; update channel count in UI
+    emit BufferReset(aChannelCount);
 }
 
 void

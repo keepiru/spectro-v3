@@ -37,8 +37,8 @@ struct TestFixture
     AudioRecorder recorder{ audio_buffer };
     AudioFile audio_file{ audio_buffer };
     MockMediaDevices device_provider;
-    SettingsController settings_controller{ settings, device_provider };
-    SettingsPanel panel{ settings, settings_controller, recorder, audio_file };
+    SettingsController settings_controller{ settings, device_provider, recorder };
+    SettingsPanel panel{ settings, settings_controller, audio_file };
 };
 
 } // namespace

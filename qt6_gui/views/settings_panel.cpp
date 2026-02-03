@@ -6,7 +6,6 @@
 #include "audio_types.h"
 #include "controllers/audio_file.h"
 #include "controllers/audio_file_reader.h"
-#include "controllers/audio_recorder.h"
 #include "controllers/settings_controller.h"
 #include "include/global_constants.h"
 #include "models/colormap.h"
@@ -64,13 +63,11 @@ FindWindowScaleIndex(WindowScale aScale)
 
 SettingsPanel::SettingsPanel(Settings& aSettings,
                              SettingsController& aSettingsController,
-                             AudioRecorder& aRecorder,
                              AudioFile& aAudioFile,
                              QWidget* aParent)
   : QWidget(aParent)
   , mSettings(aSettings)
   , mSettingsController(aSettingsController)
-  , mRecorder(aRecorder)
   , mAudioFile(aAudioFile)
   , mAudioControlsGroup(CreateAudioControlsGroup())
 {
@@ -92,17 +89,8 @@ SettingsPanel::SettingsPanel(Settings& aSettings,
     // Add stretch to push everything to top
     mainLayout->addStretch();
 
-    // Connect recorder state changes
-    connect(&mRecorder, &AudioRecorder::RecordingStateChanged, this, [this](bool aIsRecording) {
-        SetAudioControlsEnabled(!aIsRecording);
-        mRecordButton->setText(aIsRecording ? "Stop Recording" : "Start Recording");
-    });
-
     // Initialize state
-    SetAudioControlsEnabled(!mRecorder.IsRecording());
-    if (mRecorder.IsRecording()) {
-        mRecordButton->setText("Stop Recording");
-    }
+    OnRecordingStateChanged(mSettingsController.IsRecording());
 }
 
 QGroupBox*
@@ -384,31 +372,26 @@ SettingsPanel::PopulateChannels()
 }
 
 void
-SettingsPanel::SetAudioControlsEnabled(bool aEnabled)
+SettingsPanel::OnRecordingStateChanged(bool aIsRecording)
 {
-    mAudioDeviceComboBox->setEnabled(aEnabled);
-    mSampleRateComboBox->setEnabled(aEnabled);
-    mChannelsComboBox->setEnabled(aEnabled);
-    mOpenFileButton->setEnabled(aEnabled);
+    mAudioDeviceComboBox->setEnabled(!aIsRecording);
+    mSampleRateComboBox->setEnabled(!aIsRecording);
+    mChannelsComboBox->setEnabled(!aIsRecording);
+    mOpenFileButton->setEnabled(!aIsRecording);
+    mRecordButton->setText(aIsRecording ? "Stop Recording" : "Start Recording");
 }
 
 void
 SettingsPanel::ToggleRecording()
 {
-    if (mRecorder.IsRecording()) {
-        mRecorder.Stop();
+    if (mSettingsController.IsRecording()) {
+        mSettingsController.StopRecording();
     } else {
         const auto deviceId = mAudioDeviceComboBox->currentData().toByteArray();
-        auto deviceOpt = mSettingsController.GetAudioDeviceById(deviceId);
+        const auto sampleRate = mSampleRateComboBox->currentData().toInt();
+        const auto channels = static_cast<ChannelCount>(mChannelsComboBox->currentData().toInt());
 
-        if (deviceOpt.has_value()) {
-            const auto sampleRate = mSampleRateComboBox->currentData().toInt();
-            const auto channels =
-              static_cast<ChannelCount>(mChannelsComboBox->currentData().toInt());
-
-            UpdateColorMapDropdowns(channels);
-            mRecorder.Start(*deviceOpt.value(), channels, sampleRate);
-        }
+        (void)mSettingsController.StartRecording(deviceId, channels, sampleRate);
     }
 }
 

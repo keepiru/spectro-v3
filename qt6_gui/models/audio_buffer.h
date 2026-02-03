@@ -83,9 +83,11 @@ class AudioBuffer : public QObject
     void DataAvailable(FrameCount aTotalFrameCount);
 
     /// @brief Emitted when the buffer is reset
+    /// @param aChannelCount New channel count
     ///
-    /// This notifies listeners to clear any cached data.
-    void BufferReset();
+    /// This notifies listeners to clear any cached data, and updates the UI to
+    /// reflect the new channel count.
+    void BufferReset(ChannelCount aChannelCount);
 
   private:
     /// @brief Initialize empty mChannelBuffers with given channel count and sample rate

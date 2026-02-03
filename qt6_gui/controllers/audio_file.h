@@ -7,6 +7,7 @@
 #include "models/audio_buffer.h"
 #include <QObject>
 #include <functional>
+#include <string>
 
 /// @brief Controller for audio file operations
 ///
@@ -29,11 +30,17 @@ class AudioFile : public QObject
     {
     }
 
+    /// @brief Convenience method to load an audio file from a file path
+    /// @param aFilePath Path to the audio file
+    /// @param aProgressCallback Callback for progress updates
+    /// @return True if the file was loaded successfully, false otherwise
+    bool LoadFile(const std::string& aFilePath, const ProgressCallback& aProgressCallback);
+
     /// @brief Load an audio file
     /// @param aReader Audio file reader interface
     /// @param aProgressCallback Callback for progress updates
     /// @return True if the file was loaded successfully, false otherwise
-    bool LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgressCallback);
+    bool LoadFileFromReader(IAudioFileReader& aReader, const ProgressCallback& aProgressCallback);
 
   private:
     AudioBuffer& mBuffer;

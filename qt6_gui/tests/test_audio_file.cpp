@@ -9,9 +9,11 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_exception.hpp>
 #include <catch2/matchers/catch_matchers_range_equals.hpp>
 #include <cstddef>
 #include <iterator>
+#include <qsignalspy.h>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -77,7 +79,7 @@ TEST_CASE("AudioFile - construction", "[audio_file]")
     const AudioFile audioFile(buffer);
 }
 
-TEST_CASE("AudioFile - load file", "[audio_file]")
+TEST_CASE("AudioFile::LoadFileFromReader", "[audio_file]")
 {
     AudioBuffer buffer;
     buffer.Reset(1, 44100);
@@ -91,7 +93,7 @@ TEST_CASE("AudioFile - load file", "[audio_file]")
     {
         MockAudioFileReader mockReader(2, 22050, { 0, 1, 2, 3, 4, 5 });
 
-        REQUIRE(audioFile.LoadFile(mockReader, progressCallback));
+        REQUIRE(audioFile.LoadFileFromReader(mockReader, progressCallback));
 
         CHECK(buffer.GetSampleRate() == 22050);
         CHECK(buffer.GetChannelCount() == 2);
@@ -111,7 +113,7 @@ TEST_CASE("AudioFile - load file", "[audio_file]")
     {
         MockAudioFileReader mockReader(1, 8000, {});
 
-        REQUIRE(audioFile.LoadFile(mockReader, progressCallback));
+        REQUIRE(audioFile.LoadFileFromReader(mockReader, progressCallback));
 
         CHECK(buffer.GetSampleRate() == 8000);
         CHECK(buffer.GetChannelCount() == 1);
@@ -124,8 +126,59 @@ TEST_CASE("AudioFile - load file", "[audio_file]")
         // 12,345,678 samples total, 2 channels = 6,172,839 frames
         MockAudioFileReader mockReader(2, 44100, std::vector<float>(12345678));
 
-        REQUIRE(audioFile.LoadFile(mockReader, progressCallback));
+        REQUIRE(audioFile.LoadFileFromReader(mockReader, progressCallback));
 
         CHECK(progressCalls == std::vector<int>({ 16, 33, 50, 67, 84, 100 }));
+    }
+}
+
+TEST_CASE("AudioFile::LoadFile", "[audio_file]")
+{
+    AudioBuffer buffer;
+    AudioFile audioFile(buffer);
+    std::vector<int> progressCalls;
+    const AudioFile::ProgressCallback progressCallback = [&](int aProgressPercent) {
+        progressCalls.push_back(aProgressPercent);
+    };
+
+    SECTION("loads a file")
+    {
+        REQUIRE(audioFile.LoadFile("testdata/chirp.wav", progressCallback));
+        CHECK(buffer.GetSampleRate() == 44100);
+        CHECK(buffer.GetChannelCount() == 1);
+        CHECK(buffer.GetFrameCount() == FrameCount(4410));
+        CHECK(progressCalls == std::vector<int>({ 100 }));
+        const auto kHave = buffer.GetSamples(0, SampleIndex(0), SampleCount(10));
+        const std::vector<float> kWant = { 0.0f,         0.014247104f, 0.028508738f, 0.042782005f,
+                                           0.057063986f, 0.071351744f, 0.08564233f,  0.099932767f,
+                                           0.11422006f,  0.128501192f };
+        CHECK_THAT(kHave, Catch::Matchers::RangeEquals(kWant));
+    }
+
+    SECTION("AudioBuffer emits BufferReset")
+    {
+        // This is important to ensure UpdateColorMapDropdowns is called when loading a file.
+        QSignalSpy bufferResetSpy(&buffer, &AudioBuffer::BufferReset);
+        REQUIRE(audioFile.LoadFile("testdata/chirp.wav", progressCallback));
+        CHECK(bufferResetSpy.count() == 1);
+        CHECK(bufferResetSpy.takeFirst().takeFirst().toInt() == 1); // New channel count
+    }
+
+    SECTION("throws on invalid file path")
+    {
+        REQUIRE_THROWS_MATCHES(
+          audioFile.LoadFile("non_existent_file.wav", progressCallback),
+          std::runtime_error,
+          Catch::Matchers::Message("Failed to open audio file non_existent_file.wav for reading: "
+                                   "System error : No such file or directory."));
+    }
+
+    SECTION("throws on corrupt file")
+    {
+        REQUIRE_THROWS_MATCHES(
+          audioFile.LoadFile("testdata/corrupt.wav", progressCallback),
+          std::runtime_error,
+          Catch::Matchers::Message("Failed to open audio file testdata/corrupt.wav for reading: "
+                                   "Format not recognised."));
     }
 }

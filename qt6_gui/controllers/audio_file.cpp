@@ -5,10 +5,18 @@
 #include "controllers/audio_file.h"
 #include "controllers/audio_file_reader.h"
 #include <audio_types.h>
+#include <string>
 #include <vector>
 
 bool
-AudioFile::LoadFile(IAudioFileReader& aReader, const ProgressCallback& aProgressCallback)
+AudioFile::LoadFile(const std::string& aFilePath, const ProgressCallback& aProgressCallback)
+{
+    AudioFileReader reader(aFilePath);
+    return LoadFileFromReader(reader, aProgressCallback);
+}
+
+bool
+AudioFile::LoadFileFromReader(IAudioFileReader& aReader, const ProgressCallback& aProgressCallback)
 {
     // Each chunk is passed to AddSamples, which will trigger a display refresh,
     // so we want to keep these chunks fairly large for efficiency.

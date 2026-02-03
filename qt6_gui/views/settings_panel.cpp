@@ -5,7 +5,6 @@
 #include "views/settings_panel.h"
 #include "audio_types.h"
 #include "controllers/audio_file.h"
-#include "controllers/audio_file_reader.h"
 #include "controllers/settings_controller.h"
 #include "include/global_constants.h"
 #include "models/colormap.h"
@@ -412,12 +411,7 @@ SettingsPanel::OpenFile()
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(0);
 
-    AudioFileReader reader(fileName.toStdString());
-
-    // Update colormap dropdowns based on file channel count
-    UpdateColorMapDropdowns(reader.GetChannelCount());
-
-    mAudioFile.LoadFile(reader, [&progress](int aPercent) {
+    mAudioFile.LoadFile(fileName.toStdString(), [&progress](int aPercent) {
         progress.setValue(aPercent);
         // Allow event processing so cancel button works
         QCoreApplication::processEvents();

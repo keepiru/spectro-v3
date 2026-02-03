@@ -24,6 +24,8 @@ add_library(spectro_qt6_gui
     models/colormap.h
     models/settings.cpp
     models/settings.h
+    controllers/media_devices.cpp
+    controllers/media_devices.h
     controllers/audio_recorder.cpp
     controllers/audio_recorder.h
     controllers/audio_file_reader.cpp

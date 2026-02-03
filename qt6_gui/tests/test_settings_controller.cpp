@@ -2,214 +2,149 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
+#include "audio_types.h"
 #include "controllers/settings_controller.h"
-#include "include/global_constants.h"
+#include "mock_media_devices.h"
 #include "models/settings.h"
 #include <QAudioFormat>
-#include <QByteArray>
 #include <catch2/catch_test_macros.hpp>
+#include <vector>
+
+// NOLINTBEGIN(misc-const-correctness) // False positives with non-const members of the fixture
+// NOLINTBEGIN(bugprone-unchecked-optional-access) // It doesn't understand REQUIRE before access
+
+struct SettingsControllerFixture
+{
+    Settings settings;
+    MockMediaDevices provider;
+    SettingsController controller{ settings, provider };
+};
 
 TEST_CASE("SettingsController constructor", "[settings_controller]")
 {
-    Settings settings;
-    const SettingsController controller(settings);
+    const SettingsControllerFixture fixture;
 }
 
-TEST_CASE("SettingsController GetAudioDevices returns device list", "[settings_controller]")
+TEST_CASE("SettingsController::GetAudioDevices", "[settings_controller]")
 {
-    Settings settings;
-    const SettingsController controller(settings);
+    SettingsControllerFixture fixture;
 
-    const auto deviceList = controller.GetAudioDevices();
-
-    // Should return a valid device list (even if empty on systems without audio hardware)
-    REQUIRE(deviceList.size() >= 0);
-
-    // If there are devices, check that descriptions are not empty
-    for (const auto& device : deviceList) {
-        REQUIRE(!device.description().isEmpty());
-        REQUIRE(!device.id().isEmpty());
+    SECTION("returns empty list when provider has no devices")
+    {
+        REQUIRE(fixture.controller.GetAudioInputs().empty());
     }
 
-    // Check default device
-    const auto defaultDevice = controller.GetDefaultAudioInput();
-    if (!defaultDevice.isNull()) {
-        REQUIRE(!defaultDevice.id().isEmpty());
+    SECTION("returns list of devices from provider")
+    {
+        fixture.provider.AddDevice(MockAudioDevice("device-1", "Test Microphone"));
+        fixture.provider.AddDevice(MockAudioDevice("device-2", "USB Audio Interface"));
+        const auto deviceList = fixture.controller.GetAudioInputs();
+
+        REQUIRE(deviceList.size() == 2);
+        REQUIRE(deviceList[0]->Id() == "device-1");
+        REQUIRE(deviceList[0]->Description() == "Test Microphone");
+        REQUIRE(deviceList[1]->Id() == "device-2");
+        REQUIRE(deviceList[1]->Description() == "USB Audio Interface");
     }
 }
 
-TEST_CASE("SettingsController GetSupportedSampleRates with invalid device returns empty",
+TEST_CASE("SettingsController::GetDefaultAudioInput returns provider default",
           "[settings_controller]")
 {
-    Settings settings;
-    const SettingsController controller(settings);
-
-    const QByteArray invalidDeviceId("invalid-device-id-12345");
-    const auto rates = controller.GetSupportedSampleRates(invalidDeviceId);
-
-    REQUIRE(!rates.has_value());
+    const SettingsControllerFixture fixture;
+    REQUIRE(fixture.controller.GetDefaultAudioInput()->Id() == "mock-device");
 }
 
-TEST_CASE("SettingsController GetSupportedSampleRates with valid device returns rates",
-          "[settings_controller]")
+TEST_CASE("SettingsController::GetSupportedSampleRates", "[settings_controller]")
 {
-    Settings settings;
-    const SettingsController controller(settings);
+    SettingsControllerFixture fixture;
 
-    const auto deviceList = controller.GetAudioDevices();
-
-    // Skip test if no devices available
-    if (deviceList.isEmpty()) {
-        SKIP("No audio devices available on this system");
+    SECTION("returns nullopt for invalid device ID")
+    {
+        const auto rates = fixture.controller.GetSupportedSampleRates("nonexistent-device");
+        REQUIRE(!rates.has_value());
     }
 
-    const auto& firstDevice = deviceList.first();
-    const auto rates = controller.GetSupportedSampleRates(firstDevice.id());
+    SECTION("returns empty list when no formats supported")
+    {
+        fixture.provider.AddDevice(
+          MockAudioDevice("device-1", "Test Device", [](const QAudioFormat&) { return false; }));
 
-    REQUIRE(rates.has_value());
-    // Should return some rates (could be empty if device doesn't support Float format)
-    // But if it does, they should be from the common rates list
-    for (const auto rate : rates.value()) {
-        const bool isCommonRate =
-          (rate == 8000 || rate == 11025 || rate == 16000 || rate == 22050 || rate == 44100 ||
-           rate == 48000 || rate == 88200 || rate == 96000);
-        REQUIRE(isCommonRate);
+        const auto ratesOpt = fixture.controller.GetSupportedSampleRates("device-1");
+        REQUIRE(ratesOpt.has_value());
+        REQUIRE(ratesOpt.value().empty());
+    }
+
+    SECTION("only returns supported sample rates")
+    {
+        fixture.provider.AddDevice(
+          MockAudioDevice("device-1", "Test Device", [](const QAudioFormat& format) {
+              return format.sampleRate() == 44100 || format.sampleRate() == 48000;
+          }));
+
+        const auto ratesOpt = fixture.controller.GetSupportedSampleRates("device-1");
+
+        REQUIRE(ratesOpt.has_value());
+        REQUIRE(ratesOpt.value() == std::vector<SampleRate>{ 44100, 48000 });
     }
 }
 
-TEST_CASE("SettingsController GetSupportedChannels with invalid device returns empty",
-          "[settings_controller]")
+TEST_CASE("SettingsController::GetSupportedChannels", "[settings_controller]")
 {
-    Settings settings;
-    const SettingsController controller(settings);
+    SettingsControllerFixture fixture;
 
-    const QByteArray invalidDeviceId("invalid-device-id-12345");
-    const auto channels = controller.GetSupportedChannels(invalidDeviceId);
+    SECTION("returns nullopt for invalid device ID")
+    {
+        const auto channels = fixture.controller.GetSupportedChannels("nonexistent-device");
+        REQUIRE(!channels.has_value());
+    }
 
-    REQUIRE(!channels.has_value());
+    SECTION("returns empty list when no channel counts supported")
+    {
+        fixture.provider.AddDevice(
+          MockAudioDevice("device-1", "Test Device", [](const QAudioFormat&) { return false; }));
+
+        const auto channelsOpt = fixture.controller.GetSupportedChannels("device-1");
+
+        REQUIRE(channelsOpt.has_value());
+        REQUIRE(channelsOpt.value().empty());
+    }
+
+    SECTION("only returns supported channel counts")
+    {
+        fixture.provider.AddDevice(
+          MockAudioDevice("device-1", "Test Device", [](const QAudioFormat& format) {
+              return format.channelCount() == 1 || format.channelCount() == 4;
+          }));
+
+        const auto channelsOpt = fixture.controller.GetSupportedChannels("device-1");
+
+        REQUIRE(channelsOpt.has_value());
+        REQUIRE(channelsOpt.value() == std::vector<ChannelCount>{ 1, 4 });
+    }
 }
 
-TEST_CASE("SettingsController GetSupportedChannels with valid device returns channels",
-          "[settings_controller]")
+TEST_CASE("SettingsController::GetAudioDeviceById", "[settings_controller]")
 {
-    Settings settings;
-    const SettingsController controller(settings);
+    SettingsControllerFixture fixture;
+    fixture.provider.AddDevice(MockAudioDevice("device-1", "Test Microphone"));
+    fixture.provider.AddDevice(MockAudioDevice("device-2", "USB Audio Interface"));
 
-    const auto deviceList = controller.GetAudioDevices();
-
-    // Skip test if no devices available
-    if (deviceList.isEmpty()) {
-        SKIP("No audio devices available on this system");
+    SECTION("returns nullopt for invalid device ID")
+    {
+        const auto deviceOpt = fixture.controller.GetAudioDeviceById("invalid-device");
+        REQUIRE(!deviceOpt.has_value());
     }
 
-    const auto& firstDevice = deviceList.first();
-    const auto channels = controller.GetSupportedChannels(firstDevice.id());
+    SECTION("returns device for valid ID")
+    {
+        const auto deviceOpt = fixture.controller.GetAudioDeviceById("device-2");
 
-    REQUIRE(channels.has_value());
-    // Should return some channels (could be empty if device doesn't support Float format)
-    // But if it does, they should be <= GKMaxChannels
-    for (const auto channel : channels.value()) {
-        REQUIRE(channel > 0);
-        REQUIRE(channel <= static_cast<int>(GKMaxChannels));
+        REQUIRE(deviceOpt.has_value());
+        REQUIRE(deviceOpt.value()->Id() == "device-2");
+        REQUIRE(deviceOpt.value()->Description() == "USB Audio Interface");
     }
 }
 
-TEST_CASE("SettingsController GetSupportedChannels clamps to GKMaxChannels",
-          "[settings_controller]")
-{
-    Settings settings;
-    const SettingsController controller(settings);
-
-    const auto deviceList = controller.GetAudioDevices();
-
-    // Skip test if no devices available
-    if (deviceList.isEmpty()) {
-        SKIP("No audio devices available on this system");
-    }
-
-    for (const auto& device : deviceList) {
-        const auto channels = controller.GetSupportedChannels(device.id());
-
-        REQUIRE(channels.has_value());
-        // All returned channels must be <= GKMaxChannels
-        for (const auto channel : channels.value()) {
-            REQUIRE(channel <= static_cast<int>(GKMaxChannels));
-        }
-    }
-}
-
-TEST_CASE("SettingsController FindAudioDeviceById with invalid ID returns nullopt",
-          "[settings_controller]")
-{
-    Settings settings;
-    const SettingsController controller(settings);
-
-    const QByteArray invalidDeviceId("invalid-device-id-12345");
-    const auto deviceOpt = controller.GetAudioDeviceById(invalidDeviceId);
-
-    REQUIRE(!deviceOpt.has_value());
-}
-
-TEST_CASE("SettingsController FindAudioDeviceById with valid ID returns device",
-          "[settings_controller]")
-{
-    Settings settings;
-    const SettingsController controller(settings);
-
-    const auto deviceList = controller.GetAudioDevices();
-
-    // Skip test if no devices available
-    if (deviceList.isEmpty()) {
-        SKIP("No audio devices available on this system");
-    }
-
-    const auto& firstDevice = deviceList.first();
-    const auto deviceOpt = controller.GetAudioDeviceById(firstDevice.id());
-
-    REQUIRE(deviceOpt.has_value());
-    REQUIRE(deviceOpt.value().id() == firstDevice.id());
-    REQUIRE(deviceOpt.value().description() == firstDevice.description());
-}
-
-TEST_CASE("SettingsController uses isFormatSupported for validation", "[settings_controller]")
-{
-    Settings settings;
-    const SettingsController controller(settings);
-
-    const auto deviceList = controller.GetAudioDevices();
-
-    // Skip test if no devices available
-    if (deviceList.isEmpty()) {
-        SKIP("No audio devices available on this system");
-    }
-
-    const auto& firstDevice = deviceList.first();
-
-    // Get supported rates and channels
-    const auto rates = controller.GetSupportedSampleRates(firstDevice.id());
-    const auto channels = controller.GetSupportedChannels(firstDevice.id());
-
-    REQUIRE(rates.has_value());
-    REQUIRE(channels.has_value());
-
-    // Manually verify that returned combinations are actually supported
-    for (const auto rate : rates.value()) {
-        QAudioFormat format;
-        format.setSampleRate(rate);
-        format.setChannelCount(2); // Controller tests with 2 channels
-        format.setSampleFormat(QAudioFormat::Float);
-
-        // The controller should only return rates that pass isFormatSupported
-        REQUIRE(firstDevice.isFormatSupported(format));
-    }
-
-    for (const auto channel : channels.value()) {
-        QAudioFormat format;
-        format.setSampleRate(44100); // Controller tests with 44100 Hz
-        format.setChannelCount(channel);
-        format.setSampleFormat(QAudioFormat::Float);
-
-        // The controller should only return channels that pass isFormatSupported
-        REQUIRE(firstDevice.isFormatSupported(format));
-    }
-}
+// NOLINTEND(bugprone-unchecked-optional-access)
+// NOLINTEND(misc-const-correctness)

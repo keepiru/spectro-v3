@@ -4,39 +4,42 @@
 
 #include "controllers/settings_controller.h"
 #include "audio_types.h"
+#include "controllers/audio_device.h"
+#include "controllers/media_devices.h"
 #include "models/settings.h"
 #include <QAudioFormat>
-#include <QList>
-#include <QMediaDevices>
 #include <QObject>
-#include <expected>
-#include <string>
+#include <memory>
+#include <optional>
 #include <vector>
 
-SettingsController::SettingsController(Settings& aSettings, QObject* aParent)
+SettingsController::SettingsController(Settings& aSettings,
+                                       IMediaDevices& aAudioDeviceProvider,
+                                       QObject* aParent)
   : QObject(aParent)
   , mSettings(aSettings)
+  , mAudioDeviceProvider(aAudioDeviceProvider)
 {
 }
 
-QList<QAudioDevice>
-SettingsController::GetAudioDevices() const
+std::vector<std::unique_ptr<IAudioDevice>>
+SettingsController::GetAudioInputs() const
 {
-    return QMediaDevices::audioInputs();
+    return mAudioDeviceProvider.AudioInputs();
 }
 
-QAudioDevice
+std::unique_ptr<IAudioDevice>
 SettingsController::GetDefaultAudioInput() const
 {
-    return QMediaDevices::defaultAudioInput();
+    return mAudioDeviceProvider.DefaultAudioInput();
 }
 
-std::expected<std::vector<SampleRate>, std::string>
+std::optional<std::vector<SampleRate>>
 SettingsController::GetSupportedSampleRates(const QByteArray& aDeviceId) const
 {
     const auto kDeviceOpt = GetAudioDeviceById(aDeviceId);
     if (!kDeviceOpt) {
-        return std::unexpected(kDeviceOpt.error());
+        return std::nullopt;
     }
 
     const auto& kDevice = kDeviceOpt.value();
@@ -49,7 +52,7 @@ SettingsController::GetSupportedSampleRates(const QByteArray& aDeviceId) const
         format.setChannelCount(2);
         format.setSampleFormat(QAudioFormat::Float);
 
-        if (kDevice.isFormatSupported(format)) {
+        if (kDevice->IsFormatSupported(format)) {
             result.push_back(kSampleRate);
         }
     }
@@ -57,28 +60,26 @@ SettingsController::GetSupportedSampleRates(const QByteArray& aDeviceId) const
     return result;
 }
 
-std::expected<std::vector<ChannelCount>, std::string>
+std::optional<std::vector<ChannelCount>>
 SettingsController::GetSupportedChannels(const QByteArray& aDeviceId) const
 {
     const auto kDeviceOpt = GetAudioDeviceById(aDeviceId);
     if (!kDeviceOpt) {
-        return std::unexpected(kDeviceOpt.error());
+        return std::nullopt;
     }
 
     const auto& kDevice = kDeviceOpt.value();
     std::vector<ChannelCount> result;
+    const SampleRate kTestSampleRate = 44100;
 
-    // We just need a sample rate that the device supports to test channel counts
-    const auto kMinSampleRate = kDevice.minimumSampleRate();
-
-    // Test each channel count
+    // Test each channel count with a sample rate the device should support
     for (const ChannelCount kChannelCount : KValidChannelCounts) {
         QAudioFormat format;
-        format.setSampleRate(kMinSampleRate);
+        format.setSampleRate(kTestSampleRate);
         format.setChannelCount(kChannelCount);
         format.setSampleFormat(QAudioFormat::Float);
 
-        if (kDevice.isFormatSupported(format)) {
+        if (kDevice->IsFormatSupported(format)) {
             result.push_back(kChannelCount);
         }
     }
@@ -86,14 +87,8 @@ SettingsController::GetSupportedChannels(const QByteArray& aDeviceId) const
     return result;
 }
 
-std::expected<QAudioDevice, std::string>
+std::optional<std::unique_ptr<IAudioDevice>>
 SettingsController::GetAudioDeviceById(const QByteArray& aDeviceId) const
 {
-    const auto kDevices = QMediaDevices::audioInputs();
-    for (const auto& kDevice : kDevices) {
-        if (kDevice.id() == aDeviceId) {
-            return kDevice;
-        }
-    }
-    return std::unexpected("Audio device not found");
+    return mAudioDeviceProvider.GetAudioInputById(aDeviceId);
 }

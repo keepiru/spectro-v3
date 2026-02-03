@@ -34,6 +34,7 @@
 #include <cstddef>
 #include <fft_window.h>
 #include <stdexcept>
+#include <utility>
 
 namespace {
 constexpr int KPanelWidth = 300;
@@ -319,19 +320,16 @@ SettingsPanel::PopulateAudioDevices()
 {
     mAudioDeviceComboBox->clear();
 
-    const auto devices = mSettingsController.GetAudioDevices();
+    const auto devices = mSettingsController.GetAudioInputs();
     for (const auto& device : devices) {
-        mAudioDeviceComboBox->addItem(device.description(), QVariant::fromValue(device.id()));
+        mAudioDeviceComboBox->addItem(device->Description(), QVariant::fromValue(device->Id()));
     }
 
     // Select default device
-    const auto defaultDevice = mSettingsController.GetDefaultAudioInput();
-    if (!defaultDevice.isNull()) {
-        const int defaultIndex =
-          mAudioDeviceComboBox->findData(QVariant::fromValue(defaultDevice.id()));
-        if (defaultIndex >= 0) {
-            mAudioDeviceComboBox->setCurrentIndex(defaultIndex);
-        }
+    const auto defaultDeviceId = mSettingsController.GetDefaultAudioInput()->Id();
+    const int defaultIndex = mAudioDeviceComboBox->findData(QVariant::fromValue(defaultDeviceId));
+    if (defaultIndex >= 0) {
+        mAudioDeviceComboBox->setCurrentIndex(defaultIndex);
     }
 }
 
@@ -401,7 +399,7 @@ SettingsPanel::ToggleRecording()
         mRecorder.Stop();
     } else {
         const auto deviceId = mAudioDeviceComboBox->currentData().toByteArray();
-        const auto deviceOpt = mSettingsController.GetAudioDeviceById(deviceId);
+        auto deviceOpt = mSettingsController.GetAudioDeviceById(deviceId);
 
         if (deviceOpt.has_value()) {
             const auto sampleRate = mSampleRateComboBox->currentData().toInt();
@@ -409,7 +407,7 @@ SettingsPanel::ToggleRecording()
               static_cast<ChannelCount>(mChannelsComboBox->currentData().toInt());
 
             UpdateColorMapDropdowns(channels);
-            mRecorder.Start(deviceOpt.value(), channels, sampleRate);
+            mRecorder.Start(*deviceOpt.value(), channels, sampleRate);
         }
     }
 }

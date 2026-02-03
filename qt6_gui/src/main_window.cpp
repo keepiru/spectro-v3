@@ -4,6 +4,7 @@
 
 #include "main_window.h"
 #include "controllers/audio_recorder.h"
+#include "controllers/media_devices.h"
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
@@ -39,7 +40,7 @@ MainWindow::MainWindow(QWidget* parent)
   , mAudioRecorder(mAudioBuffer, this)
   , mSpectrogramController(mSettings, mAudioBuffer, nullptr, nullptr, this)
   , mAudioFile(mAudioBuffer, this)
-  , mSettingsController(mSettings, this)
+  , mSettingsController(mSettings, mAudioDeviceProvider, this)
   , mSpectrogramView(mSpectrogramController, this)
   , mScaleView(mSpectrogramController, this)
   , mSpectrumPlot(mSpectrogramController, this)
@@ -56,8 +57,8 @@ MainWindow::MainWindow(QWidget* parent)
     QLoggingCategory::setFilterRules("qt.multimedia.ffmpeg=false");
 
     // For now we don't have a config UI, so just start recording with defaults
-    mAudioRecorder.Start(
-      QMediaDevices::defaultAudioInput(), KDefaultChannelCount, KDefaultSampleRate);
+    auto defaultDevice = mAudioDeviceProvider.DefaultAudioInput();
+    mAudioRecorder.Start(*defaultDevice, KDefaultChannelCount, KDefaultSampleRate);
 
     SetDarkMode();
     CreateLayout();

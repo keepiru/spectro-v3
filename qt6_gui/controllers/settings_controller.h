@@ -5,12 +5,12 @@
 #pragma once
 
 #include "audio_types.h"
-#include <QAudioDevice>
-#include <QList>
+#include "controllers/audio_device.h"
+#include "controllers/media_devices.h"
 #include <QObject>
 #include <array>
-#include <expected>
-#include <string>
+#include <memory>
+#include <optional>
 #include <vector>
 
 // Forward declarations
@@ -27,37 +27,41 @@ class SettingsController : public QObject
   public:
     /// @brief Constructor
     /// @param aSettings Reference to the settings model
+    /// @param aDeviceProvider Reference to the audio device provider
     /// @param aParent Qt parent object (optional)
-    explicit SettingsController(Settings& aSettings, QObject* aParent = nullptr);
+    explicit SettingsController(Settings& aSettings,
+                                IMediaDevices& aAudioDeviceProvider,
+                                QObject* aParent = nullptr);
 
-    /// @brief Get available audio input devices and default device
-    /// @return AudioDeviceList containing available devices and default device ID
-    [[nodiscard]] QList<QAudioDevice> GetAudioDevices() const;
+    /// @brief Get available audio input devices
+    /// @return Vector of audio device pointers
+    [[nodiscard]] std::vector<std::unique_ptr<IAudioDevice>> GetAudioInputs() const;
 
     /// @brief Get the default audio input device
-    /// @return The default QAudioDevice
-    [[nodiscard]] QAudioDevice GetDefaultAudioInput() const;
+    /// @return The default audio device
+    [[nodiscard]] std::unique_ptr<IAudioDevice> GetDefaultAudioInput() const;
 
     /// @brief Get supported sample rates for a specific audio device
     /// @param aDeviceId The device ID to query
-    /// @return Vector of supported sample rates (empty if device not found)
-    [[nodiscard]] std::expected<std::vector<SampleRate>, std::string> GetSupportedSampleRates(
+    /// @return Vector of supported sample rates, or nullopt if device not found
+    [[nodiscard]] std::optional<std::vector<SampleRate>> GetSupportedSampleRates(
       const QByteArray& aDeviceId) const;
 
     /// @brief Get supported channel counts for a specific audio device
     /// @param aDeviceId The device ID to query
-    /// @return Vector of supported channel counts (empty if device not found)
-    [[nodiscard]] std::expected<std::vector<ChannelCount>, std::string> GetSupportedChannels(
+    /// @return Vector of supported channel counts, or nullopt if device not found
+    [[nodiscard]] std::optional<std::vector<ChannelCount>> GetSupportedChannels(
       const QByteArray& aDeviceId) const;
 
     /// @brief Find an audio device by its ID
     /// @param aDeviceId The device ID to search for
-    /// @return The audio device if found, std::nullopt otherwise
-    [[nodiscard]] std::expected<QAudioDevice, std::string> GetAudioDeviceById(
+    /// @return The audio device if found, nullopt otherwise
+    [[nodiscard]] std::optional<std::unique_ptr<IAudioDevice>> GetAudioDeviceById(
       const QByteArray& aDeviceId) const;
 
   private:
     Settings& mSettings;
+    IMediaDevices& mAudioDeviceProvider;
 
     /// @brief Common sample rates to test for device support
     static constexpr std::array<SampleRate, 8> KValidSampleRates = { 8000,  11025, 16000, 22050,

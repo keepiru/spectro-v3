@@ -5,12 +5,11 @@
 #include "audio_types.h"
 #include "controllers/audio_recorder.h"
 #include "include/global_constants.h"
+#include "mock_media_devices.h"
 #include "models/audio_buffer.h"
-#include <QAudioDevice>
 #include <QAudioFormat>
 #include <QAudioSource>
 #include <QList>
-#include <QMediaDevices>
 #include <QSignalSpy>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
@@ -19,6 +18,8 @@
 #include <cstring>
 #include <stdexcept>
 #include <vector>
+
+// NOLINTBEGIN(misc-const-correctness) // False positives passing buffer to AudioRecorder
 
 /// @brief Mock QIODevice to simulate audio input for testing.
 class MockQIODevice : public QIODevice
@@ -71,18 +72,19 @@ TEST_CASE("AudioRecorder::Start throws with invalid arguments", "[audio_recorder
 {
     AudioBuffer buffer;
     AudioRecorder recorder(buffer);
+    MockAudioDevice mockAudioDevice;
 
     // Invalid channel count
-    REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), -1, 48000), std::invalid_argument);
-    REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), 0, 48000), std::invalid_argument);
-    recorder.Start(QAudioDevice(), 1, 48000);             // Does not throw
-    recorder.Start(QAudioDevice(), GKMaxChannels, 48000); // Does not throw
-    REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), GKMaxChannels + 1, 48000),
+    REQUIRE_THROWS_AS(recorder.Start(mockAudioDevice, -1, 48000), std::invalid_argument);
+    REQUIRE_THROWS_AS(recorder.Start(mockAudioDevice, 0, 48000), std::invalid_argument);
+    recorder.Start(mockAudioDevice, 1, 48000);             // Does not throw
+    recorder.Start(mockAudioDevice, GKMaxChannels, 48000); // Does not throw
+    REQUIRE_THROWS_AS(recorder.Start(mockAudioDevice, GKMaxChannels + 1, 48000),
                       std::invalid_argument);
 
     // Invalid sample rate
-    REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), 1, 0), std::invalid_argument);
-    REQUIRE_THROWS_AS(recorder.Start(QAudioDevice(), 1, -44100), std::invalid_argument);
+    REQUIRE_THROWS_AS(recorder.Start(mockAudioDevice, 1, 0), std::invalid_argument);
+    REQUIRE_THROWS_AS(recorder.Start(mockAudioDevice, 1, -44100), std::invalid_argument);
 }
 
 TEST_CASE("AudioRecorder::Start resets audio buffer", "[audio_recorder]")
@@ -90,13 +92,14 @@ TEST_CASE("AudioRecorder::Start resets audio buffer", "[audio_recorder]")
     AudioBuffer buffer;
     AudioRecorder recorder(buffer);
     MockQIODevice ioDevice;
+    MockAudioDevice mockAudioDevice;
 
     // Add some samples to the buffer first
     buffer.AddSamples({ 0.1f, 0.2f, 0.3f, 0.4f });
     REQUIRE(buffer.GetFrameCount() == FrameCount(2));
     REQUIRE(buffer.GetSampleRate() == 44100);
 
-    recorder.Start(QAudioDevice(), 2, 48000, &ioDevice);
+    recorder.Start(mockAudioDevice, 2, 48000, &ioDevice);
 
     // Buffer should be reset
     REQUIRE(buffer.GetFrameCount() == FrameCount(0));
@@ -117,7 +120,8 @@ TEST_CASE("AudioRecorder::Stop after start succeeds", "[audio_recorder]")
     AudioBuffer buffer;
     AudioRecorder recorder(buffer);
     MockQIODevice ioDevice;
-    recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
+    MockAudioDevice mockAudioDevice;
+    recorder.Start(mockAudioDevice, 1, 48000, &ioDevice);
     QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
 
     recorder.Stop(); // Should not crash
@@ -135,8 +139,9 @@ TEST_CASE("AudioRecorder recording state changed signal emitted", "[audio_record
     MockQIODevice ioDevice;
     AudioRecorder recorder(buffer);
     QSignalSpy spy(&recorder, &AudioRecorder::RecordingStateChanged);
+    MockAudioDevice mockAudioDevice;
 
-    recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
+    recorder.Start(mockAudioDevice, 1, 48000, &ioDevice);
 
     // Verify the signal is emitted
     REQUIRE(spy.count() == 1);
@@ -151,7 +156,8 @@ TEST_CASE("AudioRecorder audio data written to buffer", "[audio_recorder]")
     AudioBuffer buffer;
     MockQIODevice ioDevice;
     AudioRecorder recorder(buffer);
-    recorder.Start(QAudioDevice(), 2, 48000, &ioDevice);
+    MockAudioDevice mockAudioDevice;
+    recorder.Start(mockAudioDevice, 2, 48000, &ioDevice);
 
     // Feed in some mock audio data...
     ioDevice.SimulateAudioData({ 0.1, 0.2, 0.3, 0.4 });
@@ -183,12 +189,15 @@ TEST_CASE("AudioRecorder::IsRecording", "[audio_recorder]")
     AudioBuffer buffer;
     MockQIODevice ioDevice;
     AudioRecorder recorder(buffer);
+    MockAudioDevice mockAudioDevice;
 
     REQUIRE(recorder.IsRecording() == false);
 
-    recorder.Start(QAudioDevice(), 1, 48000, &ioDevice);
+    recorder.Start(mockAudioDevice, 1, 48000, &ioDevice);
     REQUIRE(recorder.IsRecording() == true);
 
     recorder.Stop();
     REQUIRE(recorder.IsRecording() == false);
 }
+
+// NOLINTEND(misc-const-correctness)

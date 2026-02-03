@@ -5,6 +5,7 @@
 #pragma once
 
 #include "audio_types.h"
+#include "controllers/audio_device.h"
 #include <QAudioFormat>
 #include <QAudioSource>
 #include <QIODevice>
@@ -44,12 +45,12 @@ class AudioRecorder : public QObject
     explicit AudioRecorder(AudioBuffer& aAudioBuffer, QObject* aParent = nullptr);
 
     /// @brief Starts audio capture, writing samples to the specified buffer.
-    /// @param aQAudioDevice The audio input device to capture from.
+    /// @param aAudioDevice The audio input device to capture from.
     /// @param aChannelCount Number of audio channels (e.g., 1 for mono, 2 for stereo).
     /// @param aSampleRate Sample rate in Hz (e.g., 44100, 48000).
     /// @param aMockQIODevice Mock audio IO device for testing.  (optional)
     /// @return true if capture started successfully, false otherwise.
-    bool Start(const QAudioDevice& aQAudioDevice,
+    bool Start(IAudioDevice& aAudioDevice,
                ChannelCount aChannelCount,
                SampleRate aSampleRate,
                QIODevice* aMockQIODevice = nullptr);

@@ -3,6 +3,7 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "audio_recorder.h"
+#include "controllers/audio_device.h"
 #include "include/global_constants.h"
 #include "models/audio_buffer.h"
 #include <QAudio>
@@ -26,7 +27,7 @@ AudioRecorder::AudioRecorder(AudioBuffer& aAudioBuffer, QObject* aParent)
 }
 
 bool
-AudioRecorder::Start(const QAudioDevice& aQAudioDevice,
+AudioRecorder::Start(IAudioDevice& aAudioDevice,
                      ChannelCount aChannelCount,
                      SampleRate aSampleRate,
                      QIODevice* aMockQIODevice)
@@ -46,7 +47,7 @@ AudioRecorder::Start(const QAudioDevice& aQAudioDevice,
 
     mAudioBuffer.Reset(aChannelCount, aSampleRate);
 
-    mAudioSource = std::make_unique<QAudioSource>(aQAudioDevice, format);
+    mAudioSource = std::make_unique<QAudioSource>(aAudioDevice.GetQAudioDevice(), format);
 
     if (!mAudioSource) {
         emit ErrorOccurred("Failed to create QAudioSource");

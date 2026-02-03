@@ -7,6 +7,7 @@
 #include "controllers/audio_recorder.h"
 #include "controllers/settings_controller.h"
 #include "include/global_constants.h"
+#include "mock_media_devices.h"
 #include "models/audio_buffer.h"
 #include "models/colormap.h"
 #include "models/settings.h"
@@ -35,7 +36,8 @@ struct TestFixture
     AudioBuffer audio_buffer;
     AudioRecorder recorder{ audio_buffer };
     AudioFile audio_file{ audio_buffer };
-    SettingsController settings_controller{ settings };
+    MockMediaDevices device_provider;
+    SettingsController settings_controller{ settings, device_provider };
     SettingsPanel panel{ settings, settings_controller, recorder, audio_file };
 };
 

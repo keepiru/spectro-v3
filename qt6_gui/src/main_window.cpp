@@ -193,6 +193,12 @@ MainWindow::SetDarkMode()
     palette.setColor(QPalette::Highlight, kHighlight);
     palette.setColor(QPalette::HighlightedText, Qt::black);
 
+    // Set disabled text colors to be visibly different
+    constexpr QColor kDisabledText(120, 120, 120);
+    palette.setColor(QPalette::Disabled, QPalette::Text, kDisabledText);
+    palette.setColor(QPalette::Disabled, QPalette::ButtonText, kDisabledText);
+    palette.setColor(QPalette::Disabled, QPalette::WindowText, kDisabledText);
+
     QApplication::setPalette(palette);
 
     // Fine-tune the scrollbars via stylesheet

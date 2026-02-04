@@ -131,7 +131,7 @@ TEST_CASE("SpectrumPlot::ComputePoints", "[spectrum_plot]")
         settings.SetApertureCeilingDecibels(100.0f);
 
         const QPolygonF have = plot.ComputePoints(decibels, 10, 100);
-        REQUIRE(have.size() == decibels.size());
+        REQUIRE(static_cast<size_t>(have.size()) == decibels.size());
         CHECK(have[0] == QPointF(0.0f, 100.0f)); // -100 dB -> bottom
         CHECK(have[1] == QPointF(1.0f, 75.0f));  // -50 dB
         CHECK(have[2] == QPointF(2.0f, 50.0f));  // 0 dB

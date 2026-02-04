@@ -183,7 +183,7 @@ SpectrogramView::GenerateSpectrogramImage(int aWidth, int aHeight)
 
         // Scan the line.
         // This is the inner loop of the hot path, performance matters here.
-        for (int x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
+        for (size_t x = 0; x < kMaxX; x++) { // NOLINT(readability-identifier-length)
             // composite the colors from each channel in decibels
             // NOLINTBEGIN(readability-identifier-length)
             int r = 0;

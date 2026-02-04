@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Enable warnings
-add_compile_options(-Wall -Wno-sign-compare)
+add_compile_options(-Wall -Wextra -Wpedantic)
 
 # Use ccache if available to speed up rebuilds
 find_program(CCACHE_PROGRAM ccache)

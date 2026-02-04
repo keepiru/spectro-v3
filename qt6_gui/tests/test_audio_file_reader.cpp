@@ -5,32 +5,29 @@
 #include "audio_types.h"
 #include "controllers/audio_file_reader.h"
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers.hpp>
-#include <catch2/matchers/catch_matchers_exception.hpp>
 #include <cstddef>
-#include <stdexcept>
 #include <vector>
 
 TEST_CASE("AudioFileReader", "[audio_file_reader]")
 {
-    AudioFileReader reader("testdata/chirp.wav");
+    auto readerResult = AudioFileReader::Open("testdata/chirp.wav");
+    REQUIRE(readerResult.has_value());
+    AudioFileReader& reader = *readerResult;
 
-    SECTION("throws on invalid file path")
+    SECTION("returns error on invalid file path")
     {
-        REQUIRE_THROWS_MATCHES(
-          AudioFileReader("non_existent_file.wav"),
-          std::runtime_error,
-          Catch::Matchers::Message("Failed to open audio file non_existent_file.wav for reading: "
-                                   "System error : No such file or directory."));
+        auto result = AudioFileReader::Open("non_existent_file.wav");
+        REQUIRE_FALSE(result.has_value());
+        CHECK(result.error() == "Failed to open audio file non_existent_file.wav for reading: "
+                                "System error : No such file or directory.");
     }
 
-    SECTION("throws on corrupt file")
+    SECTION("returns error on corrupt file")
     {
-        REQUIRE_THROWS_MATCHES(
-          AudioFileReader("testdata/corrupt.wav"),
-          std::runtime_error,
-          Catch::Matchers::Message("Failed to open audio file testdata/corrupt.wav for reading: "
-                                   "Format not recognised."));
+        auto result = AudioFileReader::Open("testdata/corrupt.wav");
+        REQUIRE_FALSE(result.has_value());
+        CHECK(result.error() ==
+              "Failed to open audio file testdata/corrupt.wav for reading: Format not recognised.");
     }
 
     SECTION("GetSampleRate returns correct value")

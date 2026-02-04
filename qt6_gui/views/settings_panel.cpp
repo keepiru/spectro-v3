@@ -19,6 +19,7 @@
 #include <QIcon>
 #include <QLabel>
 #include <QMediaDevices>
+#include <QMessageBox>
 #include <QObject>
 #include <QProgressDialog>
 #include <QSize>
@@ -411,13 +412,18 @@ SettingsPanel::OpenFile()
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(0);
 
-    mAudioFile.LoadFile(fileName.toStdString(), [&progress](int aPercent) {
+    auto result = mAudioFile.LoadFile(fileName.toStdString(), [&progress](int aPercent) {
         progress.setValue(aPercent);
         // Allow event processing so cancel button works
         QCoreApplication::processEvents();
     });
 
     progress.close();
+
+    if (!result) {
+        QMessageBox::critical(
+          this, "Failed to Load Audio File", QString::fromStdString(result.error()));
+    }
 }
 
 QComboBox*

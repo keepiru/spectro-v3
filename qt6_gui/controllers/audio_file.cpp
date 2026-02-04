@@ -5,17 +5,22 @@
 #include "controllers/audio_file.h"
 #include "controllers/audio_file_reader.h"
 #include <audio_types.h>
+#include <expected>
 #include <string>
 #include <vector>
 
-bool
+std::expected<void, std::string>
 AudioFile::LoadFile(const std::string& aFilePath, const ProgressCallback& aProgressCallback)
 {
-    AudioFileReader reader(aFilePath);
-    return LoadFileFromReader(reader, aProgressCallback);
+    auto readerResult = AudioFileReader::Open(aFilePath);
+    if (!readerResult) {
+        return std::unexpected(readerResult.error());
+    }
+    LoadFileFromReader(*readerResult, aProgressCallback);
+    return {};
 }
 
-bool
+void
 AudioFile::LoadFileFromReader(IAudioFileReader& aReader, const ProgressCallback& aProgressCallback)
 {
     // Each chunk is passed to AddSamples, which will trigger a display refresh,
@@ -61,6 +66,4 @@ AudioFile::LoadFileFromReader(IAudioFileReader& aReader, const ProgressCallback&
     if (lastProgress < kFinalProgressPercent) {
         aProgressCallback(kFinalProgressPercent);
     }
-
-    return true;
 }

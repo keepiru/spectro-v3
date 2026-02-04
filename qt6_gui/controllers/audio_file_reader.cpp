@@ -4,22 +4,29 @@
 
 #include "audio_file_reader.h"
 #include "audio_types.h"
+#include <expected>
 #include <format>
 #include <sndfile.h>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
-AudioFileReader::AudioFileReader(const std::string& aFilePath)
-  : mSfInfo()
+AudioFileReader::AudioFileReader(SNDFILE* aSndFile, SF_INFO aSfInfo)
+  : mSfInfo(aSfInfo)
+  , mSndFile(aSndFile, &sf_close)
 {
-    // Open the audio file for reading
-    mSndFile.reset(sf_open(aFilePath.c_str(), SFM_READ, &mSfInfo));
-    if (!mSndFile) {
+}
+
+std::expected<AudioFileReader, std::string>
+AudioFileReader::Open(const std::string& aFilePath)
+{
+    SF_INFO sfInfo{};
+    SNDFILE* sndFile = sf_open(aFilePath.c_str(), SFM_READ, &sfInfo);
+    if (!sndFile) {
         const char* kSfError = sf_strerror(nullptr);
-        throw std::runtime_error(
+        return std::unexpected(
           std::format("Failed to open audio file {} for reading: {}", aFilePath, kSfError));
     }
+    return AudioFileReader(sndFile, sfInfo);
 }
 
 std::vector<float>

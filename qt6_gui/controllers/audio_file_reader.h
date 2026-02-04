@@ -6,6 +6,7 @@
 
 #include <audio_types.h>
 #include <cstddef>
+#include <expected>
 #include <memory>
 #include <sndfile.h>
 #include <string>
@@ -39,10 +40,17 @@ class IAudioFileReader
 class AudioFileReader : public IAudioFileReader
 {
   public:
-    /// @brief Construct an AudioFileReader
+    /// @brief Open an audio file for reading
     /// @param aFilePath Path to the audio file
-    /// @throws std::runtime_error if the file cannot be opened
-    explicit AudioFileReader(const std::string& aFilePath);
+    /// @return AudioFileReader on success, or error message string on failure
+    [[nodiscard]] static std::expected<AudioFileReader, std::string> Open(
+      const std::string& aFilePath);
+
+    // Move-only type
+    AudioFileReader(const AudioFileReader&) = delete;
+    AudioFileReader& operator=(const AudioFileReader&) = delete;
+    AudioFileReader(AudioFileReader&&) = default;
+    AudioFileReader& operator=(AudioFileReader&&) = default;
 
     ~AudioFileReader() override = default;
     [[nodiscard]] std::vector<float> ReadInterleaved(FrameCount aFrames) override;
@@ -54,6 +62,8 @@ class AudioFileReader : public IAudioFileReader
     }
 
   private:
+    explicit AudioFileReader(SNDFILE* aSndFile, SF_INFO aSfInfo);
+
     SF_INFO mSfInfo;
     using SfCloser = decltype(&sf_close);
     std::unique_ptr<SNDFILE, SfCloser> mSndFile{ nullptr, &sf_close };

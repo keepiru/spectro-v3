@@ -27,7 +27,6 @@
 #include <QtLogging>
 #include <audio_types.h>
 #include <cmath>
-#include <cstddef>
 
 namespace {
 constexpr ChannelCount KDefaultChannelCount = 2;
@@ -49,7 +48,6 @@ MainWindow::MainWindow(QWidget* parent)
 {
     constexpr int kDefaultWindowWidth = 1400;
     constexpr int kDefaultWindowHeight = 800;
-    constexpr size_t kDefaultStride = 1024;
 
     setWindowTitle("Spectro-v3 - Real-time Spectrum Analyzer");
     resize(kDefaultWindowWidth, kDefaultWindowHeight);

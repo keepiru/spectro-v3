@@ -26,7 +26,7 @@ class MockAudioDevice : public IAudioDevice
     MockAudioDevice(
       QByteArray aId = "mock-device",
       QString aDescription = "Mock Audio Device",
-      FormatSupportedFunc aFormatSupported = [](const QAudioFormat&) { return true; })
+      FormatSupportedFunc aFormatSupported = [](const QAudioFormat&) noexcept { return true; })
       : mId(std::move(aId))
       , mDescription(std::move(aDescription))
       , mFormatSupported(std::move(aFormatSupported))

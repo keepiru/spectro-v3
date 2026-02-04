@@ -29,9 +29,9 @@ class MockAudioFileReader : public IAudioFileReader
     MockAudioFileReader(ChannelCount channelCount,
                         SampleRate sampleRate,
                         std::vector<float> samples)
-      : mChannelCount(channelCount)
+      : mSamples(std::move(samples))
       , mSampleRate(sampleRate)
-      , mSamples(std::move(samples))
+      , mChannelCount(channelCount)
     {
         if (mSamples.size() % mChannelCount != 0) {
             throw std::invalid_argument("Sample count must be divisible by channel count");

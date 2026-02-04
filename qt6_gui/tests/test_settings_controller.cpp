@@ -72,8 +72,8 @@ TEST_CASE("SettingsController::GetSupportedSampleRates", "[settings_controller]"
 
     SECTION("returns empty list when no formats supported")
     {
-        fixture.provider.AddDevice(
-          MockAudioDevice("device-1", "Test Device", [](const QAudioFormat&) { return false; }));
+        fixture.provider.AddDevice(MockAudioDevice(
+          "device-1", "Test Device", [](const QAudioFormat&) noexcept { return false; }));
 
         const auto ratesOpt = fixture.controller.GetSupportedSampleRates("device-1");
         REQUIRE(ratesOpt.has_value());
@@ -83,7 +83,7 @@ TEST_CASE("SettingsController::GetSupportedSampleRates", "[settings_controller]"
     SECTION("only returns supported sample rates")
     {
         fixture.provider.AddDevice(
-          MockAudioDevice("device-1", "Test Device", [](const QAudioFormat& format) {
+          MockAudioDevice("device-1", "Test Device", [](const QAudioFormat& format) noexcept {
               return format.sampleRate() == 44100 || format.sampleRate() == 48000;
           }));
 
@@ -106,8 +106,8 @@ TEST_CASE("SettingsController::GetSupportedChannels", "[settings_controller]")
 
     SECTION("returns empty list when no channel counts supported")
     {
-        fixture.provider.AddDevice(
-          MockAudioDevice("device-1", "Test Device", [](const QAudioFormat&) { return false; }));
+        fixture.provider.AddDevice(MockAudioDevice(
+          "device-1", "Test Device", [](const QAudioFormat&) noexcept { return false; }));
 
         const auto channelsOpt = fixture.controller.GetSupportedChannels("device-1");
 
@@ -118,7 +118,7 @@ TEST_CASE("SettingsController::GetSupportedChannels", "[settings_controller]")
     SECTION("only returns supported channel counts")
     {
         fixture.provider.AddDevice(
-          MockAudioDevice("device-1", "Test Device", [](const QAudioFormat& format) {
+          MockAudioDevice("device-1", "Test Device", [](const QAudioFormat& format) noexcept {
               return format.channelCount() == 1 || format.channelCount() == 4;
           }));
 

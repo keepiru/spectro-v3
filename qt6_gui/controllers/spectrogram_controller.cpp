@@ -62,7 +62,6 @@ SpectrogramController::ResetFFT()
     for (size_t i = 0; i < mAudioBuffer.GetChannelCount(); i++) {
         auto fftProcessor = mFFTProcessorFactory(mSettings.GetFFTSize());
         auto fftWindow = mFFTWindowFactory(mSettings.GetFFTSize(), mSettings.GetWindowType());
-        const auto& sampleBuffer = mAudioBuffer.GetChannelBuffer(i);
 
         mFFTProcessors.emplace_back(std::move(fftProcessor));
         mFFTWindows.emplace_back(std::move(fftWindow));

@@ -392,7 +392,7 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
 
         // Create a test spy to count viewport updates
         size_t viewportUpdateCount = 0;
-        view.OverrideViewportUpdater([&viewportUpdateCount]() { viewportUpdateCount++; });
+        view.OverrideViewportUpdater([&viewportUpdateCount]() noexcept { viewportUpdateCount++; });
 
         // Height is 256, stride is 1024, so view shows 262144 frames.
         constexpr int kPageStepFrames = 1024 * 256;

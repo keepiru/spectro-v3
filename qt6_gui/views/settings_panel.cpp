@@ -377,7 +377,6 @@ SettingsPanel::OnRecordingStateChanged(bool aIsRecording)
     mAudioDeviceComboBox->setEnabled(!aIsRecording);
     mSampleRateComboBox->setEnabled(!aIsRecording);
     mChannelsComboBox->setEnabled(!aIsRecording);
-    mOpenFileButton->setEnabled(!aIsRecording);
     mRecordButton->setText(aIsRecording ? "Stop Recording" : "Start Recording");
 }
 

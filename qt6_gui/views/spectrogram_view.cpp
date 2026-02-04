@@ -145,8 +145,7 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
                          .aperture_floor_decibels = kApertureFloorDecibels,
                          .aperture_ceiling_decibels = kApertureCeilingDecibels,
                          .aperture_range_decibels = kApertureRangeDecibels,
-                         .aperture_range_inverse_decibels = kApertureRangeInverseDecibels,
-                         .color_map_lut = kSettings.GetColorMapLUTs() };
+                         .aperture_range_inverse_decibels = kApertureRangeInverseDecibels };
 }
 
 QImage
@@ -156,6 +155,7 @@ SpectrogramView::GenerateSpectrogramImage(int aWidth, int aHeight)
     image.fill(Qt::black);
 
     const auto renderConfig = GetRenderConfig(aHeight);
+    const Settings::ColorMapLUTs& kColorMapLUTs = mController.GetSettings().GetColorMapLUTs();
 
     constexpr float kImplausiblySmallDecibelRange = 1e-6f;
     if (std::abs(renderConfig.aperture_range_decibels) < kImplausiblySmallDecibelRange) {
@@ -205,7 +205,7 @@ SpectrogramView::GenerateSpectrogramImage(int aWidth, int aHeight)
                 // to uint8_t guarantees that as well.
                 const ColorMap::Entry kColor =
                   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-                  renderConfig.color_map_lut[ch][static_cast<uint8_t>(colorMapIndex)];
+                  kColorMapLUTs[ch][static_cast<uint8_t>(colorMapIndex)];
                 r += kColor.r;
                 g += kColor.g;
                 b += kColor.b;

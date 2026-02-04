@@ -230,7 +230,6 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
             .aperture_ceiling_decibels = 0.0f,
             .aperture_range_decibels = 100.0f,
             .aperture_range_inverse_decibels = 2.55f,
-            .color_map_lut = settings.GetColorMapLUTs(),
         };
 
         SECTION("with zero data")

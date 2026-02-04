@@ -28,7 +28,6 @@ struct RenderConfig
     float aperture_ceiling_decibels{};
     float aperture_range_decibels{};
     float aperture_range_inverse_decibels{};
-    const Settings::ColorMapLUTs& color_map_lut;
 
     /// @brief Debugging/testing helper for inspecting RenderConfig instances.
     ///
@@ -39,16 +38,14 @@ struct RenderConfig
     {
         return std::format("RenderConfig{{\n channels={}\n stride={}\n top_frame={}\n "
                            "aperture_floor_decibels={}\n aperture_ceiling_decibels={}\n "
-                           "aperture_range_decibels={}\n aperture_range_inverse_decibels={}\n "
-                           "color_map_lut_ref=<ptr:{}>}}",
+                           "aperture_range_decibels={}\n aperture_range_inverse_decibels={}\n}}",
                            config.channels,
                            config.stride.Get(),
                            config.top_frame.Get(),
                            config.aperture_floor_decibels,
                            config.aperture_ceiling_decibels,
                            config.aperture_range_decibels,
-                           config.aperture_range_inverse_decibels,
-                           static_cast<const void*>(&config.color_map_lut));
+                           config.aperture_range_inverse_decibels);
     }
 };
 

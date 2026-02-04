@@ -204,6 +204,7 @@ MainWindow::SetDarkMode()
         QScrollBar::handle {
             background: #557;
             border-radius: 4px;
+            min-height: 16px;
         }
         QScrollBar::handle:hover {
             background: #668;

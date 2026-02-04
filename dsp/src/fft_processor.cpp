@@ -25,8 +25,8 @@ FFTProcessor::FFTProcessor(FFTSize aTransformSize)
         throw std::runtime_error("Failed to allocate FFTW buffers");
     }
 
-    mFFTPlan = FFTWPlanPtr(
-      fftwf_plan_dft_r2c_1d(mTransformSize, mFFTInput.get(), mFFTOutput.get(), FFTW_ESTIMATE));
+    mFFTPlan = FFTWPlanPtr(fftwf_plan_dft_r2c_1d(
+      mTransformSize.AsInt(), mFFTInput.get(), mFFTOutput.get(), FFTW_ESTIMATE));
 
     if (!mFFTPlan) {
         throw std::runtime_error("Failed to create FFTW plan");

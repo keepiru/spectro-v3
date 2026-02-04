@@ -56,7 +56,7 @@ SpectrogramView::UpdateScrollbarRange(FrameCount aAvailableFrames)
 
     // Safety check for overflow.  This would only happen with an absurdly large
     // view height, but let's be safe.
-    if (viewport()->height() > std::numeric_limits<int>::max() / kStride) {
+    if (viewport()->height() > std::numeric_limits<int>::max() / kStride.AsInt()) {
         throw std::overflow_error("scroll page step exceeds int max");
     }
 

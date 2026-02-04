@@ -159,14 +159,21 @@ class FFTSize
         }
     }
 
-    /// @brief Implicit access as int for convenience
-    /// @return The FFT size as an int (safe because constructor validates it fits)
+    /// @brief Implicit access as size_t for convenience
+    /// @return The FFT size as size_t
     /// @note FFTSize is used in many contexts with varying semantics: as a
     /// parameter for FFTW, as a size for buffers, as a count of samples, etc.
     /// Calling .Get() everywhere undermines the purpose of having a strong type
-    /// in the first place. We might want to revisit this if we add more
-    /// semantic operations here later.
-    [[nodiscard]] constexpr operator int() const noexcept { return static_cast<int>(Get()); }
+    /// in the first place.  The majority of usages of FFTSize is against other
+    /// size_t-based values (e.g., std::vector sizes, spans, etc.), so this
+    /// conversion is provided for convenience.  We might want to revisit this
+    /// if we add more semantic operations here later.
+    [[nodiscard]] constexpr operator size_t() const noexcept { return Get(); }
+
+    /// @brief Get the FFT size as an int
+    /// @return The FFT size as an int (safe because constructor validates it fits)
+    /// @note FFTW3 APIs require int parameters for sizes.
+    [[nodiscard]] constexpr int AsInt() const noexcept { return static_cast<int>(Get()); }
 };
 
 /// @brief Count of samples (always non-negative)

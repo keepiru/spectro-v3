@@ -291,7 +291,7 @@ TEST_CASE("SpectrogramView scrollbar integration", "[spectrogram_view]")
 
     // Compute the page step in frames.  This offset is relevant in scrollbar tests
     // where we need to account for the page step in the maximum value.
-    const int kPageStepFrames = view.viewport()->height() * settings.GetWindowStride();
+    const int kPageStepFrames = view.viewport()->height() * settings.GetWindowStride().AsInt();
 
     SECTION("scrollbar is initialized on construction")
     {

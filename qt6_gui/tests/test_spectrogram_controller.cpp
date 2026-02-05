@@ -22,14 +22,20 @@
 #include <vector>
 
 namespace {
-using namespace Catch::Matchers;
-}
+
+/// @brief Common fixture for SpectrogramController tests
+struct SpectrogramControllerTestFixture
+{
+    Settings settings;
+    AudioBuffer audio_buffer;
+    SpectrogramController controller{ settings, audio_buffer, MockFFTProcessor::GetFactory() };
+};
+
+} // namespace
 
 TEST_CASE("SpectrogramController constructor", "[spectrogram_controller]")
 {
-    const Settings settings;
-    const AudioBuffer audioBuffer;
-    const SpectrogramController controller(settings, audioBuffer);
+    const SpectrogramControllerTestFixture fixture;
 }
 
 TEST_CASE("SpectrogramController::SetFFTSettings", "[spectrogram_controller]")
@@ -76,210 +82,165 @@ TEST_CASE("SpectrogramController::SetFFTSettings", "[spectrogram_controller]")
                              std::make_pair(1024, FFTWindow::Type::Rectangular) }));
 }
 
-namespace {
-std::unique_ptr<SpectrogramController>
-CreateControllerWithMockFFT(Settings& aSettings, AudioBuffer& aBuffer)
+TEST_CASE("SpectrogramController::GetRows, GetRow, ComputeFFT", "[spectrogram_controller]")
 {
+    SpectrogramControllerTestFixture fixture;
+    fixture.settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
+    fixture.audio_buffer.Reset(1, 44100);
+    fixture.audio_buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
+                                      14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 });
 
-    aSettings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
-    auto controller = std::make_unique<SpectrogramController>(
-      aSettings, aBuffer, MockFFTProcessor::GetFactory(), nullptr);
-    aSettings.SetWindowScale(1);
+    SECTION("single window computation")
+    {
+        const std::vector<std::vector<float>> kWant = {
+            { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
+        };
+        REQUIRE(fixture.controller.GetRows(0, FramePosition{ 0 }, 1) == kWant);
+        REQUIRE(fixture.controller.GetRow(0, FramePosition{ 0 }) == kWant[0]);
+        REQUIRE(fixture.controller.ComputeFFT(0, FrameIndex{ 0 }) == kWant[0]);
+    }
 
-    return controller;
-}
-} // namespace
+    SECTION("multiple non-overlapping windows")
+    {
+        fixture.settings.SetWindowScale(1);
 
-TEST_CASE("SpectrogramController::GetRows single window computation", "[spectrogram_controller]")
-{
-    AudioBuffer buffer;
-    buffer.Reset(1, 44100);
-    buffer.AddSamples(
-      { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
-    Settings settings;
-    auto controller = CreateControllerWithMockFFT(settings, buffer);
+        const std::vector<std::vector<float>> kWant = {
+            { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
+            { 9.0f, 10.0f, 11.0f, 12.0f, 13.0f },
+            { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f },
+        };
+        const auto kGot = fixture.controller.GetRows(0, FramePosition{ 0 }, 3);
+        REQUIRE(kGot == kWant);
+    }
 
-    const std::vector<std::vector<float>> kWant = {
-        { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
-    };
-    REQUIRE(controller->GetRows(0, FramePosition{ 0 }, 1) == kWant);
-    REQUIRE(controller->GetRow(0, FramePosition{ 0 }) == kWant[0]);
-    REQUIRE(controller->ComputeFFT(0, FrameIndex{ 0 }) == kWant[0]);
-}
+    SECTION("50% overlap")
+    {
+        fixture.settings.SetWindowScale(2); // 50% overlap
 
-TEST_CASE("SpectrogramController::GetRows multiple non-overlapping windows",
-          "[spectrogram_controller]")
-{
-    AudioBuffer buffer;
-    buffer.Reset(1, 44100);
-    buffer.AddSamples(
-      { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
-    Settings settings;
-    auto controller = CreateControllerWithMockFFT(settings, buffer);
-    const std::vector<std::vector<float>> kWant = {
-        { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
-        { 9.0f, 10.0f, 11.0f, 12.0f, 13.0f },
-        { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f },
-    };
-    const auto kGot = controller->GetRows(0, FramePosition{ 0 }, 3);
-    REQUIRE(kGot == kWant);
-}
+        const std::vector<std::vector<float>> kWant = {
+            { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },      { 5.0f, 6.0f, 7.0f, 8.0f, 9.0f },
+            { 9.0f, 10.0f, 11.0f, 12.0f, 13.0f },  { 13.0f, 14.0f, 15.0f, 16.0f, 17.0f },
+            { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f },
+        };
+        const auto kGot = fixture.controller.GetRows(0, FramePosition{ 0 }, 5);
+        REQUIRE(kGot == kWant);
+    }
 
-TEST_CASE("SpectrogramController::GetRows 50% overlap", "[spectrogram_controller]")
-{
-    Settings settings;
-    AudioBuffer buffer;
-    buffer.Reset(1, 44100);
-    buffer.AddSamples(
-      { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 });
-    auto controller = CreateControllerWithMockFFT(settings, buffer);
-    settings.SetWindowScale(2); // 50% overlap
+    SECTION("75% overlap")
+    {
+        fixture.settings.SetWindowScale(4); // 75% overlap
 
-    const std::vector<std::vector<float>> kWant = {
-        { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },      { 5.0f, 6.0f, 7.0f, 8.0f, 9.0f },
-        { 9.0f, 10.0f, 11.0f, 12.0f, 13.0f },  { 13.0f, 14.0f, 15.0f, 16.0f, 17.0f },
-        { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f },
-    };
-    const auto kGot = controller->GetRows(0, FramePosition{ 0 }, 5);
-    REQUIRE(kGot == kWant);
-}
+        const std::vector<std::vector<float>> kWant = {
+            { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },      { 3.0f, 4.0f, 5.0f, 6.0f, 7.0f },
+            { 5.0f, 6.0f, 7.0f, 8.0f, 9.0f },      { 7.0f, 8.0f, 9.0f, 10.0f, 11.0f },
+            { 9.0f, 10.0f, 11.0f, 12.0f, 13.0f },  { 11.0f, 12.0f, 13.0f, 14.0f, 15.0f },
+            { 13.0f, 14.0f, 15.0f, 16.0f, 17.0f }, { 15.0f, 16.0f, 17.0f, 18.0f, 19.0f },
+            { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f }, { 19.0f, 20.0f, 21.0f, 22.0f, 23.0f },
+        };
+        const auto kGot = fixture.controller.GetRows(0, FramePosition{ 0 }, 10);
+        REQUIRE(kGot == kWant);
+    }
 
-TEST_CASE("SpectrogramController::GetRows 75% overlap", "[spectrogram_controller]")
-{
-    Settings settings;
-    AudioBuffer buffer;
-    buffer.Reset(1, 44100);
-    buffer.AddSamples({ 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
-                        14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 });
-    auto controller = CreateControllerWithMockFFT(settings, buffer);
-    settings.SetWindowScale(4); // 75% overlap
+    SECTION("edge case semantics differ between GetRows, GetRow, and ComputeFFT")
+    {
+        fixture.settings.SetWindowScale(1);
+        fixture.audio_buffer.Reset(1, 44100);
+        fixture.audio_buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
 
-    const std::vector<std::vector<float>> kWant = {
-        { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },      { 3.0f, 4.0f, 5.0f, 6.0f, 7.0f },
-        { 5.0f, 6.0f, 7.0f, 8.0f, 9.0f },      { 7.0f, 8.0f, 9.0f, 10.0f, 11.0f },
-        { 9.0f, 10.0f, 11.0f, 12.0f, 13.0f },  { 11.0f, 12.0f, 13.0f, 14.0f, 15.0f },
-        { 13.0f, 14.0f, 15.0f, 16.0f, 17.0f }, { 15.0f, 16.0f, 17.0f, 18.0f, 19.0f },
-        { 17.0f, 18.0f, 19.0f, 20.0f, 21.0f }, { 19.0f, 20.0f, 21.0f, 22.0f, 23.0f },
-    };
-    const auto kGot = controller->GetRows(0, FramePosition{ 0 }, 10);
-    REQUIRE(kGot == kWant);
-}
+        SECTION("GetRows with start sample beyond buffer end returns zeroed rows")
+        {
+            const std::vector<std::vector<float>> kWant = {
+                { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
+                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+            };
 
-TEST_CASE("SpectrogramController::GetRows with start sample beyond buffer end returns zeroed rows",
-          "[spectrogram_controller]")
-{
-    Settings settings;
-    AudioBuffer buffer;
-    buffer.Reset(1, 44100);
-    buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
-    auto controller = CreateControllerWithMockFFT(settings, buffer);
+            REQUIRE(fixture.controller.GetRows(0, FramePosition{ 0 }, 2) == kWant);
 
-    const std::vector<std::vector<float>> kWant = {
-        { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f },
-        { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-    };
+            // Do the same thing with GetRow
+            REQUIRE(fixture.controller.GetRow(0, FramePosition{ 0 }) == kWant[0]);
+            REQUIRE(fixture.controller.GetRow(0, FramePosition{ 8 }) == kWant[1]);
 
-    REQUIRE(controller->GetRows(0, FramePosition{ 0 }, 2) == kWant);
+            // And with ComputeFFT
+            REQUIRE(fixture.controller.ComputeFFT(0, FrameIndex(0)) == kWant[0]);
+            REQUIRE_THROWS_AS((void)fixture.controller.ComputeFFT(0, FrameIndex(8)),
+                              std::out_of_range);
+        }
 
-    // Do the same thing with GetRow
-    REQUIRE(controller->GetRow(0, FramePosition{ 0 }) == kWant[0]);
-    REQUIRE(controller->GetRow(0, FramePosition{ 8 }) == kWant[1]);
+        SECTION("GetRows with negative start sample returns zeroed rows")
+        {
+            const std::vector<std::vector<float>> kWant = {
+                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                { 7.0f, 8.0f, 9.0f, 10.0f, 11.0f },
+            };
+            REQUIRE(fixture.controller.GetRows(0, FramePosition{ -2 }, 2) == kWant);
 
-    // And with ComputeFFT
-    REQUIRE(controller->ComputeFFT(0, FrameIndex(0)) == kWant[0]);
-    REQUIRE_THROWS_AS((void)controller->ComputeFFT(0, FrameIndex(8)), std::out_of_range);
-}
+            // Do the same thing with GetRow
+            REQUIRE(fixture.controller.GetRow(0, FramePosition{ -2 }) == kWant[0]);
+            REQUIRE(fixture.controller.GetRow(0, FramePosition{ 6 }) == kWant[1]);
+            // ComputeFFT takes FrameIndex (unsigned), so negative values cannot be passed
+            // The validation happens in GetRow which calls ToFrameIndex before ComputeFFT
+            REQUIRE(fixture.controller.ComputeFFT(0, FrameIndex{ 6 }) == kWant[1]);
+        }
+    }
 
-TEST_CASE("SpectrogramController::GetRows with negative start sample returns zeroed rows",
-          "[spectrogram_controller]")
-{
-    Settings settings;
-    AudioBuffer buffer;
-    buffer.Reset(1, 44100);
-    buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
-    auto controller = CreateControllerWithMockFFT(settings, buffer);
-    const std::vector<std::vector<float>> kWant = {
-        { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-        { 7.0f, 8.0f, 9.0f, 10.0f, 11.0f },
-    };
-    REQUIRE(controller->GetRows(0, FramePosition{ -2 }, 2) == kWant);
+    SECTION("Hann window integration")
+    {
+        fixture.settings.SetFFTSettings(8, FFTWindow::Type::Hann);
+        fixture.settings.SetWindowScale(1);
+        fixture.audio_buffer.Reset(1, 44100);
+        fixture.audio_buffer.AddSamples({ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
 
-    // Do the same thing with GetRow
-    REQUIRE(controller->GetRow(0, FramePosition{ -2 }) == kWant[0]);
-    REQUIRE(controller->GetRow(0, FramePosition{ 6 }) == kWant[1]);
+        // Hann window attenuates edges, so we'll see lower magnitudes at the
+        // edges.  Keep in mind our MockFFTProcessor just returns the input
+        // samples as magnitudes so the only transformation is from the
+        // windowing.
+        const std::vector<std::vector<float>> kWant = {
+            { 0.0f, 0.146446615f, 0.5f, 0.853553414f, 1.0f },
+            { 0.0f, 0.146446615f, 0.5f, 0.853553414f, 1.0f }
+        };
 
-    // ComputeFFT takes FrameIndex (unsigned), so negative values cannot be passed
-    // The validation happens in GetRow which calls ToFrameIndex before ComputeFFT
-    REQUIRE(controller->ComputeFFT(0, FrameIndex{ 6 }) == kWant[1]);
+        REQUIRE(fixture.controller.GetRows(0, FramePosition{ 0 }, 2) == kWant);
+        REQUIRE(fixture.controller.GetRow(0, FramePosition{ 0 }) == kWant[0]);
+        REQUIRE(fixture.controller.ComputeFFT(0, FrameIndex{ 0 }) == kWant[0]);
+    }
+
+    SECTION("throws on invalid channel")
+    {
+        REQUIRE_THROWS_AS((void)fixture.controller.GetRows(1, FramePosition{ 0 }, 1),
+                          std::out_of_range);
+        REQUIRE_THROWS_AS((void)fixture.controller.GetRow(1, FramePosition{ 0 }),
+                          std::out_of_range);
+        REQUIRE_THROWS_AS((void)fixture.controller.ComputeFFT(1, FrameIndex{ 0 }),
+                          std::out_of_range);
+    }
 }
 
-TEST_CASE("SpectrogramController::GetRows with Hann window integration", "[spectrogram_controller]")
+TEST_CASE("SpectrogramController::GetAvailableFrameCount", "[spectrogram_controller]")
 {
-    Settings settings;
-    AudioBuffer buffer;
-    buffer.Reset(1, 44100);
-    buffer.AddSamples({ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
-    auto controller = CreateControllerWithMockFFT(settings, buffer);
-    settings.SetFFTSettings(8, FFTWindow::Type::Hann);
+    SpectrogramControllerTestFixture fixture;
+    fixture.audio_buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
 
-    // Hann window attenuates edges, so we'll see lower magnitudes at the
-    // edges.  Keep in mind our MockFFTProcessor just returns the input
-    // samples as magnitudes so the only transformation is from the
-    // windowing.
-    const std::vector<std::vector<float>> kWant = {
-        { 0.0f, 0.146446615f, 0.5f, 0.853553414f, 1.0f },
-        { 0.0f, 0.146446615f, 0.5f, 0.853553414f, 1.0f }
-    };
-
-    REQUIRE(controller->GetRows(0, FramePosition{ 0 }, 2) == kWant);
-    REQUIRE(controller->GetRow(0, FramePosition{ 0 }) == kWant[0]);
-    REQUIRE(controller->ComputeFFT(0, FrameIndex{ 0 }) == kWant[0]);
-}
-
-TEST_CASE("SpectrogramController::GetRows throws on invalid channel", "[spectrogram_controller]")
-{
-    const Settings settings;
-    AudioBuffer buffer;
-    buffer.Reset(1, 44100);
-    const SpectrogramController controller(settings, buffer);
-
-    REQUIRE_THROWS_AS((void)controller.GetRows(1, FramePosition{ 0 }, 1), std::out_of_range);
-    REQUIRE_THROWS_AS((void)controller.GetRow(1, FramePosition{ 0 }), std::out_of_range);
-    REQUIRE_THROWS_AS((void)controller.ComputeFFT(1, FrameIndex{ 0 }), std::out_of_range);
-}
-
-TEST_CASE("SpectrogramController::GetAvailableSampleCount", "[spectrogram_controller]")
-{
-    const Settings settings;
-    AudioBuffer buffer;
-    const SpectrogramController controller(settings, buffer);
-
-    buffer.AddSamples({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
     const auto kExpectedSampleCount = 5; // 10 samples / 2 channels
-    REQUIRE(controller.GetAvailableFrameCount() == FrameCount(kExpectedSampleCount));
+    REQUIRE(fixture.controller.GetAvailableFrameCount() == FrameCount(kExpectedSampleCount));
 }
 
 TEST_CASE("SpectrogramController::GetChannelCount", "[spectrogram_controller]")
 {
-    const Settings settings;
-    AudioBuffer buffer;
-    buffer.Reset(3, 44100);
-    const SpectrogramController controller(settings, buffer);
-    REQUIRE(controller.GetChannelCount() == 3);
+    SpectrogramControllerTestFixture fixture;
+    fixture.audio_buffer.Reset(3, 44100);
+
+    REQUIRE(fixture.controller.GetChannelCount() == 3);
 }
 
 TEST_CASE("SpectrogramController::CalculateTopOfWindow", "[spectrogram_controller]")
 {
-    Settings settings;
-    const AudioBuffer audioBuffer;
-    SpectrogramController controller(settings, audioBuffer);
+    SpectrogramControllerTestFixture fixture;
+    fixture.settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
 
-    settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
+    auto check = [&fixture](int64_t index, size_t scale, int64_t want) {
+        fixture.settings.SetWindowScale(scale);
 
-    auto check = [&](int64_t index, size_t scale, int64_t want) {
-        settings.SetWindowScale(scale);
-
-        const FramePosition have = controller.CalculateTopOfWindow(FramePosition{ index });
+        const FramePosition have = fixture.controller.CalculateTopOfWindow(FramePosition{ index });
         INFO(std::format("CalculateTopOfWindow: sample={} scale={} => topSample={} (want {})",
                          index,
                          scale,
@@ -341,19 +302,16 @@ TEST_CASE("SpectrogramController::CalculateTopOfWindow", "[spectrogram_controlle
 
 TEST_CASE("SpectrogramController::RoundToStride", "[spectrogram_controller]")
 {
-    Settings settings;
-    const AudioBuffer audioBuffer;
-    SpectrogramController controller(settings, audioBuffer);
-
-    settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
+    SpectrogramControllerTestFixture fixture;
+    fixture.settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
 
     auto check = [&](size_t stride, int64_t sample, int64_t want) {
-        if (settings.GetFFTSize() % stride != 0) {
+        if (fixture.settings.GetFFTSize() % stride != 0) {
             throw std::invalid_argument("Stride must divide FFT size evenly");
         }
-        settings.SetWindowScale(settings.GetFFTSize() / stride);
+        fixture.settings.SetWindowScale(fixture.settings.GetFFTSize() / stride);
 
-        const FramePosition have = controller.RoundToStride(FramePosition{ sample });
+        const FramePosition have = fixture.controller.RoundToStride(FramePosition{ sample });
         INFO(std::format(
           "SpectrogramController::RoundToStride: stride={}, sample={}, got={} (want {})",
           stride,
@@ -402,18 +360,17 @@ TEST_CASE("SpectrogramController::RoundToStride", "[spectrogram_controller]")
 
 TEST_CASE("SpectrogramController::GetHzPerBin", "[spectrogram_controller]")
 {
-    Settings settings;
-    AudioBuffer buffer;
-    buffer.Reset(2, 48000); // 48 kHz sample rate
-    const SpectrogramController controller(settings, buffer);
+    using Catch::Matchers::WithinAbs;
+    SpectrogramControllerTestFixture fixture;
+    fixture.audio_buffer.Reset(2, 48000); // 48 kHz sample rate
 
-    settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
-    CHECK_THAT(controller.GetHzPerBin(), WithinAbs(46.875f, 0.0001f)); // 48000 / 1024
+    fixture.settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
+    CHECK_THAT(fixture.controller.GetHzPerBin(), WithinAbs(46.875f, 0.0001f)); // 48000 / 1024
 
-    settings.SetFFTSettings(2048, FFTWindow::Type::Rectangular);
-    CHECK_THAT(controller.GetHzPerBin(), WithinAbs(23.4375f, 0.0001f)); // 48000 / 2048
+    fixture.settings.SetFFTSettings(2048, FFTWindow::Type::Rectangular);
+    CHECK_THAT(fixture.controller.GetHzPerBin(), WithinAbs(23.4375f, 0.0001f)); // 48000 / 2048
 
-    buffer.Reset(1, 44100); // 44.1 kHz sample rate
-    settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
-    CHECK_THAT(controller.GetHzPerBin(), WithinAbs(43.06640625f, 0.0001f)); // 44100 / 1024
+    fixture.audio_buffer.Reset(1, 44100); // 44.1 kHz sample rate
+    fixture.settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
+    CHECK_THAT(fixture.controller.GetHzPerBin(), WithinAbs(43.06640625f, 0.0001f)); // 44100 / 1024
 }

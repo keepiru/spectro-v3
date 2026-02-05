@@ -20,7 +20,9 @@
 #include <sstream>
 #include <vector>
 
-/// @brief Test fixture for ScaleView
+namespace {
+
+/// @brief Testable subclass of ScaleView that exposes protected members for testing
 class TestableScaleView : public ScaleView
 {
   public:
@@ -33,92 +35,88 @@ class TestableScaleView : public ScaleView
     using ScaleView::CalculateTickMarks;
 };
 
+/// @brief Common test fixture for ScaleView tests
+struct ScaleViewTestFixture
+{
+    Settings settings;
+    AudioBuffer audio_buffer;
+    SpectrogramController controller{ settings, audio_buffer, MockFFTProcessor::GetFactory() };
+    TestableScaleView view{ controller };
+};
+
+} // namespace
+
 TEST_CASE("ScaleView constructor", "[scale_view]")
 {
-    const Settings settings;
-    const AudioBuffer audioBuffer;
-    const SpectrogramController controller(settings, audioBuffer);
-    const ScaleView view(controller);
+    const ScaleViewTestFixture fixture;
 
-    REQUIRE(view.height() == 20);
-    REQUIRE(view.minimumHeight() == 20);
-    REQUIRE(view.maximumHeight() == 20);
+    REQUIRE(fixture.view.height() == 20);
+    REQUIRE(fixture.view.minimumHeight() == 20);
+    REQUIRE(fixture.view.maximumHeight() == 20);
 }
 
 TEST_CASE("ScaleView::paintEvent", "[scale_view]")
 {
-    Settings settings;
-    const AudioBuffer audioBuffer;
-    const SpectrogramController controller(
-      settings, audioBuffer, MockFFTProcessor::GetFactory(), nullptr);
-    TestableScaleView view(controller);
+    ScaleViewTestFixture fixture;
 
     SECTION("renders without errors for various FFT sizes")
     {
         // Test with different FFT sizes to ensure paint event handles all cases
         const FFTSize kFFTSize = GENERATE(from_range(Settings::KValidFFTSizes));
 
-        settings.SetFFTSettings(kFFTSize, FFTWindow::Type::Hann);
+        fixture.settings.SetFFTSettings(kFFTSize, FFTWindow::Type::Hann);
 
         // Create an image to paint on
         QImage image(1024, 20, QImage::Format_RGB32);
 
         // Trigger paint event by painting to the image
         QPainter painter(&image);
-        CHECK_NOTHROW(view.render(&painter));
+        CHECK_NOTHROW(fixture.view.render(&painter));
     }
 
     SECTION("renders with different widget widths")
     {
-        settings.SetFFTSettings(2048, FFTWindow::Type::Rectangular);
+        fixture.settings.SetFFTSettings(2048, FFTWindow::Type::Rectangular);
 
         const int kWidth = GENERATE(10, 100, 512, 1024, 2048);
-        view.setFixedWidth(kWidth);
+        fixture.view.setFixedWidth(kWidth);
 
         QImage image(kWidth, 20, QImage::Format_RGB32);
 
         QPainter painter(&image);
-        CHECK_NOTHROW(view.render(&painter));
+        CHECK_NOTHROW(fixture.view.render(&painter));
     }
 }
 
 TEST_CASE("ScaleView::CalculateTickMarks", "[scale_view]")
 {
-    Settings settings;
-    AudioBuffer const audioBuffer;
-    const SpectrogramController controller(
-      settings, audioBuffer, MockFFTProcessor::GetFactory(), nullptr);
-    const TestableScaleView view(controller);
-
-    // Set up FFT to have known Hz per bin
-    // With sample rate 44100 and FFT size 2048: Hz per bin = 44100 / 2048 ≈ 21.53 Hz/bin
-    settings.SetFFTSettings(2048, FFTWindow::Type::Rectangular);
+    ScaleViewTestFixture fixture;
 
     SECTION("handles zero width")
     {
-        CHECK(view.CalculateTickMarks(0).empty());
+        CHECK(fixture.view.CalculateTickMarks(0).empty());
     }
 
     SECTION("generates no tick marks for narrow width")
     {
         // with transform 2048, minimum width to show first tick at 200 Hz is 10 pixels
-        CHECK(view.CalculateTickMarks(9).empty());
-        CHECK(view.CalculateTickMarks(10).size() == 1);
+        CHECK(fixture.view.CalculateTickMarks(9).empty());
+        CHECK(fixture.view.CalculateTickMarks(10).size() == 1);
     }
 
     SECTION("handles very large width")
     {
-        const auto have = view.CalculateTickMarks(100000);
+        const auto have = fixture.view.CalculateTickMarks(100000);
         CHECK(have.size() == 10766);
     }
 
     SECTION("generates tick marks at 400 Hz intervals for 1024 transform size")
     {
-        settings.SetFFTSettings(1024, FFTWindow::Type::Hann);
+        fixture.settings.SetFFTSettings(1024, FFTWindow::Type::Hann);
 
         // Width of 1024 bins * 43.07 Hz/bin ≈ 44106 Hz max frequency
         // Should get ticks at 400, 800, 1200, ... Hz
-        const auto have = view.CalculateTickMarks(1024);
+        const auto have = fixture.view.CalculateTickMarks(1024);
         CHECK(have.size() == 110);
         CHECK(have.at(0) == TestableScaleView::TickMark{ 9, {} });         // 400 Hz
         CHECK(have.at(1) == TestableScaleView::TickMark{ 18, {} });        // 800 Hz
@@ -133,9 +131,11 @@ TEST_CASE("ScaleView::CalculateTickMarks", "[scale_view]")
 
     SECTION("generates tick marks at 200 Hz intervals for 2048 transform size")
     {
+        fixture.settings.SetFFTSettings(2048, FFTWindow::Type::Rectangular);
+
         // Width of 1024 bins * 21.53 Hz/bin ≈ 22053 Hz max frequency
         // Should get ticks at 200, 400, 600, ... Hz
-        const auto have = view.CalculateTickMarks(1024);
+        const auto have = fixture.view.CalculateTickMarks(1024);
         CHECK(have.size() == 110);
         CHECK(have.at(0) == TestableScaleView::TickMark{ 9, {} });         // 200 Hz
         CHECK(have.at(1) == TestableScaleView::TickMark{ 18, {} });        // 400 Hz
@@ -150,11 +150,11 @@ TEST_CASE("ScaleView::CalculateTickMarks", "[scale_view]")
 
     SECTION("generates tick marks at 100 Hz intervals for 4096 transform size")
     {
-        settings.SetFFTSettings(4096, FFTWindow::Type::Hann);
+        fixture.settings.SetFFTSettings(4096, FFTWindow::Type::Hann);
 
         // Width of 1024 bins * 10.77 Hz/bin ≈ 11059 Hz max frequency
         // Should get ticks at 100, 200, 300, ... Hz
-        const auto have = view.CalculateTickMarks(1024);
+        const auto have = fixture.view.CalculateTickMarks(1024);
         CHECK(have.size() == 110);
         CHECK(have.at(0) == TestableScaleView::TickMark{ 9, {} });         // 100 Hz
         CHECK(have.at(1) == TestableScaleView::TickMark{ 18, {} });        // 200 Hz
@@ -169,11 +169,11 @@ TEST_CASE("ScaleView::CalculateTickMarks", "[scale_view]")
 
     SECTION("generates tick marks at 50 Hz intervals for 8192 transform size")
     {
-        settings.SetFFTSettings(8192, FFTWindow::Type::Hann);
+        fixture.settings.SetFFTSettings(8192, FFTWindow::Type::Hann);
 
         // Width of 1024 bins * 5.38 Hz/bin ≈ 5513 Hz max frequency
         // Should get ticks at 50, 100, 150, ... Hz
-        const auto have = view.CalculateTickMarks(1024);
+        const auto have = fixture.view.CalculateTickMarks(1024);
         CHECK(have.size() == 110);
         CHECK(have.at(0) == TestableScaleView::TickMark{ 9, {} });        // 50 Hz
         CHECK(have.at(1) == TestableScaleView::TickMark{ 18, {} });       // 100 Hz
@@ -188,11 +188,11 @@ TEST_CASE("ScaleView::CalculateTickMarks", "[scale_view]")
 
     SECTION("generates tick marks at 200 Hz intervals for default transform size (16384)")
     {
-        settings.SetFFTSettings(16384, FFTWindow::Type::Hann);
+        fixture.settings.SetFFTSettings(16384, FFTWindow::Type::Hann);
 
         // Width of 1024 bins * 2.69 Hz/bin ≈ 2756 Hz max frequency
         // Should get ticks at 200, 400, 600, ... Hz (default case)
-        const auto have = view.CalculateTickMarks(1024);
+        const auto have = fixture.view.CalculateTickMarks(1024);
         CHECK(have.size() == 13);
         CHECK(have.at(0) == TestableScaleView::TickMark{ 74, {} });    // 200 Hz
         CHECK(have.at(1) == TestableScaleView::TickMark{ 148, {} });   // 400 Hz
@@ -208,7 +208,7 @@ TEST_CASE("ScaleView::CalculateTickMarks", "[scale_view]")
 
     SECTION("marks every 5th tick as long tick with label")
     {
-        const auto tickMarks = view.CalculateTickMarks(1024);
+        const auto tickMarks = fixture.view.CalculateTickMarks(1024);
 
         // Check pattern: ticks at 200, 400, 600, 800, 1000, ...
         // Every 5th tick (1000, 2000, 3000, ...) should be long

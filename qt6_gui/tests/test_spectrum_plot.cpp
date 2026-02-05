@@ -9,6 +9,7 @@
 #include "views/spectrum_plot.h"
 #include <QImage>
 #include <QLine>
+#include <QObject>
 #include <QPainter>
 #include <QPoint>
 #include <QPolygon>
@@ -28,7 +29,9 @@
 #include <utility>
 #include <vector>
 
-/// @brief Test fixture for SpectrumPlot
+namespace {
+
+/// @brief Testable subclass of SpectrumPlot that exposes private members for testing
 class TestableSpectrumPlot : public SpectrumPlot
 {
   public:
@@ -46,38 +49,41 @@ class TestableSpectrumPlot : public SpectrumPlot
     using SpectrumPlot::GetDecibels;
 };
 
+/// @brief Common test fixture for SpectrumPlot tests
+struct SpectrumPlotTestFixture
+{
+    Settings settings;
+    AudioBuffer audio_buffer;
+    SpectrogramController controller{ settings, audio_buffer, MockFFTProcessor::GetFactory() };
+    TestableSpectrumPlot plot{ controller };
+};
+
+} // namespace
+
 TEST_CASE("SpectrumPlot constructor", "[spectrum_plot]")
 {
-    const Settings settings;
-    const AudioBuffer audioBuffer;
-    const SpectrogramController controller(settings, audioBuffer);
-    const SpectrumPlot plot(controller);
-    REQUIRE(plot.minimumWidth() > 0);
-    REQUIRE(plot.minimumHeight() > 0);
+    const SpectrumPlotTestFixture fixture;
+    REQUIRE(fixture.plot.minimumWidth() > 0);
+    REQUIRE(fixture.plot.minimumHeight() > 0);
 }
 
 TEST_CASE("SpectrumPlot is widget", "[spectrum_plot]")
 {
-    const Settings settings;
-    const AudioBuffer audioBuffer;
-    const SpectrogramController controller(settings, audioBuffer);
-    SpectrumPlot plot(controller);
-    REQUIRE(qobject_cast<QWidget*>(&plot) != nullptr);
+    SpectrumPlotTestFixture fixture;
+    REQUIRE(qobject_cast<QWidget*>(&fixture.plot) != nullptr);
 }
 
 TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
 {
-    Settings settings;
-    AudioBuffer audioBuffer;
-    const SpectrogramController controller(settings, audioBuffer, MockFFTProcessor::GetFactory());
-    const TestableSpectrumPlot plot(controller);
-    settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
-    settings.SetWindowScale(2); // Stride 4
+    SpectrumPlotTestFixture fixture;
+    fixture.settings.SetFFTSettings(8, FFTWindow::Type::Rectangular);
+    fixture.settings.SetWindowScale(2); // Stride 4
 
-    auto fillBuffer = [&audioBuffer](size_t aFrameCount) {
-        audioBuffer.Reset(2, 44100);
+    auto fillBuffer = [&fixture](size_t aFrameCount) {
+        fixture.audio_buffer.Reset(2, 44100);
         for (size_t i = 0; i < aFrameCount; ++i) {
-            audioBuffer.AddSamples({ static_cast<float>(2 * i), static_cast<float>((2 * i) + 1) });
+            fixture.audio_buffer.AddSamples(
+              { static_cast<float>(2 * i), static_cast<float>((2 * i) + 1) });
         }
     };
 
@@ -86,32 +92,32 @@ TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
         fillBuffer(15);
 
         // Check our assumptions.  15 frames loaded:
-        const FrameCount kAvailableFrameCount = controller.GetAvailableFrameCount();
+        const FrameCount kAvailableFrameCount = fixture.controller.GetAvailableFrameCount();
         CHECK(kAvailableFrameCount == FrameCount(15));
 
         // With window size 8 and stride 4, top of window should start at frame 4
         const FramePosition kTopFrame =
-          controller.CalculateTopOfWindow(kAvailableFrameCount.AsPosition());
+          fixture.controller.CalculateTopOfWindow(kAvailableFrameCount.AsPosition());
         CHECK(kTopFrame == FramePosition{ 4 });
         // Therefore, FFT window should cover frames 4-8:
         const std::vector<std::vector<float>> want = { { 8, 10, 12, 14, 16 },
                                                        { 9, 11, 13, 15, 17 } };
-        CHECK(plot.GetDecibels(0) == want[0]);
-        CHECK(plot.GetDecibels(1) == want[1]);
+        CHECK(fixture.plot.GetDecibels(0) == want[0]);
+        CHECK(fixture.plot.GetDecibels(1) == want[1]);
     }
 
     SECTION("returns zeroed vector if insufficient samples")
     {
         fillBuffer(7); // Less than window size of 8
         const std::vector<float> want = { 0, 0, 0, 0, 0 };
-        CHECK(plot.GetDecibels(0) == want);
-        CHECK(plot.GetDecibels(1) == want);
+        CHECK(fixture.plot.GetDecibels(0) == want);
+        CHECK(fixture.plot.GetDecibels(1) == want);
     }
 
     SECTION("throws out_of_range for invalid channel")
     {
-        audioBuffer.Reset(1, 44100);
-        REQUIRE_THROWS_MATCHES(plot.GetDecibels(1),
+        fixture.audio_buffer.Reset(1, 44100);
+        REQUIRE_THROWS_MATCHES(fixture.plot.GetDecibels(1),
                                std::out_of_range,
                                Catch::Matchers::Message("Channel index out of range"));
     }
@@ -119,18 +125,15 @@ TEST_CASE("SpectrumPlot::GetDecibels", "[spectrum_plot]")
 
 TEST_CASE("SpectrumPlot::ComputePoints", "[spectrum_plot]")
 {
-    Settings settings;
-    const AudioBuffer audioBuffer;
-    const SpectrogramController controller(settings, audioBuffer);
-    const TestableSpectrumPlot plot(controller);
+    SpectrumPlotTestFixture fixture;
 
     SECTION("computes correct points for given decibel values")
     {
         const std::vector<float> decibels = { -100.0f, -50.0f, 0.0f, 50.0f, 100.0f };
-        settings.SetApertureFloorDecibels(-100.0f);
-        settings.SetApertureCeilingDecibels(100.0f);
+        fixture.settings.SetApertureFloorDecibels(-100.0f);
+        fixture.settings.SetApertureCeilingDecibels(100.0f);
 
-        const QPolygonF have = plot.ComputePoints(decibels, 10, 100);
+        const QPolygonF have = fixture.plot.ComputePoints(decibels, 10, 100);
         REQUIRE(static_cast<size_t>(have.size()) == decibels.size());
         CHECK(have[0] == QPointF(0.0f, 100.0f)); // -100 dB -> bottom
         CHECK(have[1] == QPointF(1.0f, 75.0f));  // -50 dB
@@ -142,10 +145,10 @@ TEST_CASE("SpectrumPlot::ComputePoints", "[spectrum_plot]")
     SECTION("does not include points outside the given width")
     {
         const std::vector<float> decibels = { -100.0f, -50.0f, 0.0f, 50.0f, 100.0f };
-        settings.SetApertureFloorDecibels(-100.0f);
-        settings.SetApertureCeilingDecibels(100.0f);
+        fixture.settings.SetApertureFloorDecibels(-100.0f);
+        fixture.settings.SetApertureCeilingDecibels(100.0f);
 
-        const QPolygonF have = plot.ComputePoints(decibels, 3, 100);
+        const QPolygonF have = fixture.plot.ComputePoints(decibels, 3, 100);
         REQUIRE(have.size() == 3);
         CHECK(have[0] == QPointF(0.0f, 100.0f));
         CHECK(have[1] == QPointF(1.0f, 75.0f));
@@ -155,27 +158,24 @@ TEST_CASE("SpectrumPlot::ComputePoints", "[spectrum_plot]")
     SECTION("returns empty polygon if decibel range is zero")
     {
         const std::vector<float> decibels = { -50.0f, -50.0f, -50.0f };
-        settings.SetApertureFloorDecibels(-50.0f);
-        settings.SetApertureCeilingDecibels(-50.0f);
+        fixture.settings.SetApertureFloorDecibels(-50.0f);
+        fixture.settings.SetApertureCeilingDecibels(-50.0f);
 
-        const QPolygonF have = plot.ComputePoints(decibels, 10, 100);
+        const QPolygonF have = fixture.plot.ComputePoints(decibels, 10, 100);
         REQUIRE(have.empty());
     }
 }
 
 TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
 {
-    Settings settings;
-    const AudioBuffer audioBuffer;
-    const SpectrogramController controller(settings, audioBuffer);
-    const TestableSpectrumPlot plot(controller);
+    SpectrumPlotTestFixture fixture;
 
     SECTION("returns correct markers for given height and width")
     {
-        settings.SetApertureFloorDecibels(-60.0f);
-        settings.SetApertureCeilingDecibels(0.0f);
+        fixture.settings.SetApertureFloorDecibels(-60.0f);
+        fixture.settings.SetApertureCeilingDecibels(0.0f);
 
-        const auto params = plot.CalculateDecibelScaleParameters(120);
+        const auto params = fixture.plot.CalculateDecibelScaleParameters(120);
         const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
             .aperture_floor_decibels = -60.0f,
             .aperture_ceiling_decibels = 0.0f,
@@ -195,15 +195,15 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
             { .line = QLine(190, 100, 200, 100), .rect = QRect(165, 95, 20, 10), .text = "-50" },
             { .line = QLine(190, 120, 200, 120), .rect = QRect(165, 115, 20, 10), .text = "-60" },
         };
-        REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
+        REQUIRE(fixture.plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
 
     SECTION("handles zero height")
     {
-        settings.SetApertureFloorDecibels(-60.0f);
-        settings.SetApertureCeilingDecibels(0.0f);
+        fixture.settings.SetApertureFloorDecibels(-60.0f);
+        fixture.settings.SetApertureCeilingDecibels(0.0f);
 
-        const auto params = plot.CalculateDecibelScaleParameters(0);
+        const auto params = fixture.plot.CalculateDecibelScaleParameters(0);
         const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
             .aperture_floor_decibels = -60.0f,
             .aperture_ceiling_decibels = 0.0f,
@@ -218,15 +218,15 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "0" },
             { .line = QLine(190, 0, 200, 0), .rect = QRect(165, -5, 20, 10), .text = "-50" },
         };
-        REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
+        REQUIRE(fixture.plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
 
     SECTION("handles small aperture")
     {
-        settings.SetApertureFloorDecibels(-1.0f);
-        settings.SetApertureCeilingDecibels(1.0f);
+        fixture.settings.SetApertureFloorDecibels(-1.0f);
+        fixture.settings.SetApertureCeilingDecibels(1.0f);
 
-        const auto params = plot.CalculateDecibelScaleParameters(120);
+        const auto params = fixture.plot.CalculateDecibelScaleParameters(120);
         const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
             .aperture_floor_decibels = -1.0f,
             .aperture_ceiling_decibels = 1.0f,
@@ -242,15 +242,15 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
             { .line = QLine(190, 60, 200, 60), .rect = QRect(165, 55, 20, 10), .text = "0" },
             { .line = QLine(190, 120, 200, 120), .rect = QRect(165, 115, 20, 10), .text = "-1" },
         };
-        REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
+        REQUIRE(fixture.plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
 
     SECTION("handles inverted aperture")
     {
-        settings.SetApertureFloorDecibels(0.0f);
-        settings.SetApertureCeilingDecibels(-60.0f);
+        fixture.settings.SetApertureFloorDecibels(0.0f);
+        fixture.settings.SetApertureCeilingDecibels(-60.0f);
 
-        const auto params = plot.CalculateDecibelScaleParameters(120);
+        const auto params = fixture.plot.CalculateDecibelScaleParameters(120);
         const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
             .aperture_floor_decibels = 0.0f,
             .aperture_ceiling_decibels = -60.0f,
@@ -270,15 +270,15 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
             { .line = QLine(190, 100, 200, 100), .rect = QRect(165, 95, 20, 10), .text = "-10" },
             { .line = QLine(190, 120, 200, 120), .rect = QRect(165, 115, 20, 10), .text = "0" },
         };
-        REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
+        REQUIRE(fixture.plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
 
     SECTION("handles equal floor and ceiling aperture")
     {
-        settings.SetApertureFloorDecibels(-50.0f);
-        settings.SetApertureCeilingDecibels(-50.0f);
+        fixture.settings.SetApertureFloorDecibels(-50.0f);
+        fixture.settings.SetApertureCeilingDecibels(-50.0f);
 
-        const auto params = plot.CalculateDecibelScaleParameters(120);
+        const auto params = fixture.plot.CalculateDecibelScaleParameters(120);
         const TestableSpectrumPlot::DecibelScaleParameters wantParams = {
             .aperture_floor_decibels = -50.0f,
             .aperture_ceiling_decibels = -50.0f,
@@ -290,24 +290,21 @@ TEST_CASE("SpectrumPlot::ComputeDecibelScaleMarkers", "[spectrum_plot]")
         REQUIRE(params == wantParams);
 
         const std::vector<TestableSpectrumPlot::Marker> want = {};
-        REQUIRE(plot.GenerateDecibelScaleMarkers(params, 200) == want);
+        REQUIRE(fixture.plot.GenerateDecibelScaleMarkers(params, 200) == want);
     }
 }
 
 TEST_CASE("SpectrumPlot::CalculateDecibelScaleParameters", "[spectrum_plot]")
 {
-    Settings settings;
-    const AudioBuffer audioBuffer;
-    const SpectrogramController controller(settings, audioBuffer);
-    const TestableSpectrumPlot plot(controller);
+    SpectrumPlotTestFixture fixture;
 
     // We'll just do a basic smoke test here. Detailed correctness is
     // verified in GenerateDecibelScaleMarkers() tests.
 
     SECTION("computes correct parameters for normal aperture")
     {
-        settings.SetApertureFloorDecibels(-60.0f);
-        settings.SetApertureCeilingDecibels(0.0f);
+        fixture.settings.SetApertureFloorDecibels(-60.0f);
+        fixture.settings.SetApertureCeilingDecibels(0.0f);
         const TestableSpectrumPlot::DecibelScaleParameters want = {
             .aperture_floor_decibels = -60.0f,
             .aperture_ceiling_decibels = 0.0f,
@@ -316,28 +313,24 @@ TEST_CASE("SpectrumPlot::CalculateDecibelScaleParameters", "[spectrum_plot]")
             .top_marker_decibels = 0.0f,
             .marker_count = 7,
         };
-        REQUIRE(plot.CalculateDecibelScaleParameters(120) == want);
+        REQUIRE(fixture.plot.CalculateDecibelScaleParameters(120) == want);
     }
 }
 
 TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
 {
-    Settings settings;
-    const AudioBuffer audioBuffer;
-    settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
-    const SpectrogramController controller(settings, audioBuffer, MockFFTProcessor::GetFactory());
-    const TestableSpectrumPlot plot(controller);
+    SpectrumPlotTestFixture fixture;
+    fixture.settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
+    fixture.settings.SetApertureFloorDecibels(-100.0f);
+    fixture.settings.SetApertureCeilingDecibels(0.0f);
 
     SECTION("computes correct crosshair at center of widget")
     {
-        settings.SetApertureFloorDecibels(-100.0f);
-        settings.SetApertureCeilingDecibels(0.0f);
-
         const int kWidth = 512;
         const int kHeight = 200;
         const QPoint kMousePos(256, 100); // Center
 
-        const auto markers = plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
+        const auto markers = fixture.plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
         REQUIRE(markers.size() == 2);
 
         // Frequency marker (vertical line)
@@ -357,14 +350,11 @@ TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
 
     SECTION("computes correct crosshair at top left corner")
     {
-        settings.SetApertureFloorDecibels(-100.0f);
-        settings.SetApertureCeilingDecibels(0.0f);
-
         const int kWidth = 512;
         const int kHeight = 200;
         const QPoint kMousePos(0, 0); // Top left
 
-        const auto markers = plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
+        const auto markers = fixture.plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
         REQUIRE(markers.size() == 2);
 
         // Frequency marker at x=0
@@ -382,14 +372,11 @@ TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
 
     SECTION("computes correct crosshair at bottom right corner")
     {
-        settings.SetApertureFloorDecibels(-100.0f);
-        settings.SetApertureCeilingDecibels(0.0f);
-
         const int kWidth = 512;
         const int kHeight = 200;
         const QPoint kMousePos(511, 199); // Bottom right
 
-        const auto markers = plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
+        const auto markers = fixture.plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
         REQUIRE(markers.size() == 2);
 
         // Frequency marker at x=511
@@ -408,14 +395,14 @@ TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
 
     SECTION("handles different aperture ranges")
     {
-        settings.SetApertureFloorDecibels(-60.0f);
-        settings.SetApertureCeilingDecibels(-20.0f);
+        fixture.settings.SetApertureFloorDecibels(-60.0f);
+        fixture.settings.SetApertureCeilingDecibels(-20.0f);
 
         const int kWidth = 400;
         const int kHeight = 100;
         const QPoint kMousePos(200, 50); // Center
 
-        const auto markers = plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
+        const auto markers = fixture.plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
         REQUIRE(markers.size() == 2);
 
         // At center of 100px height with -60 to -20 dB range:
@@ -426,14 +413,14 @@ TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
 
     SECTION("handles inverted aperture")
     {
-        settings.SetApertureFloorDecibels(0.0f);
-        settings.SetApertureCeilingDecibels(-100.0f);
+        fixture.settings.SetApertureFloorDecibels(0.0f);
+        fixture.settings.SetApertureCeilingDecibels(-100.0f);
 
         const int kWidth = 512;
         const int kHeight = 200;
         const QPoint kMousePos(256, 100); // Center
 
-        const auto markers = plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
+        const auto markers = fixture.plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
         REQUIRE(markers.size() == 2);
 
         // With inverted aperture, center should still compute correctly
@@ -445,13 +432,13 @@ TEST_CASE("SpectrumPlot::ComputeCrosshair", "[spectrum_plot]")
 
     SECTION("computes correct frequency for different FFT sizes")
     {
-        settings.SetFFTSettings(512, FFTWindow::Type::Rectangular);
+        fixture.settings.SetFFTSettings(512, FFTWindow::Type::Rectangular);
 
         const int kWidth = 256;
         const int kHeight = 100;
         const QPoint kMousePos(128, 50); // Center
 
-        const auto markers = plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
+        const auto markers = fixture.plot.ComputeCrosshair(kMousePos, kHeight, kWidth);
         REQUIRE(markers.size() == 2);
 
         // Hz calculation: mouseX * HzPerBin = 128 * (44100/512) ≈ 11025 Hz
@@ -523,10 +510,7 @@ TEST_CASE("SpectrumPlot::Marker stream output operator", "[spectrum_plot]")
 
 TEST_CASE("SpectrumPlot::paintEvent", "[spectrum_plot]")
 {
-    Settings settings;
-    AudioBuffer audioBuffer;
-    const SpectrogramController controller(settings, audioBuffer, MockFFTProcessor::GetFactory());
-    TestableSpectrumPlot plot(controller);
+    SpectrumPlotTestFixture fixture;
     QImage image(800, 400, QImage::Format_RGB32);
     QPainter painter(&image);
 
@@ -534,9 +518,9 @@ TEST_CASE("SpectrumPlot::paintEvent", "[spectrum_plot]")
     {
         // Test with different FFT sizes to ensure paint event handles all cases
         const FFTSize kFFTSize = GENERATE(from_range(Settings::KValidFFTSizes));
-        settings.SetFFTSettings(kFFTSize, FFTWindow::Type::Hann);
+        fixture.settings.SetFFTSettings(kFFTSize, FFTWindow::Type::Hann);
 
-        CHECK_NOTHROW(plot.render(&painter));
+        CHECK_NOTHROW(fixture.plot.render(&painter));
     }
 
     SECTION("renders with different widget sizes")
@@ -546,11 +530,11 @@ TEST_CASE("SpectrumPlot::paintEvent", "[spectrum_plot]")
         };
 
         for (const auto& [width, height] : sizes) {
-            plot.setFixedSize(width, height);
+            fixture.plot.setFixedSize(width, height);
 
             QImage localImage(width, height, QImage::Format_RGB32);
             QPainter localPainter(&localImage);
-            CHECK_NOTHROW(plot.render(&localPainter));
+            CHECK_NOTHROW(fixture.plot.render(&localPainter));
         }
     }
 
@@ -558,13 +542,12 @@ TEST_CASE("SpectrumPlot::paintEvent", "[spectrum_plot]")
     {
         // Test with different channel counts
         const ChannelCount kChannelCount = GENERATE(1, 2, 3, 4, 5, 6);
-        audioBuffer.Reset(kChannelCount, 44100);
+        fixture.audio_buffer.Reset(kChannelCount, 44100);
 
         // Add some sample data
         const std::vector<float> kSamples(static_cast<size_t>(kChannelCount) * 2048, 0.0f);
-        audioBuffer.AddSamples(kSamples);
-
-        CHECK_NOTHROW(plot.render(&painter));
+        fixture.audio_buffer.AddSamples(kSamples);
+        CHECK_NOTHROW(fixture.plot.render(&painter));
     }
 
     SECTION("renders with different aperture ranges")
@@ -578,10 +561,10 @@ TEST_CASE("SpectrumPlot::paintEvent", "[spectrum_plot]")
         };
 
         for (const auto& [floorDb, ceilingDb] : apertureRanges) {
-            settings.SetApertureFloorDecibels(floorDb);
-            settings.SetApertureCeilingDecibels(ceilingDb);
+            fixture.settings.SetApertureFloorDecibels(floorDb);
+            fixture.settings.SetApertureCeilingDecibels(ceilingDb);
 
-            CHECK_NOTHROW(plot.render(&painter));
+            CHECK_NOTHROW(fixture.plot.render(&painter));
         }
     }
 }

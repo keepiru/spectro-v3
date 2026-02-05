@@ -216,15 +216,12 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
 
         settings.SetApertureFloorDecibels(-100.0f);
         settings.SetApertureCeilingDecibels(0.0f);
-        settings.SetFFTSettings(2048, FFTWindow::Type::Hann);
-        settings.SetWindowScale(2); // stride = 1024
-
-        constexpr size_t height = 256;
-        const size_t kPageStep = height * settings.GetWindowStride();
+        settings.SetFFTSettings(8, FFTWindow::Type::Hann);
+        constexpr size_t kHeight = 5;
 
         RenderConfig want{
             .channels = 2,
-            .stride = 1024,
+            .stride = 4,
             .top_frame = FramePosition{ 0 },
             .aperture_floor_decibels = -100.0f,
             .aperture_ceiling_decibels = 0.0f,
@@ -232,41 +229,171 @@ TEST_CASE("SpectrogramView::GetRenderConfig", "[spectrogram_view]")
             .aperture_range_inverse_decibels = 2.55f,
         };
 
-        SECTION("with zero data")
+        auto getTopFrame = [&view](const int aScrollbarPosition) -> int64_t {
+            view.UpdateScrollbarRange(FrameCount{ 10000 });
+            // Set scrollbar position
+            auto* scrollBar = view.findChild<QScrollBar*>("SpectrogramViewVerticalScrollBar");
+            REQUIRE(scrollBar != nullptr);
+            scrollBar->setValue(aScrollbarPosition);
+
+            const RenderConfig have = view.GetRenderConfig(kHeight);
+            return have.top_frame.Get();
+        };
+
+        SECTION("scale=2 / stride=4")
         {
-            // Zero data, bottom is at frame 0, top is back one pagestep
-            want.top_frame = FramePosition{ static_cast<long>(-kPageStep) };
-            const RenderConfig have = view.GetRenderConfig(height);
-            REQUIRE(ToString(have) == ToString(want));
+            settings.SetWindowScale(2); // stride = 4
+
+            const FFTSize kStride = settings.GetWindowStride();
+            REQUIRE(kStride == FFTSize{ 4 });
+            want.stride = kStride;
+
+            const size_t kPageStep = kHeight * kStride;
+            REQUIRE(kPageStep == 20);
+
+            SECTION("scrolled to zero")
+            {
+                // [-24,-23,-22,-21,-20,-19,-18,-17]
+                // [-20,-19,-18,-17,-16,-15,-14,-13]
+                // [-16,-15,-14,-13,-12,-11,-10, -9]
+                // [-12,-11,-10, -9, -8, -7, -6, -5]
+                // [ -8, -7, -6, -5, -4, -3, -2, -1]
+
+                // We are 6 strides back.  Check our assumptions:
+                REQUIRE(6 * kStride == 24);
+
+                CHECK(getTopFrame(0) == -24); // Scrollbar at 0
+                CHECK(getTopFrame(1) == -24);
+                CHECK(getTopFrame(2) == -24);
+
+                CHECK(getTopFrame(3) == -20);
+                CHECK(getTopFrame(4) == -20);
+
+                view.UpdateScrollbarRange(FrameCount{ 0 });
+                want.top_frame = FramePosition{ -24 };
+                const RenderConfig kHave = view.GetRenderConfig(kHeight);
+                REQUIRE(ToString(kHave) == ToString(want));
+            }
+
+            SECTION("scrolled down 1 page")
+            {
+                // [ 0,  1,  2,  3,  4,  5,  6,  7]
+                // [ 4,  5,  6,  7,  8,  9, 10, 11]
+                // [ 8,  9, 10, 11, 12, 13, 14, 15]
+                // [12, 13, 14, 15, 16, 17, 18, 19]
+                // [16, 17, 18, 19, 20, 21, 22, 23]
+
+                // We need kPageStep + 1 stride.  Check our assumptions:
+                REQUIRE(kPageStep + kStride == 24);
+
+                CHECK(getTopFrame(21) == -4);
+                CHECK(getTopFrame(22) == -4);
+                CHECK(getTopFrame(23) == 0);
+                CHECK(getTopFrame(24) == 0);
+
+                view.UpdateScrollbarRange(FrameCount{ 23 });
+                want.top_frame = FramePosition{ 0 };
+                const RenderConfig kHave = view.GetRenderConfig(kHeight);
+                REQUIRE(ToString(kHave) == ToString(want));
+            }
+
+            SECTION("scrolled down about 1 and a half pages")
+            {
+                // [ 8,  9, 10, 11, 12, 13, 14, 15]
+                // [12, 13, 14, 15, 16, 17, 18, 19]
+                // [16, 17, 18, 19, 20, 21, 22, 23]
+                // [20, 21, 22, 23, 24, 25, 26, 27]
+                // [24, 25, 26, 27, 28, 29, 30, 31]
+
+                // We need kPageStep + 3 strides.  Check our assumptions:
+                REQUIRE(kPageStep + (3 * kStride) == 32);
+
+                CHECK(getTopFrame(29) == 4);
+                CHECK(getTopFrame(30) == 4);
+                CHECK(getTopFrame(31) == 8);
+                CHECK(getTopFrame(32) == 8);
+
+                view.UpdateScrollbarRange(FrameCount{ 31 });
+                want.top_frame = FramePosition{ 8 };
+                const RenderConfig kHave = view.GetRenderConfig(kHeight);
+                REQUIRE(ToString(kHave) == ToString(want));
+
+                SECTION("window height 0")
+                {
+                    // We should handle this gracefully.  Maybe the user is resizing the window.
+                    want.top_frame = FramePosition{ 28 };
+                    const RenderConfig kHave = view.GetRenderConfig(0);
+                    REQUIRE(ToString(kHave) == ToString(want));
+                }
+            }
         }
 
-        SECTION("with one page of data")
+        SECTION("scale=1 / stride=8 (no overlap)")
         {
-            view.UpdateScrollbarRange(FrameCount(kPageStep));
+            settings.SetWindowScale(1); // stride = 8
 
-            want.top_frame = FramePosition{ 0 };
-            const RenderConfig have = view.GetRenderConfig(height);
-            REQUIRE(ToString(have) == ToString(want));
+            const FFTSize kStride = settings.GetWindowStride();
+            REQUIRE(kStride == FFTSize{ 8 });
+            want.stride = kStride;
+
+            const size_t kPageStep = kHeight * kStride;
+            REQUIRE(kPageStep == 40);
+
+            SECTION("4 rows down")
+            {
+                // [-8, -7, -6, -5, -4, -3, -2, -1]
+                // [ 0,  1,  2,  3,  4,  5,  6,  7]
+                // [ 8,  9, 10, 11, 12, 13, 14, 15]
+                // [16, 17, 18, 19, 20, 21, 22, 23]
+                // [24, 25, 26, 27, 28, 29, 30, 31]
+
+                // We need 1 page - 1 stride.  Check our assumptions:
+                REQUIRE(kPageStep - kStride == 32);
+
+                CHECK(getTopFrame(29) == -16);
+                CHECK(getTopFrame(30) == -16);
+                CHECK(getTopFrame(31) == -8);
+                CHECK(getTopFrame(32) == -8);
+
+                view.UpdateScrollbarRange(FrameCount{ 31 });
+                want.top_frame = FramePosition{ -8 };
+                const RenderConfig kHave = view.GetRenderConfig(kHeight);
+                REQUIRE(ToString(kHave) == ToString(want));
+            }
         }
 
-        SECTION("with a page and a half of data")
+        SECTION("scale=8 / stride=1 (one frame per stride)")
         {
-            const FrameCount kTotalFrames{ 0x60000 };
-            view.UpdateScrollbarRange(kTotalFrames);
+            settings.SetWindowScale(8); // stride = 1
 
-            want.top_frame = FramePosition{ 0x20000 };
-            const RenderConfig have = view.GetRenderConfig(height);
-            REQUIRE(ToString(have) == ToString(want));
-        }
+            const FFTSize kStride = settings.GetWindowStride();
+            REQUIRE(kStride == FFTSize{ 1 });
+            want.stride = kStride;
 
-        SECTION("with a page and a half of data plus a bit more")
-        {
-            const FrameCount kTotalFrames{ 0x60000 + 1023 }; // just shy of one stride
-            view.UpdateScrollbarRange(kTotalFrames);
+            const size_t kPageStep = kHeight * kStride;
+            REQUIRE(kPageStep == 5);
 
-            want.top_frame = FramePosition{ 0x20000 };
-            const RenderConfig have = view.GetRenderConfig(height);
-            REQUIRE(ToString(have) == ToString(want));
+            SECTION("scrolled 18 rows down")
+            {
+                // [14, 15, 16, 17, 18, 19, 20, 21]
+                // [15, 16, 17, 18, 19, 20, 21, 22]
+                // [16, 17, 18, 19, 20, 21, 22, 23]
+                // [17, 18, 19, 20, 21, 22, 23, 24]
+                // [18, 19, 20, 21, 22, 23, 24, 25]
+
+                // We need 14 frames + 4 strides.  Check our assumptions:
+                REQUIRE(14 + (4 * kStride) == 18);
+
+                CHECK(getTopFrame(23) == 12);
+                CHECK(getTopFrame(24) == 13);
+                CHECK(getTopFrame(25) == 14);
+                CHECK(getTopFrame(26) == 15);
+
+                view.UpdateScrollbarRange(FrameCount{ 25 });
+                want.top_frame = FramePosition{ 14 };
+                const RenderConfig kHave = view.GetRenderConfig(kHeight);
+                REQUIRE(ToString(kHave) == ToString(want));
+            }
         }
     }
 }

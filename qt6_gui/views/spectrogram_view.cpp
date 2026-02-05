@@ -125,11 +125,13 @@ SpectrogramView::GetRenderConfig(size_t aHeight) const
     const FFTSize kStride = kSettings.GetWindowStride();
 
     // Determine the top frame to start rendering from.
-    // The scrollbar value represents the frame position at the bottom of the view.
-    // Calculate top frame by going back (height * stride) frames from the bottom.
-    const FramePosition kBottomFrame{ verticalScrollBar()->value() };
-    const FramePosition kTopFrameUnaligned = kBottomFrame - FrameCount{ kStride * aHeight };
-    const FramePosition kTopFrame = mController.RoundToStride(kTopFrameUnaligned);
+    // The scrollbar value represents the last visible frame + a partial stride.
+    // Calculate the top frame by going back one full FFT window from that
+    // point, align to stride, then back up by (height - 1) * stride.
+    const FramePosition kFirstPastEnd{ verticalScrollBar()->value() + 1 };
+    const FramePosition kBottomFrameUnaligned = kFirstPastEnd - kSettings.GetFFTSize();
+    const FramePosition kBottomFrame = mController.RoundToStride(kBottomFrameUnaligned);
+    const FramePosition kTopFrame = kBottomFrame - FrameCount{ kStride * aHeight } + kStride;
 
     // Validate channel count.  This should never happen because AudioBuffer
     // enforces channel count limits, but let's be safe.  This guards against

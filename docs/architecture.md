@@ -21,6 +21,11 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - Prevents redundant updates (only emit if value changed)
   - Future: Serialization for save/load configuration
 
+- **`ColorMap`**: Color palette lookup tables (LUT)
+  - Retrieves pre-generated LUTs from `colormap_data.h`
+  - Generates gradient LUTs
+  - Generates gradient previews for UI
+
 ### Controllers (Coordination & Logic)
 
 - **`SpectrogramController`**: Coordinates data flow and FFT computation
@@ -29,6 +34,18 @@ Real-time spectrum analyzer with waterfall spectrogram display, built using Qt6 
   - Provides `GetRows()` method to compute spectrogram data on-demand
   - Implements per-row caching via `mSpectrogramRowCache` to avoid redundant FFT computation
   - Currently view-driven (future: may add live/historical mode tracking)
+
+- **`SettingsController`**: Business logic for `SettingsPanel`
+  - Manages recording lifecycle
+  - Collects and processes device info for `SettingsPanel`
+
+- **`AudioDevice`**: Wrapper for QAudioDevice
+  - Queries audio device capabilities
+  - Provides QAudioDevice for recording
+
+- **`MediaDevices`**: Wrapper for QMediaDevices
+  - Enumerates audio devices
+  - Returns `AudioDevice` instances
 
 - **`AudioRecorder`**: Audio capture
   - Uses Qt Multimedia's `QAudioSource`

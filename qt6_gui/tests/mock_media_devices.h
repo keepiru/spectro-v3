@@ -12,7 +12,6 @@
 #include <QString>
 #include <functional>
 #include <memory>
-#include <optional>
 #include <utility>
 #include <vector>
 
@@ -66,7 +65,7 @@ class MockMediaDevices : public IMediaDevices
         return std::make_unique<MockAudioDevice>();
     }
 
-    [[nodiscard]] std::optional<std::unique_ptr<IAudioDevice>> GetAudioInputById(
+    [[nodiscard]] std::unique_ptr<IAudioDevice> GetAudioInputById(
       const QByteArray& aDeviceId) const override
     {
         for (const auto& device : mDevices) {
@@ -74,7 +73,7 @@ class MockMediaDevices : public IMediaDevices
                 return std::make_unique<MockAudioDevice>(device);
             }
         }
-        return std::nullopt;
+        return nullptr;
     }
 
     /// @brief Helper to add a device with optional format support function

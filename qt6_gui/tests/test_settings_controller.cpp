@@ -135,19 +135,19 @@ TEST_CASE("SettingsController::GetAudioInputById", "[settings_controller]")
     fixture.provider.AddDevice(MockAudioDevice("device-1", "Test Microphone"));
     fixture.provider.AddDevice(MockAudioDevice("device-2", "USB Audio Interface"));
 
-    SECTION("returns nullopt for invalid device ID")
+    SECTION("returns nullptr for invalid device ID")
     {
-        const auto deviceOpt = fixture.controller.GetAudioInputById("invalid-device");
-        REQUIRE(!deviceOpt.has_value());
+        const auto kDevice = fixture.controller.GetAudioInputById("invalid-device");
+        REQUIRE(!kDevice);
     }
 
     SECTION("returns device for valid ID")
     {
-        const auto deviceOpt = fixture.controller.GetAudioInputById("device-2");
+        const auto kDevice = fixture.controller.GetAudioInputById("device-2");
 
-        REQUIRE(deviceOpt.has_value());
-        REQUIRE(deviceOpt.value()->Id() == "device-2");
-        REQUIRE(deviceOpt.value()->Description() == "USB Audio Interface");
+        REQUIRE(kDevice);
+        REQUIRE(kDevice->Id() == "device-2");
+        REQUIRE(kDevice->Description() == "USB Audio Interface");
     }
 }
 

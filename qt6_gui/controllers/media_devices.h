@@ -11,7 +11,6 @@
 #include <QMediaDevices>
 #include <QString>
 #include <memory>
-#include <optional>
 #include <vector>
 
 /// @brief Interface for audio device enumeration
@@ -34,7 +33,7 @@ class IMediaDevices
     /// @brief Find a device by its ID
     /// @param aDeviceId The device ID to search for
     /// @return Pointer to device if found, nullptr otherwise
-    [[nodiscard]] virtual std::optional<std::unique_ptr<IAudioDevice>> GetAudioInputById(
+    [[nodiscard]] virtual std::unique_ptr<IAudioDevice> GetAudioInputById(
       const QByteArray& aDeviceId) const = 0;
 };
 
@@ -45,6 +44,6 @@ class MediaDevices : public IMediaDevices
     MediaDevices() = default;
     [[nodiscard]] std::vector<std::unique_ptr<IAudioDevice>> AudioInputs() const override;
     [[nodiscard]] std::unique_ptr<IAudioDevice> DefaultAudioInput() const override;
-    [[nodiscard]] std::optional<std::unique_ptr<IAudioDevice>> GetAudioInputById(
+    [[nodiscard]] std::unique_ptr<IAudioDevice> GetAudioInputById(
       const QByteArray& aDeviceId) const override;
 };

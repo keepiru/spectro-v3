@@ -8,7 +8,6 @@
 #include <QList>
 #include <QMediaDevices>
 #include <memory>
-#include <optional>
 #include <vector>
 
 std::vector<std::unique_ptr<IAudioDevice>>
@@ -28,7 +27,7 @@ MediaDevices::DefaultAudioInput() const
     return std::make_unique<AudioDevice>(QMediaDevices::defaultAudioInput());
 }
 
-std::optional<std::unique_ptr<IAudioDevice>>
+std::unique_ptr<IAudioDevice>
 MediaDevices::GetAudioInputById(const QByteArray& aDeviceId) const
 {
     const QList<QAudioDevice> kDevices = QMediaDevices::audioInputs();
@@ -37,5 +36,5 @@ MediaDevices::GetAudioInputById(const QByteArray& aDeviceId) const
             return std::make_unique<AudioDevice>(kDevice);
         }
     }
-    return std::nullopt;
+    return nullptr;
 }

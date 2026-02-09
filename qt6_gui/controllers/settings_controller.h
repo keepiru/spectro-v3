@@ -57,8 +57,8 @@ class SettingsController : public QObject
 
     /// @brief Find an audio input device by its ID
     /// @param aDeviceId The audio input device ID to search for
-    /// @return The audio input device if found, nullopt otherwise
-    [[nodiscard]] std::optional<std::unique_ptr<IAudioDevice>> GetAudioInputById(
+    /// @return The audio input device if found, nullptr otherwise
+    [[nodiscard]] std::unique_ptr<IAudioDevice> GetAudioInputById(
       const QByteArray& aDeviceId) const;
 
     /// @brief Start recording from a specific device

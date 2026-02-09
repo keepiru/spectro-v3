@@ -129,7 +129,7 @@ TEST_CASE("SettingsController::GetSupportedChannels", "[settings_controller]")
     }
 }
 
-TEST_CASE("SettingsController::GetAudioDeviceById", "[settings_controller]")
+TEST_CASE("SettingsController::GetAudioInputById", "[settings_controller]")
 {
     SettingsControllerFixture fixture;
     fixture.provider.AddDevice(MockAudioDevice("device-1", "Test Microphone"));
@@ -137,13 +137,13 @@ TEST_CASE("SettingsController::GetAudioDeviceById", "[settings_controller]")
 
     SECTION("returns nullopt for invalid device ID")
     {
-        const auto deviceOpt = fixture.controller.GetAudioDeviceById("invalid-device");
+        const auto deviceOpt = fixture.controller.GetAudioInputById("invalid-device");
         REQUIRE(!deviceOpt.has_value());
     }
 
     SECTION("returns device for valid ID")
     {
-        const auto deviceOpt = fixture.controller.GetAudioDeviceById("device-2");
+        const auto deviceOpt = fixture.controller.GetAudioInputById("device-2");
 
         REQUIRE(deviceOpt.has_value());
         REQUIRE(deviceOpt.value()->Id() == "device-2");

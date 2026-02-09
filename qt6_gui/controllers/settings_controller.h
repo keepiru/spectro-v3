@@ -55,10 +55,10 @@ class SettingsController : public QObject
     [[nodiscard]] std::optional<std::vector<ChannelCount>> GetSupportedChannels(
       const QByteArray& aDeviceId) const;
 
-    /// @brief Find an audio device by its ID
-    /// @param aDeviceId The device ID to search for
-    /// @return The audio device if found, nullopt otherwise
-    [[nodiscard]] std::optional<std::unique_ptr<IAudioDevice>> GetAudioDeviceById(
+    /// @brief Find an audio input device by its ID
+    /// @param aDeviceId The audio input device ID to search for
+    /// @return The audio input device if found, nullopt otherwise
+    [[nodiscard]] std::optional<std::unique_ptr<IAudioDevice>> GetAudioInputById(
       const QByteArray& aDeviceId) const;
 
     /// @brief Start recording from a specific device

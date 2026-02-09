@@ -40,7 +40,7 @@ SettingsController::GetDefaultAudioInput() const
 std::optional<std::vector<SampleRate>>
 SettingsController::GetSupportedSampleRates(const QByteArray& aDeviceId) const
 {
-    const auto kDeviceOpt = GetAudioDeviceById(aDeviceId);
+    const auto kDeviceOpt = GetAudioInputById(aDeviceId);
     if (!kDeviceOpt) {
         return std::nullopt;
     }
@@ -66,7 +66,7 @@ SettingsController::GetSupportedSampleRates(const QByteArray& aDeviceId) const
 std::optional<std::vector<ChannelCount>>
 SettingsController::GetSupportedChannels(const QByteArray& aDeviceId) const
 {
-    const auto kDeviceOpt = GetAudioDeviceById(aDeviceId);
+    const auto kDeviceOpt = GetAudioInputById(aDeviceId);
     if (!kDeviceOpt) {
         return std::nullopt;
     }
@@ -91,7 +91,7 @@ SettingsController::GetSupportedChannels(const QByteArray& aDeviceId) const
 }
 
 std::optional<std::unique_ptr<IAudioDevice>>
-SettingsController::GetAudioDeviceById(const QByteArray& aDeviceId) const
+SettingsController::GetAudioInputById(const QByteArray& aDeviceId) const
 {
     return mAudioDeviceProvider.GetAudioInputById(aDeviceId);
 }
@@ -101,7 +101,7 @@ SettingsController::StartRecording(const QByteArray& aDeviceId,
                                    ChannelCount aChannels,
                                    SampleRate aSampleRate)
 {
-    auto deviceOpt = GetAudioDeviceById(aDeviceId);
+    auto deviceOpt = GetAudioInputById(aDeviceId);
     if (!deviceOpt.has_value()) {
         return false;
     }

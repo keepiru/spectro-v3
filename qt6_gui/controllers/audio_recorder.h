@@ -10,7 +10,6 @@
 #include <QAudioSource>
 #include <QIODevice>
 #include <QObject>
-#include <functional>
 #include <memory>
 
 class QAudioDevice;
@@ -27,18 +26,6 @@ class AudioRecorder : public QObject
     Q_OBJECT
 
   public:
-    struct AudioSourceFactoryResult
-    {
-        std::unique_ptr<QAudioSource> audio_source;
-        QIODevice* io_device = nullptr;
-    };
-
-    /// Factory function type for creating QAudioSource instances (for testing).
-    /// We can't easily mock QAudioSource#start because it's not virtual, so we
-    /// also start the QAudioSource here and return the QIODevice.
-    using AudioSourceFactory =
-      std::function<AudioSourceFactoryResult(const QAudioDevice&, const QAudioFormat&)>;
-
     /// @brief Constructs an AudioRecorder.
     /// @param aAudioBuffer The AudioBuffer to write captured samples to.
     /// @param aParent Qt parent object for memory management.

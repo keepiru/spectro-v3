@@ -5,6 +5,7 @@
 #include "audio_types.h"
 #include "include/global_constants.h"
 #include "models/audio_buffer.h"
+#include <QAudioFormat>
 #include <QSignalSpy>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
@@ -144,5 +145,33 @@ TEST_CASE("AudioBuffer::BytesPerFrame returns correct value", "[audio_buffer]")
     {
         buffer.Reset(1, 22050);
         CHECK(buffer.GetBytesPerFrame() == 4);
+    }
+}
+
+TEST_CASE("AudioBuffer::GetAudioFormat returns correct format", "[audio_buffer]")
+{
+    AudioBuffer buffer;
+
+    SECTION("Default format")
+    {
+        const auto format = buffer.GetAudioFormat();
+
+        CHECK(format.channelCount() == 2);
+        CHECK(format.sampleRate() == 44100);
+        CHECK(format.sampleFormat() == QAudioFormat::Float);
+        CHECK(format.bytesPerSample() == 4);
+        CHECK(format.bytesPerFrame() == 8);
+    }
+
+    SECTION("After reset to 1 channel, 22050 Hz")
+    {
+        buffer.Reset(1, 22050);
+        const auto format = buffer.GetAudioFormat();
+
+        CHECK(format.channelCount() == 1);
+        CHECK(format.sampleRate() == 22050);
+        CHECK(format.sampleFormat() == QAudioFormat::Float);
+        CHECK(format.bytesPerSample() == 4);
+        CHECK(format.bytesPerFrame() == 4);
     }
 }

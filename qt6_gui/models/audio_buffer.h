@@ -11,6 +11,8 @@
 #include <span>
 #include <vector>
 
+class QAudioFormat;
+
 /// @brief Multi-channel audio buffer
 ///
 /// Wraps multiple SampleBuffer instances (one per channel) and provides
@@ -81,6 +83,10 @@ class AudioBuffer : public QObject
     /// @brief Get the number of bytes per audio frame
     /// @return Bytes per frame (channel count * bytes per sample)
     [[nodiscard]] BytesPerFrame GetBytesPerFrame() const { return mChannelCount * sizeof(float); }
+
+    /// @brief Get the audio format for this buffer
+    /// @return QAudioFormat representing the buffer's format
+    [[nodiscard]] QAudioFormat GetAudioFormat() const;
 
   signals:
     /// @brief Emitted when new audio frames are added

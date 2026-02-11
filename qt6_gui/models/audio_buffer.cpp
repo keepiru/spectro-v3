@@ -4,6 +4,7 @@
 
 #include "audio_buffer.h"
 #include "include/global_constants.h"
+#include <QAudioFormat>
 #include <QObject>
 #include <audio_types.h>
 #include <cstddef>
@@ -103,4 +104,14 @@ AudioBuffer::GetChannelBuffer(ChannelCount aChannelIndex) const
     }
 
     return *mChannelBuffers[aChannelIndex];
+}
+
+QAudioFormat
+AudioBuffer::GetAudioFormat() const
+{
+    QAudioFormat format;
+    format.setChannelCount(mChannelCount);
+    format.setSampleRate(mSampleRate);
+    format.setSampleFormat(QAudioFormat::Float);
+    return format;
 }

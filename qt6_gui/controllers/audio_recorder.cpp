@@ -40,14 +40,10 @@ AudioRecorder::Start(IAudioDevice& aAudioDevice,
         throw std::invalid_argument(std::format("Invalid sample rate {}", aSampleRate));
     }
 
-    QAudioFormat format;
-    format.setSampleRate(aSampleRate);
-    format.setChannelCount(aChannelCount);
-    format.setSampleFormat(QAudioFormat::Float);
-
     mAudioBuffer.Reset(aChannelCount, aSampleRate);
+    const QAudioFormat kFormat = mAudioBuffer.GetAudioFormat();
 
-    mAudioSource = std::make_unique<QAudioSource>(aAudioDevice.GetQAudioDevice(), format);
+    mAudioSource = std::make_unique<QAudioSource>(aAudioDevice.GetQAudioDevice(), kFormat);
 
     if (!mAudioSource) {
         emit ErrorOccurred("Failed to create QAudioSource");

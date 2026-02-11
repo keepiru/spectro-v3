@@ -18,34 +18,20 @@ set(CMAKE_AUTOUIC ON)
 
 # Create GUI library (models, views, and controllers)
 add_library(spectro_qt6_gui
-    models/audio_buffer.cpp
-    models/audio_buffer.h
-    models/audio_buffer_qiodevice.cpp
-    models/audio_buffer_qiodevice.h
-    models/colormap.cpp
-    models/colormap.h
-    models/settings.cpp
-    models/settings.h
-    controllers/media_devices.cpp
-    controllers/media_devices.h
-    controllers/audio_recorder.cpp
-    controllers/audio_recorder.h
-    controllers/audio_file_reader.cpp
-    controllers/audio_file_reader.h
     controllers/audio_file.cpp
-    controllers/audio_file.h
-    controllers/spectrogram_controller.cpp
-    controllers/spectrogram_controller.h
+    controllers/audio_file_reader.cpp
+    controllers/audio_recorder.cpp
+    controllers/media_devices.cpp
     controllers/settings_controller.cpp
-    controllers/settings_controller.h
-    views/spectrogram_view.cpp
-    views/spectrogram_view.h
+    controllers/spectrogram_controller.cpp
+    models/audio_buffer.cpp
+    models/audio_buffer_qiodevice.cpp
+    models/colormap.cpp
+    models/settings.cpp
     views/scale_view.cpp
-    views/scale_view.h
-    views/spectrum_plot.cpp
-    views/spectrum_plot.h
     views/settings_panel.cpp
-    views/settings_panel.h
+    views/spectrogram_view.cpp
+    views/spectrum_plot.cpp
 )
 
 target_link_libraries(spectro_qt6_gui
@@ -71,7 +57,6 @@ set_target_properties(spectro_qt6_gui PROPERTIES
 # Create executable
 add_executable(spectro
     src/main.cpp
-    src/main_window.h
     src/main_window.cpp
 )
 

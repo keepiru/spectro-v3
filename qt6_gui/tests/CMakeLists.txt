@@ -53,6 +53,7 @@ include(CTest)
 
 # Define all tests
 add_qt_test(test_audio_buffer)
+add_qt_test(test_audio_buffer_qiodevice)
 add_qt_test(test_audio_file)
 set_tests_properties(test_audio_file PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 add_qt_test(test_audio_recorder)

@@ -4,6 +4,7 @@
 
 #pragma once
 #include "audio_types.h"
+#include "include/global_constants.h"
 #include <QObject>
 #include <memory>
 #include <sample_buffer.h>
@@ -76,6 +77,10 @@ class AudioBuffer : public QObject
         // sample count, so we can use any channel to get the frame count.
         return FrameCount{ mChannelBuffers[0]->GetSampleCount().Get() };
     }
+
+    /// @brief Get the number of bytes per audio frame
+    /// @return Bytes per frame (channel count * bytes per sample)
+    [[nodiscard]] BytesPerFrame GetBytesPerFrame() const { return mChannelCount * sizeof(float); }
 
   signals:
     /// @brief Emitted when new audio frames are added

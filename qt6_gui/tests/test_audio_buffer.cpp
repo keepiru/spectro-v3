@@ -130,3 +130,19 @@ TEST_CASE("AudioBuffer::Reset emits buffer reset signal", "[audio_buffer]")
     buffer.Reset(2, 44100);
     REQUIRE(spy.count() == 2);
 }
+
+TEST_CASE("AudioBuffer::BytesPerFrame returns correct value", "[audio_buffer]")
+{
+    AudioBuffer buffer;
+
+    SECTION("Default format")
+    {
+        CHECK(buffer.GetBytesPerFrame() == 8);
+    }
+
+    SECTION("After reset to 1 channel, 22050 Hz")
+    {
+        buffer.Reset(1, 22050);
+        CHECK(buffer.GetBytesPerFrame() == 4);
+    }
+}

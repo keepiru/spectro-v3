@@ -3,7 +3,7 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "controllers/audio_file.h"
-#include "controllers/audio_file_reader.h"
+#include "adapters/audio_file_reader.h"
 #include <audio_types.h>
 #include <expected>
 #include <string>

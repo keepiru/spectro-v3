@@ -4,10 +4,10 @@
 
 #pragma once
 
+#include "adapters/audio_device.h"
+#include "adapters/media_devices.h"
 #include "audio_types.h"
-#include "controllers/audio_device.h"
 #include "controllers/audio_recorder.h"
-#include "controllers/media_devices.h"
 #include <QObject>
 #include <array>
 #include <memory>

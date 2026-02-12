@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
-#include "controllers/media_devices.h"
-#include "controllers/audio_device.h"
+#include "adapters/media_devices.h"
+#include "adapters/audio_device.h"
 #include <QByteArray>
 #include <QList>
 #include <QMediaDevices>

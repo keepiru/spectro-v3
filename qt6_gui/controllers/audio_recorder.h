@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "adapters/audio_device.h"
 #include "audio_types.h"
-#include "controllers/audio_device.h"
 #include <QAudioFormat>
 #include <QAudioSource>
 #include <QIODevice>

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
-#include "audio_buffer_qiodevice.h"
+#include "adapters/audio_buffer_qiodevice.h"
 #include "audio_types.h"
 #include "include/global_constants.h"
 #include <algorithm>

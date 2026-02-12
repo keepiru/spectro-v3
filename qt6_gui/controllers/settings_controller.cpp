@@ -3,10 +3,10 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "controllers/settings_controller.h"
+#include "adapters/audio_device.h"
+#include "adapters/media_devices.h"
 #include "audio_types.h"
-#include "controllers/audio_device.h"
 #include "controllers/audio_recorder.h"
-#include "controllers/media_devices.h"
 #include "models/settings.h"
 #include <QAudioFormat>
 #include <QObject>

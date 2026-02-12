@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "controllers/audio_device.h"
-#include "controllers/media_devices.h"
+#include "adapters/audio_device.h"
+#include "adapters/media_devices.h"
 #include <QAudioDevice>
 #include <QAudioFormat>
 #include <QByteArray>

@@ -18,14 +18,14 @@ set(CMAKE_AUTOUIC ON)
 
 # Create GUI library (models, views, and controllers)
 add_library(spectro_qt6_gui
+    adapters/audio_buffer_qiodevice.cpp
+    adapters/audio_file_reader.cpp
+    adapters/media_devices.cpp
     controllers/audio_file.cpp
-    controllers/audio_file_reader.cpp
     controllers/audio_recorder.cpp
-    controllers/media_devices.cpp
     controllers/settings_controller.cpp
     controllers/spectrogram_controller.cpp
     models/audio_buffer.cpp
-    models/audio_buffer_qiodevice.cpp
     models/colormap.cpp
     models/settings.cpp
     views/scale_view.cpp

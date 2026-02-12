@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
-#include "audio_file_reader.h"
+#include "adapters/audio_file_reader.h"
 #include "audio_types.h"
 #include <expected>
 #include <format>

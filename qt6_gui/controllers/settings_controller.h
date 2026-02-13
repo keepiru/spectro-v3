@@ -37,11 +37,17 @@ class SettingsController : public QObject
 
     /// @brief Get available audio input devices
     /// @return Vector of audio device pointers
-    [[nodiscard]] std::vector<std::unique_ptr<IAudioDevice>> GetAudioInputs() const;
+    [[nodiscard]] std::vector<std::unique_ptr<IAudioDevice>> GetAudioInputs() const
+    {
+        return mAudioDeviceProvider.AudioInputs();
+    }
 
     /// @brief Get the default audio input device
     /// @return The default audio device
-    [[nodiscard]] std::unique_ptr<IAudioDevice> GetDefaultAudioInput() const;
+    [[nodiscard]] std::unique_ptr<IAudioDevice> GetDefaultAudioInput() const
+    {
+        return mAudioDeviceProvider.DefaultAudioInput();
+    }
 
     /// @brief Get supported sample rates for a specific audio device
     /// @param aDeviceId The device ID to query
@@ -58,8 +64,10 @@ class SettingsController : public QObject
     /// @brief Find an audio input device by its ID
     /// @param aDeviceId The audio input device ID to search for
     /// @return The audio input device if found, nullptr otherwise
-    [[nodiscard]] std::unique_ptr<IAudioDevice> GetAudioInputById(
-      const QByteArray& aDeviceId) const;
+    [[nodiscard]] std::unique_ptr<IAudioDevice> GetAudioInputById(const QByteArray& aDeviceId) const
+    {
+        return mAudioDeviceProvider.GetAudioInputById(aDeviceId);
+    }
 
     /// @brief Start recording from a specific device
     /// @param aDeviceId The device ID to record from
@@ -71,11 +79,11 @@ class SettingsController : public QObject
                                       SampleRate aSampleRate);
 
     /// @brief Stop recording
-    void StopRecording();
+    void StopRecording() { mRecorder.Stop(); }
 
     /// @brief Check if currently recording
     /// @return true if recording is active
-    [[nodiscard]] bool IsRecording() const;
+    [[nodiscard]] bool IsRecording() const { return mRecorder.IsRecording(); }
 
   private:
     Settings& mSettings;

@@ -25,18 +25,6 @@ SettingsController::SettingsController(Settings& aSettings,
 {
 }
 
-std::vector<std::unique_ptr<IAudioDevice>>
-SettingsController::GetAudioInputs() const
-{
-    return mAudioDeviceProvider.AudioInputs();
-}
-
-std::unique_ptr<IAudioDevice>
-SettingsController::GetDefaultAudioInput() const
-{
-    return mAudioDeviceProvider.DefaultAudioInput();
-}
-
 std::optional<std::vector<SampleRate>>
 SettingsController::GetSupportedSampleRates(const QByteArray& aDeviceId) const
 {
@@ -88,12 +76,6 @@ SettingsController::GetSupportedChannels(const QByteArray& aDeviceId) const
     return result;
 }
 
-std::unique_ptr<IAudioDevice>
-SettingsController::GetAudioInputById(const QByteArray& aDeviceId) const
-{
-    return mAudioDeviceProvider.GetAudioInputById(aDeviceId);
-}
-
 bool
 SettingsController::StartRecording(const QByteArray& aDeviceId,
                                    ChannelCount aChannels,
@@ -105,16 +87,4 @@ SettingsController::StartRecording(const QByteArray& aDeviceId,
     }
 
     return mRecorder.Start(*device, aChannels, aSampleRate);
-}
-
-void
-SettingsController::StopRecording()
-{
-    mRecorder.Stop();
-}
-
-bool
-SettingsController::IsRecording() const
-{
-    return mRecorder.IsRecording();
 }

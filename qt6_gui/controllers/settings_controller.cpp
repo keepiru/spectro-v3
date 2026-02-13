@@ -6,6 +6,7 @@
 #include "adapters/audio_device.h"
 #include "adapters/media_devices.h"
 #include "audio_types.h"
+#include "controllers/audio_player.h"
 #include "controllers/audio_recorder.h"
 #include "models/settings.h"
 #include <QAudioFormat>
@@ -17,11 +18,13 @@
 SettingsController::SettingsController(Settings& aSettings,
                                        IMediaDevices& aAudioDeviceProvider,
                                        AudioRecorder& aRecorder,
+                                       AudioPlayer& aPlayer,
                                        QObject* aParent)
   : QObject(aParent)
   , mSettings(aSettings)
   , mAudioDeviceProvider(aAudioDeviceProvider)
   , mRecorder(aRecorder)
+  , mPlayer(aPlayer)
 {
 }
 

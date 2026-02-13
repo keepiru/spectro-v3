@@ -81,6 +81,7 @@ SettingsPanel::SettingsPanel(Settings& aSettings,
     // Add group boxes
 
     mainLayout->addWidget(mAudioControlsGroup);
+    mainLayout->addWidget(CreatePlaybackControlsGroup());
     mainLayout->addWidget(CreateFFTControlsGroup());
     CreateColorMapControlsGroup();
     mainLayout->addWidget(mColorMapControlsGroup);
@@ -147,6 +148,37 @@ SettingsPanel::CreateAudioControlsGroup()
     mRecordButton->setObjectName("RecordButton");
     layout->addWidget(mRecordButton);
     connect(mRecordButton, &QPushButton::clicked, this, &SettingsPanel::ToggleRecording);
+
+    return group;
+}
+
+QGroupBox*
+SettingsPanel::CreatePlaybackControlsGroup()
+{
+    auto* group = new QGroupBox("Playback", this);
+    group->setObjectName("PlaybackControlsGroup");
+    auto* layout = new QVBoxLayout(group);
+
+    // Playback button (Start/Stop toggle)
+    mPlaybackButton = new QPushButton("Start Playback", group);
+    mPlaybackButton->setObjectName("PlaybackButton");
+    layout->addWidget(mPlaybackButton);
+
+    // Connect playback button
+    connect(mPlaybackButton, &QPushButton::clicked, this, [this]() {
+        if (mSettingsController.IsPlaying()) {
+            mSettingsController.StopPlaying();
+            mPlaybackButton->setText("Start Playback");
+        } else {
+            const auto result = mSettingsController.StartPlaying();
+            if (result) {
+                mPlaybackButton->setText("Stop Playback");
+            } else {
+                QMessageBox::warning(
+                  this, "Playback Failed", QString::fromStdString(result.error()));
+            }
+        }
+    });
 
     return group;
 }

@@ -22,6 +22,7 @@ add_library(spectro_qt6_gui
     adapters/audio_file_reader.cpp
     adapters/media_devices.cpp
     controllers/audio_file.cpp
+    controllers/audio_player.cpp
     controllers/audio_recorder.cpp
     controllers/settings_controller.cpp
     controllers/spectrogram_controller.cpp

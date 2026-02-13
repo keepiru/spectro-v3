@@ -3,6 +3,7 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "audio_types.h"
+#include "controllers/audio_player.h"
 #include "controllers/audio_recorder.h"
 #include "controllers/settings_controller.h"
 #include "mock_media_devices.h"
@@ -16,14 +17,19 @@
 // NOLINTBEGIN(misc-const-correctness) // False positives with non-const members of the fixture
 // NOLINTBEGIN(bugprone-unchecked-optional-access) // It doesn't understand REQUIRE before access
 
+namespace {
+
 struct SettingsControllerFixture
 {
     Settings settings;
     MockMediaDevices provider;
     AudioBuffer audio_buffer;
     AudioRecorder recorder{ audio_buffer };
-    SettingsController controller{ settings, provider, recorder };
+    AudioPlayer player{ audio_buffer };
+    SettingsController controller{ settings, provider, recorder, player };
 };
+
+} // namespace
 
 TEST_CASE("SettingsController constructor", "[settings_controller]")
 {

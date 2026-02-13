@@ -20,6 +20,12 @@
 |  |                                                         |  |
 |  +---------------------------------------------------------+  |
 |                                                               |
+|  +-- Playback (QGroupBox) ---------------------------------+  |
+|  |                                                         |  |
+|  |  [Start Playback]                                       |  |
+|  |                                                         |  |
+|  +---------------------------------------------------------+  |
+|                                                               |
 |  +-- FFT (QGroupBox) --------------------------------------+  |
 |  |  +-- QFormLayout ------+-----------------------------+  |  |
 |  |  |  Window Type:       | [v Hann                  ]  |  |  |
@@ -115,3 +121,6 @@ QPushButton("Live Mode");
 
 When clicked:
  - Settings::SetLiveMode(true);
+
+## Play Audio button
+QPushButton("Start Playback");

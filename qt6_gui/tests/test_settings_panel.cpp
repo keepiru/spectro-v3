@@ -4,6 +4,7 @@
 
 #include "audio_types.h"
 #include "controllers/audio_file.h"
+#include "controllers/audio_player.h"
 #include "controllers/audio_recorder.h"
 #include "controllers/settings_controller.h"
 #include "include/global_constants.h"
@@ -11,6 +12,7 @@
 #include "models/audio_buffer.h"
 #include "models/colormap.h"
 #include "models/settings.h"
+#include "tests/stub_audio_sink.h"
 #include "views/settings_panel.h"
 #include <QComboBox>
 #include <QLabel>
@@ -19,13 +21,12 @@
 #include <QSlider>
 #include <catch2/catch_test_macros.hpp>
 #include <fft_window.h>
+#include <memory>
 #include <qobject.h>
 #include <qtypes.h>
 #include <stdexcept>
-
-//
-// Test Fixtures
-//
+#include <utility>
+#include <vector>
 
 namespace {
 
@@ -35,9 +36,13 @@ struct TestFixture
     Settings settings;
     AudioBuffer audio_buffer;
     AudioRecorder recorder{ audio_buffer };
+    AudioPlayer::AudioSinkFactory stub_sink_factory = []() {
+        return std::make_unique<StubAudioSink>();
+    };
+    AudioPlayer audio_player{ audio_buffer, stub_sink_factory };
     AudioFile audio_file{ audio_buffer };
     MockMediaDevices device_provider;
-    SettingsController settings_controller{ settings, device_provider, recorder };
+    SettingsController settings_controller{ settings, device_provider, recorder, audio_player };
     SettingsPanel panel{ settings, settings_controller, audio_file };
 };
 
@@ -72,6 +77,14 @@ TEST_CASE("SettingsPanel has named audio controls", "[settings_panel]")
 
     REQUIRE(fixture.panel.GetOpenFileButton() != nullptr);
     REQUIRE(fixture.panel.GetOpenFileButton()->objectName() == "OpenFileButton");
+}
+
+TEST_CASE("SettingsPanel has named playback controls", "[settings_panel]")
+{
+    TestFixture const fixture;
+
+    REQUIRE(fixture.panel.GetPlaybackButton() != nullptr);
+    REQUIRE(fixture.panel.GetPlaybackButton()->objectName() == "PlaybackButton");
 }
 
 TEST_CASE("SettingsPanel has named FFT controls", "[settings_panel]")
@@ -408,12 +421,90 @@ TEST_CASE("SettingsPanel audio controls enabled by default", "[settings_panel]")
 }
 
 //
+// Playback Tests
+//
+
+TEST_CASE("SettingsPanel playback button initial text", "[settings_panel]")
+{
+    TestFixture const fixture;
+
+    REQUIRE(fixture.panel.GetPlaybackButton()->text() == "Start Playback");
+}
+
+TEST_CASE("SettingsPanel playback button starts playback", "[settings_panel]")
+{
+    TestFixture fixture;
+
+    // Add some audio data to the buffer
+    fixture.audio_buffer.Reset(2, 44100);
+    const std::vector<float> samples(1024, 0.5f);
+    fixture.audio_buffer.AddSamples(samples);
+
+    auto* button = fixture.panel.GetPlaybackButton();
+    REQUIRE_FALSE(fixture.settings_controller.IsPlaying());
+
+    // Click the button to start playback
+    button->click();
+
+    REQUIRE(fixture.settings_controller.IsPlaying());
+    REQUIRE(button->text() == "Stop Playback");
+}
+
+TEST_CASE("SettingsPanel playback button stops playback", "[settings_panel]")
+{
+    TestFixture fixture;
+
+    // Add some audio data to the buffer
+    fixture.audio_buffer.Reset(2, 44100);
+    const std::vector<float> samples(1024, 0.5f);
+    fixture.audio_buffer.AddSamples(samples);
+
+    auto* button = fixture.panel.GetPlaybackButton();
+
+    // Start playback
+    button->click();
+    REQUIRE(fixture.settings_controller.IsPlaying());
+
+    // Stop playback
+    button->click();
+    REQUIRE_FALSE(fixture.settings_controller.IsPlaying());
+    REQUIRE(button->text() == "Start Playback");
+}
+
+TEST_CASE("SettingsPanel playback button toggles correctly", "[settings_panel]")
+{
+    TestFixture fixture;
+
+    // Add some audio data to the buffer
+    fixture.audio_buffer.Reset(2, 44100);
+    const std::vector<float> samples(1024, 0.5f);
+    fixture.audio_buffer.AddSamples(samples);
+
+    auto* button = fixture.panel.GetPlaybackButton();
+
+    // Toggle on
+    button->click();
+    REQUIRE(fixture.settings_controller.IsPlaying());
+    REQUIRE(button->text() == "Stop Playback");
+
+    // Toggle off
+    button->click();
+    REQUIRE_FALSE(fixture.settings_controller.IsPlaying());
+    REQUIRE(button->text() == "Start Playback");
+
+    // Toggle on again
+    button->click();
+    REQUIRE(fixture.settings_controller.IsPlaying());
+    REQUIRE(button->text() == "Stop Playback");
+}
+
+//
 // Integration Tests
 //
 
 TEST_CASE("SettingsPanel combined FFT settings change", "[settings_panel]")
 {
-    TestFixture const fixture;
+    const TestFixture fixture;
     const QSignalSpy fftSpy(&fixture.settings, &Settings::FFTSettingsChanged);
 
     auto* windowTypeCombo = fixture.panel.GetWindowTypeComboBox();
@@ -434,7 +525,7 @@ TEST_CASE("SettingsPanel combined FFT settings change", "[settings_panel]")
 
 TEST_CASE("SettingsPanel slider label synchronization", "[settings_panel]")
 {
-    TestFixture const fixture;
+    const TestFixture fixture;
 
     // Test window scale
     fixture.panel.GetWindowScaleSlider()->setValue(0); // Value 1

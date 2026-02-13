@@ -49,6 +49,7 @@ class SettingsPanel : public QWidget
     [[nodiscard]] QComboBox* GetChannelsComboBox() const { return mChannelsComboBox; }
     [[nodiscard]] QPushButton* GetRecordButton() const { return mRecordButton; }
     [[nodiscard]] QPushButton* GetOpenFileButton() const { return mOpenFileButton; }
+    [[nodiscard]] QPushButton* GetPlaybackButton() const { return mPlaybackButton; }
     [[nodiscard]] QComboBox* GetWindowTypeComboBox() const { return mWindowTypeComboBox; }
     [[nodiscard]] QComboBox* GetFFTSizeComboBox() const { return mFFTSizeComboBox; }
     [[nodiscard]] QSlider* GetWindowScaleSlider() const { return mWindowScaleSlider; }
@@ -72,6 +73,10 @@ class SettingsPanel : public QWidget
     /// @brief Create the audio controls group box
     /// @return Pointer to the created group box
     QGroupBox* CreateAudioControlsGroup();
+
+    /// @brief Create the playback controls group box
+    /// @return Pointer to the created group box
+    QGroupBox* CreatePlaybackControlsGroup();
 
     /// @brief Create the FFT controls group box
     /// @return Pointer to the created group box
@@ -117,6 +122,9 @@ class SettingsPanel : public QWidget
     QPushButton* mRecordButton = nullptr;
     QPushButton* mOpenFileButton = nullptr;
     QGroupBox* mAudioControlsGroup = nullptr;
+
+    // Playback controls
+    QPushButton* mPlaybackButton = nullptr;
 
     // FFT controls
     QComboBox* mWindowTypeComboBox = nullptr;

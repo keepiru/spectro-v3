@@ -7,11 +7,14 @@
 #include "adapters/audio_device.h"
 #include "adapters/media_devices.h"
 #include "audio_types.h"
+#include "controllers/audio_player.h"
 #include "controllers/audio_recorder.h"
 #include <QObject>
 #include <array>
+#include <expected>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 // Forward declarations
@@ -33,6 +36,7 @@ class SettingsController : public QObject
     explicit SettingsController(Settings& aSettings,
                                 IMediaDevices& aAudioDeviceProvider,
                                 AudioRecorder& aRecorder,
+                                AudioPlayer& aPlayer,
                                 QObject* aParent = nullptr);
 
     /// @brief Get available audio input devices
@@ -85,10 +89,25 @@ class SettingsController : public QObject
     /// @return true if recording is active
     [[nodiscard]] bool IsRecording() const { return mRecorder.IsRecording(); }
 
+    /// @brief Start playback from the beginning of the audio buffer
+    /// @return std::expected<void, std::string> indicating success or error message.
+    [[nodiscard]] std::expected<void, std::string> StartPlaying()
+    {
+        return mPlayer.Start(FrameIndex{ 0 });
+    }
+
+    /// @brief Stop playback
+    void StopPlaying() { mPlayer.Stop(); }
+
+    /// @brief Check if currently playing
+    /// @return true if playback is active
+    [[nodiscard]] bool IsPlaying() const { return mPlayer.IsPlaying(); }
+
   private:
     Settings& mSettings;
     IMediaDevices& mAudioDeviceProvider;
     AudioRecorder& mRecorder;
+    AudioPlayer& mPlayer;
 
     /// @brief Common sample rates to test for device support
     static constexpr std::array<SampleRate, 8> KValidSampleRates = { 8000,  11025, 16000, 22050,

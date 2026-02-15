@@ -41,9 +41,10 @@ TEST_CASE("SpectrogramController::SetFFTSettings", "[spectrogram_controller]")
         return std::make_unique<FFTWindow>(size, type);
     };
 
-    Settings settings;
-    const AudioBuffer audioBuffer;
-    const SpectrogramController controller(settings, audioBuffer, procSpy, windowSpy);
+    SpectrogramControllerTestFixture fixture{
+        .controller = SpectrogramController(
+          fixture.settings, fixture.audio_buffer, fixture.audio_player, procSpy, windowSpy)
+    };
 
     // Constructor calls with defaults
     REQUIRE(procCalls == (std::vector<FFTSize>{ SpectrogramController::KDefaultFftSize,
@@ -55,7 +56,7 @@ TEST_CASE("SpectrogramController::SetFFTSettings", "[spectrogram_controller]")
                                             SpectrogramController::KDefaultWindowType),
                            }));
 
-    settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
+    fixture.settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
 
     // SetFFTSettings calls again with new settings
     REQUIRE(procCalls == (std::vector<FFTSize>{ SpectrogramController::KDefaultFftSize,
@@ -362,4 +363,24 @@ TEST_CASE("SpectrogramController::GetHzPerBin", "[spectrogram_controller]")
     fixture.audio_buffer.Reset(1, 44100); // 44.1 kHz sample rate
     fixture.settings.SetFFTSettings(1024, FFTWindow::Type::Rectangular);
     CHECK_THAT(fixture.controller.GetHzPerBin(), WithinAbs(43.06640625f, 0.0001f)); // 44100 / 1024
+}
+
+TEST_CASE("SpectrogramController::GetPlaybackFrame", "[spectrogram_controller]")
+{
+    // We're just going to do a basic smoke test here.  The AudioPlayer tests
+    // cover the actual calculation logic.
+
+    SpectrogramControllerTestFixture fixture;
+
+    SECTION("returns std::nullopt when audio player is not playing")
+    {
+        CHECK_FALSE(fixture.controller.GetPlaybackFrame());
+    }
+
+    SECTION("returns correct frame index based on audio player position")
+    {
+        fixture.audio_buffer.AddSamples(std::vector<float>(500, 0)); // 250 frames for stereo
+        REQUIRE(fixture.audio_player.Start(FrameIndex{ 123 }));
+        CHECK(fixture.controller.GetPlaybackFrame() == FrameIndex{ 123 });
+    }
 }

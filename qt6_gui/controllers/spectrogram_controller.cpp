@@ -3,6 +3,7 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "controllers/spectrogram_controller.h"
+#include "controllers/audio_player.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
 #include <QObject>
@@ -13,6 +14,7 @@
 #include <fft_processor.h>
 #include <fft_window.h>
 #include <memory>
+#include <optional>
 #include <span>
 #include <stdexcept>
 #include <utility>
@@ -20,12 +22,14 @@
 
 SpectrogramController::SpectrogramController(const Settings& aSettings,
                                              const AudioBuffer& aAudioBuffer,
+                                             const AudioPlayer& aAudioPlayer,
                                              IFFTProcessor::Factory aFFTProcessorFactory,
                                              FFTWindowFactory aFFTWindowFactory,
                                              QObject* aParent)
   : QObject(aParent)
   , mSettings(aSettings)
   , mAudioBuffer(aAudioBuffer)
+  , mAudioPlayer(aAudioPlayer)
   , mFFTProcessorFactory(std::move(aFFTProcessorFactory))
   , mFFTWindowFactory(std::move(aFFTWindowFactory))
 {
@@ -182,4 +186,10 @@ SpectrogramController::GetHzPerBin() const
     const SampleRate kSampleRate = mAudioBuffer.GetSampleRate();
     const FFTSize kFFTSize = mSettings.GetFFTSize();
     return static_cast<float>(kSampleRate) / static_cast<float>(kFFTSize);
+}
+
+std::optional<FrameIndex>
+SpectrogramController::GetPlaybackFrame() const
+{
+    return mAudioPlayer.CurrentFrame();
 }

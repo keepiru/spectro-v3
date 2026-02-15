@@ -3,6 +3,7 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #pragma once
+#include "controllers/audio_player.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
 #include <QObject>
@@ -12,6 +13,7 @@
 #include <fft_window.h>
 #include <map>
 #include <memory>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -31,6 +33,7 @@ class SpectrogramController : public QObject
     /// @brief Constructor
     /// @param aSettings Reference to application settings model
     /// @param aAudioBuffer Reference to the audio buffer model
+    /// @param aAudioPlayer Reference to the audio player
     /// @param aFFTProcessorFactory Factory function to create FFTProcessor instances (optional)
     /// @param aFFTWindowFactory Factory function to create FFTWindow instances (optional)
     /// @param aParent Qt parent object (optional)
@@ -40,6 +43,7 @@ class SpectrogramController : public QObject
     /// for production use.
     SpectrogramController(const Settings& aSettings,
                           const AudioBuffer& aAudioBuffer,
+                          const AudioPlayer& aAudioPlayer,
                           IFFTProcessor::Factory aFFTProcessorFactory = nullptr,
                           FFTWindowFactory aFFTWindowFactory = nullptr,
                           QObject* aParent = nullptr);
@@ -110,9 +114,14 @@ class SpectrogramController : public QObject
     /// @return Frequency resolution in Hz
     [[nodiscard]] float GetHzPerBin() const;
 
+    /// @brief Get the current playback position from the audio player
+    /// @return Current playback position as FrameIndex, or std::nullopt if not playing
+    [[nodiscard]] std::optional<FrameIndex> GetPlaybackFrame() const;
+
   private:
     const Settings& mSettings;       // Reference to application settings model
     const AudioBuffer& mAudioBuffer; // Reference to audio buffer model
+    const AudioPlayer& mAudioPlayer; // Reference to audio player
 
     // FFT processing components (per channel)
     std::vector<std::unique_ptr<IFFTProcessor>> mFFTProcessors;

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "adapters/audio_sink.h"
+#include "controllers/audio_player.h"
 #include <QIODevice>
 #include <memory>
 
@@ -18,6 +19,13 @@ class StubAudioSink : public IAudioSink
 
     /// @brief Set the value returned by ProcessedUSecs() for testing
     void SetProcessedUSecs(qint64 aUSecs) { mProcessedUSecs = aUSecs; }
+
+    /// @brief Get a factory function for creating instances of StubAudioSink
+    /// @return A factory function that creates a new StubAudioSink instance.
+    static AudioPlayer::AudioSinkFactory GetFactory()
+    {
+        return []() { return std::make_unique<StubAudioSink>(); };
+    }
 
   private:
     qint64 mProcessedUSecs{ 0 };

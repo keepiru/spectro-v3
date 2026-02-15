@@ -6,10 +6,14 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <expected>
 #include <format>
 #include <limits>
+#include <optional>
+#include <ostream>
 #include <sndfile.h>
 #include <stdexcept>
+#include <string>
 
 // Forward declarations
 class FrameCount;
@@ -55,6 +59,34 @@ class Base
     [[nodiscard]] constexpr T Get(this const Self& aSelf) noexcept
     {
         return aSelf.mValue;
+    }
+
+    /// @brief Output stream operator to print the underlying value
+    /// @note This is useful for debugging and test output.
+    friend std::ostream& operator<<(std::ostream& aOS, const Base& aBase)
+    {
+        return aOS << aBase.mValue;
+    }
+
+    /// @brief Output stream operator for std::optional<Base>
+    /// @note This is useful for debugging and test output of optional values.
+    friend std::ostream& operator<<(std::ostream& aOS, const std::optional<Base>& aBase)
+    {
+        if (aBase) {
+            return aOS << *aBase;
+        }
+        return aOS << "nullopt";
+    }
+
+    /// @brief Output stream operator for std::expected<Base, E>
+    /// @note This is useful for debugging and test output of expected values.
+    friend std::ostream& operator<<(std::ostream& aOS,
+                                    const std::expected<Base, std::string>& aBase)
+    {
+        if (aBase) {
+            return aOS << *aBase;
+        }
+        return aOS << "Error: " << aBase.error();
     }
 
   private:

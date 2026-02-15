@@ -5,10 +5,14 @@
 #include <audio_types.h>
 #include <catch2/catch_test_macros.hpp>
 #include <cstddef>
+#include <expected>
 #include <limits>
 #include <map>
+#include <optional>
 #include <sndfile.h>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <utility>
 
@@ -329,5 +333,37 @@ TEST_CASE("FramePosition", "[audio_types]")
         const FFTSize kFFTSize = 256;
         const auto kEnd = kStart + kCount + kFFTSize;
         CHECK(kEnd.Get() == 406);
+    }
+}
+
+TEST_CASE("operator<<", "[audio_types]")
+{
+    const auto kStringify = [](const auto& value) {
+        std::ostringstream oss;
+        oss << value;
+        return oss.str();
+    };
+
+    SECTION("FrameCount")
+    {
+        CHECK(kStringify(FrameCount(123)) == "123");
+    }
+
+    SECTION("std::optional<FrameCount>")
+    {
+        std::optional<FrameCount> optValue = FrameCount(456);
+        CHECK(kStringify(optValue) == "456");
+
+        optValue = std::nullopt;
+        CHECK(kStringify(optValue) == "nullopt");
+    }
+
+    SECTION("std::expected<FrameCount, std::string>")
+    {
+        std::expected<FrameCount, std::string> expectedValue = FrameCount(789);
+        CHECK(kStringify(expectedValue) == "789");
+
+        expectedValue = std::unexpected("I'm unhappy");
+        CHECK(kStringify(expectedValue) == "Error: I'm unhappy");
     }
 }

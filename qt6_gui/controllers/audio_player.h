@@ -12,6 +12,7 @@
 #include <expected>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -51,11 +52,20 @@ class AudioPlayer : public QObject
     /// @return true if playback is active.
     [[nodiscard]] bool IsPlaying() const { return mAudioSink != nullptr; }
 
+    /// @brief Get the current frame being played back
+    /// @return FrameIndex of the current playback position, or std::nullopt if not playing
+    [[nodiscard]] std::optional<FrameIndex> CurrentFrame() const;
+
   private:
     /// @brief Create an AudioSink for the system's default audio output device.
     /// @return A factory function that creates an AudioSink with the buffer's format.
     /// @note This implementation is used in production.
     AudioSinkFactory DefaultAudioSinkFactory();
+
+    // The frame index where playback started.  This is used as a reference
+    // point to calculate the current frame based on the elapsed time from the
+    // audio sink.
+    FrameIndex mStartFrame{ 0 };
 
     AudioBuffer& mAudioBuffer;
     AudioSinkFactory mAudioSinkFactory;

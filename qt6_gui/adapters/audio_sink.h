@@ -22,6 +22,10 @@ class IAudioSink
 
     /// @brief Stop audio playback
     virtual void Stop() = 0;
+
+    /// @brief Get the number of microseconds of audio that have been processed by the sink.
+    /// @return The number of microseconds of audio that have been processed since Start().
+    [[nodiscard]] virtual qint64 ProcessedUSecs() const = 0;
 };
 
 /// @brief Concrete implementation of IAudioSink wrapping QAudioSink
@@ -58,6 +62,8 @@ class AudioSink : public IAudioSink
         mAudioSink.stop();
         mSourceQIODevice.reset();
     }
+
+    [[nodiscard]] qint64 ProcessedUSecs() const override { return mAudioSink.processedUSecs(); }
 
   private:
     std::unique_ptr<QIODevice> mSourceQIODevice;

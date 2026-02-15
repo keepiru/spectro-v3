@@ -8,8 +8,10 @@
 #include "audio_types.h"
 #include <QAudioFormat>
 #include <QAudioSink>
+#include <cstdint>
 #include <expected>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -36,6 +38,7 @@ AudioPlayer::Start(FrameIndex aStartFrame)
         return std::unexpected("Failed to seek to start frame in AudioBufferQIODevice");
     }
 
+    mStartFrame = aStartFrame;
     mAudioSink->Start(std::move(audioBufferQIODevice));
     return {};
 }
@@ -56,4 +59,16 @@ AudioPlayer::DefaultAudioSinkFactory()
         const QAudioFormat kFormat = mAudioBuffer.GetAudioFormat();
         return std::make_unique<AudioSink>(kFormat);
     };
+}
+
+std::optional<FrameIndex>
+AudioPlayer::CurrentFrame() const
+{
+    if (!IsPlaying()) {
+        return std::nullopt;
+    }
+    const SampleRate kSampleRate = mAudioBuffer.GetSampleRate();
+    const uint64_t kProcessedUSecs = mAudioSink->ProcessedUSecs();
+    const FrameCount kProcessedFrames{ kProcessedUSecs * kSampleRate / 1'000'000 };
+    return mStartFrame + kProcessedFrames;
 }

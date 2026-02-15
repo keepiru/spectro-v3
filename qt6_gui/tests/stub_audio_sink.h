@@ -12,6 +12,13 @@
 class StubAudioSink : public IAudioSink
 {
   public:
-    void Start(std::unique_ptr<QIODevice> /*aSourceQIODevice*/) noexcept override {}
-    void Stop() noexcept override {}
+    void Start(std::unique_ptr<QIODevice> /*aSourceQIODevice*/) override {}
+    void Stop() override {}
+    [[nodiscard]] qint64 ProcessedUSecs() const override { return mProcessedUSecs; }
+
+    /// @brief Set the value returned by ProcessedUSecs() for testing
+    void SetProcessedUSecs(qint64 aUSecs) { mProcessedUSecs = aUSecs; }
+
+  private:
+    qint64 mProcessedUSecs{ 0 };
 };

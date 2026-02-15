@@ -5,6 +5,7 @@
 #include "controllers/spectrogram_controller.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
+#include "tests/spectrogram_controller_test_fixture.h"
 #include <audio_types.h>
 #include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -20,18 +21,6 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
-
-namespace {
-
-/// @brief Common fixture for SpectrogramController tests
-struct SpectrogramControllerTestFixture
-{
-    Settings settings;
-    AudioBuffer audio_buffer;
-    SpectrogramController controller{ settings, audio_buffer, MockFFTProcessor::GetFactory() };
-};
-
-} // namespace
 
 TEST_CASE("SpectrogramController constructor", "[spectrogram_controller]")
 {

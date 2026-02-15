@@ -7,6 +7,7 @@
 #include "fft_window.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
+#include "tests/spectrogram_controller_test_fixture.h"
 #include "views/spectrogram_view.h"
 #include <QAbstractScrollArea>
 #include <QAbstractSlider>
@@ -26,7 +27,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <format>
-#include <mock_fft_processor.h>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -70,11 +70,8 @@ QImageToString(const QImage& image)
 }
 
 /// @brief Common test fixture for SpectrogramView tests
-struct SpectrogramViewTestFixture
+struct SpectrogramViewTestFixture : public SpectrogramControllerTestFixture
 {
-    Settings settings;
-    AudioBuffer audio_buffer;
-    SpectrogramController controller{ settings, audio_buffer, MockFFTProcessor::GetFactory() };
     TestableSpectrogramView view{ controller };
 };
 

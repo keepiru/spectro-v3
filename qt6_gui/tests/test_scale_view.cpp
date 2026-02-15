@@ -3,10 +3,9 @@
 // Copyright (C) 2025-2026 Chris "Kai" Frederick
 
 #include "audio_types.h"
-#include "controllers/spectrogram_controller.h"
 #include "fft_window.h"
-#include "models/audio_buffer.h"
 #include "models/settings.h"
+#include "tests/spectrogram_controller_test_fixture.h"
 #include "views/scale_view.h"
 #include <QImage>
 #include <QPainter>
@@ -15,7 +14,6 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 #include <cstddef>
-#include <mock_fft_processor.h>
 #include <optional>
 #include <sstream>
 #include <vector>
@@ -36,11 +34,8 @@ class TestableScaleView : public ScaleView
 };
 
 /// @brief Common test fixture for ScaleView tests
-struct ScaleViewTestFixture
+struct ScaleViewTestFixture : public SpectrogramControllerTestFixture
 {
-    Settings settings;
-    AudioBuffer audio_buffer;
-    SpectrogramController controller{ settings, audio_buffer, MockFFTProcessor::GetFactory() };
     TestableScaleView view{ controller };
 };
 

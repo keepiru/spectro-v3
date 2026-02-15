@@ -6,6 +6,7 @@
 #include "fft_window.h"
 #include "models/audio_buffer.h"
 #include "models/settings.h"
+#include "tests/spectrogram_controller_test_fixture.h"
 #include "views/spectrum_plot.h"
 #include <QImage>
 #include <QLine>
@@ -23,7 +24,6 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_exception.hpp>
 #include <cstddef>
-#include <mock_fft_processor.h>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -50,11 +50,8 @@ class TestableSpectrumPlot : public SpectrumPlot
 };
 
 /// @brief Common test fixture for SpectrumPlot tests
-struct SpectrumPlotTestFixture
+struct SpectrumPlotTestFixture : public SpectrogramControllerTestFixture
 {
-    Settings settings;
-    AudioBuffer audio_buffer;
-    SpectrogramController controller{ settings, audio_buffer, MockFFTProcessor::GetFactory() };
     TestableSpectrumPlot plot{ controller };
 };
 
